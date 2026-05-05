@@ -1,0 +1,330 @@
+/* static/css/custom.css — Brand overrides for Bootstrap 5 */
+
+/* ========== CSS VARIABLES 
+:root {
+    --brand-dark: #191224;
+    --brand-orange: #F7941D;
+    --brand-light: #ffffff;
+    --brand-gray: #8892b0;
+    --transition-speed: 0.3s;
+}
+===========*/
+:root {
+    --brand-dark: #1B4332;        /* replaces #191224 */
+    --brand-orange: #FFC107;      /* replaces #F7941D */
+    --brand-light: #FEFAE0;       /* replaces #f5f5f2 */
+    --brand-gray: #6B705C;        /* for muted text */
+    --transition-speed: 0.3s;
+}
+
+
+
+/* ========== GLOBAL ========== */
+body {
+    background-color: var(--brand-light);
+    color: var(--brand-dark);
+    font-family: 'Outfit', sans-serif;
+    overflow-x: hidden;
+}
+
+/*========== Hero section ======== */
+
+
+/* Ensure carousel sits below the fixed navbar */
+.hero-section {
+  margin-top: 70px; /* adjust if your navbar height differs */
+}
+
+/* Make all hero slides uniformly tall and responsive */
+.hero-slide {
+  min-height: 80vh;           /* desktop height */
+  background-size: cover;
+  background-position: center;
+}
+
+/* Mobile adjustment */
+@media (max-width: 768px) {
+  .hero-slide {
+    min-height: 60vh;
+  }
+  
+  .hero-section {
+    margin-top: 60px;         /* smaller navbar on mobile? */
+  }
+}
+
+/* Smooth fade transition (optional, already in carousel-fade) */
+.carousel-fade .carousel-item {
+  transition: opacity 0.8s ease-in-out;
+}
+.carousel-fade .carousel-item.active {
+  opacity: 1;
+}
+
+/* ========== NAVBAR OVERRIDES ========== */
+.brand-logo {
+    height: 50px;
+    width: auto;
+    border-radius: 8px;
+}
+.navbar {
+    transition: box-shadow var(--transition-speed);
+}
+.nav-link {
+    font-weight: 600;
+    color: #333 !important;
+    transition: color var(--transition-speed);
+    padding: 0.5rem 1rem !important;
+}
+.nav-link:hover,
+.nav-link.active {
+    color: var(--brand-orange) !important;
+}
+
+/* ========== BUTTONS ========== */
+.btn-prime {
+    background-color: var(--brand-orange);
+    color: #fff !important;
+    font-weight: 600;
+    transition: all var(--transition-speed);
+    animation: btnPulse 2s infinite;
+}
+.btn-prime:hover {
+    background-color: var(--brand-orange);
+    transform: scale(1.05);
+    color: #fff;
+}
+.btn-orange {
+    background-color: var(--brand-orange);
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    transition: all var(--transition-speed);
+}
+.btn-orange:hover {
+    background-color: var(--brand-dark);
+    color: #fff;
+    transform: translateY(-2px);
+}
+.btn-outline-orange {
+    border: 0px solid var(--brand-orange);
+    color: var(--brand-orange);
+    background: transparent;
+    font-weight: 600;
+    transition: all var(--transition-speed);
+}
+.btn-outline-orange:hover,
+.btn-outline-orange.active {
+    background-color: var(--brand-orange);
+    color: #fff;
+}
+
+/* ========== FOOTER ========== */
+.bg-brand-dark {
+    background-color: var(--brand-dark);
+}
+.footer-link {
+    color: #ccc;
+    text-decoration: none;
+    transition: color var(--transition-speed);
+}
+.footer-link:hover {
+    color: var(--brand-orange);
+}
+.social-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: var(--brand-dark);
+    color: #fff;
+    border-radius: 50%;
+    text-decoration: none;
+    transition: all var(--transition-speed);
+}
+.social-icon:hover {
+    background-color: var(--brand-orange);
+    color: #fff;
+    transform: scale(1.1);
+}
+
+/* ========== HERO SECTIONS ========== */
+.courses-hero {
+    background: linear-gradient(
+        90deg,
+        rgba(25, 18, 36, 0.95) 0%,
+        rgba(25, 18, 36, 0.75) 35%,
+        rgba(25, 18, 36, 0.3) 70%,
+        rgba(25, 18, 36, 0) 100%
+        ),
+    url('../img/img 5.png') center right / cover no-repeat;
+    min-height: 75vh;
+    padding: 180px 0 100px;
+    position: relative;
+}
+.courses-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        circle at 30% 50%,
+        rgba(247, 148, 29, 0.08) 0%,
+        transparent 60%
+    );
+    pointer-events: none;
+}
+.hero-heading-typewriter {
+    border-right: 3px solid var(--brand-orange);
+    animation: typing 3.5s steps(30, end), blinkCaret 0.75s step-end infinite;
+    white-space: nowrap;
+    overflow: hidden;
+    width: fit-content;
+}
+.hero-subtitle {
+    opacity: 0;
+    animation: fadeInUp 1s ease 3.8s forwards;
+}
+
+/* ========== COURSE LISTINGS ========== */
+.course-thumb {
+    height: 180px;
+    object-fit: cover;
+}
+.course-thumb-placeholder {
+    height: 180px;
+    background-color: #eee;
+}
+.course-listing {
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+.course-listing:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(25, 18, 36, 0.08);
+}
+.course-item-wrapper {
+    display: flex;
+}
+
+/* ========== TESTIMONIALS ========== */
+.testimonials-track {
+    transition: transform 0.6s cubic-bezier(0.77, 0, 0.18, 1);
+}
+.testimonial-slide {
+    min-width: 100%;
+}
+
+/* ========== BACK TO TOP ========== */
+#backToTop {
+    display: none;
+    position: fixed;
+    bottom: 40px;
+    right: 30px;
+    z-index: 999;
+    font-size: 1.5rem;
+    background: var(--brand-orange);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all var(--transition-speed);
+}
+#backToTop:hover {
+    background: var(--brand-dark);
+    transform: scale(1.1);
+}
+
+/* ========== UTILITY CLASSES ========== */
+.text-brand-dark {
+    color: var(--brand-dark) !important;
+}
+.text-brand-orange {
+    color: var(--brand-orange) !important;
+}
+.bg-brand-dark {
+    background-color: var(--brand-dark) !important;
+}
+.bg-orange {
+    background-color: var(--brand-orange) !important;
+}
+.border-orange {
+    border-color: var(--brand-orange) !important;
+}
+.border-white-10 {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ========== ANIMATIONS ========== */
+@keyframes typing {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
+@keyframes blinkCaret {
+    from,
+    to {
+        border-color: transparent;
+    }
+    50% {
+        border-color: var(--brand-orange);
+    }
+}
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes btnPulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(247, 148, 29, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(247, 148, 29, 0);
+    }
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .courses-hero {
+        min-height: 50vh;
+        padding: 140px 0 60px;
+        background-position: center;
+    }
+    .hero-heading-typewriter {
+        white-space: normal;
+        border-right: none;
+        animation: fadeInUp 1s ease forwards;
+        width: 100%;
+    }
+    .hero-subtitle {
+        animation: fadeInUp 1s ease 0.5s forwards;
+    }
+    .brand-logo {
+        height: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .courses-hero {
+        min-height: 40vh;
+        padding: 100px 0 40px;
+    }
+    #backToTop {
+        width: 40px;
+        height: 40px;
+        bottom: 20px;
+        right: 15px;
+    }
+}

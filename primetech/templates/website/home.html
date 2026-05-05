@@ -1,0 +1,395 @@
+{% extends 'website/base.html' %}
+{% load static %}
+{% block title %}PrimeTech Foundation – Empower Through Tech{% endblock %}
+{% block content %}
+
+<!-- Hero Carousel -->
+<section class="hero-section">
+  <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+    
+    <!-- Indicators -->
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+      <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+      <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
+    </div>
+
+    <!-- Slides Wrapper -->
+    <div class="carousel-inner">
+      
+      <!-- Slide 1 -->
+      <div class="carousel-item active">
+        <div class="hero-slide d-flex align-items-center"
+             style="background: linear-gradient(90deg, rgba(25,18,36,0.95) 0%, rgba(25,18,36,0.7) 40%, rgb(27, 67, 50) 100%), url('{% static "img/img 1.png" %}') center/cover no-repeat;">
+          <div class="container">
+            <div class="row">
+              <div class="col-lg-7 text-white" data-aos="fade-up">
+                <h2 class="display-3 fw-bold mb-3">PrimeTech Foundation</h2>
+                <p class="fs-4 text-brand-orange fw-semibold mb-3">Empowering Youth Through Technology</p>
+                <p class="lead mb-4">Join our free courses and build a career in tech with hands-on projects</p>
+                <a href="#" class="btn btn-orange btn-lg rounded-pill px-4">
+                  Start Your Journey <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 2 -->
+      <div class="carousel-item">
+        <div class="hero-slide d-flex align-items-center justify-content-end"
+             style="background: linear-gradient(90deg, rgb(27, 67, 50) 0%, rgba(25,18,36,0.4) 30%, rgba(25,18,36,0.9) 100%), url('{% static "img/img 2.png" %}') center/cover no-repeat;">
+          <div class="container">
+            <div class="row justify-content-end">
+              <div class="col-lg-6 text-white text-lg-end" data-aos="fade-left">
+                <h2 class="display-3 fw-bold mb-3">Learn. Build. Grow.</h2>
+                <p class="lead mb-4">Hands-on training with industry experts and real-world projects</p>
+                <a href="{% url 'about' %}" class="btn btn-orange btn-lg rounded-pill px-4">
+                  Discover More <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 3 -->
+      <div class="carousel-item">
+        <div class="hero-slide d-flex align-items-center justify-content-center text-center"
+             style="background: radial-gradient(circle, rgba(25,18,36,0.9) 0%, rgb(27, 67, 50) 70%), url('{% static "img/img 1.png" %}') center/cover no-repeat;">
+          <div class="container">
+            <div class="col-lg-8 mx-auto text-white" data-aos="zoom-in">
+              <h2 class="display-3 fw-bold mb-3">Your Tech Journey Starts Here</h2>
+              <p class="lead mb-4">No experience needed. Start from scratch and build in-demand skills</p>
+              <a href="{% url 'courses' %}" class="btn btn-orange btn-lg rounded-pill px-4">
+                Enroll Now <i class="fas fa-rocket ms-2"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Controls -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+
+  </div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="py-5 bg-brand-dark">
+    <div class="container text-center">
+        <div class="mb-5" data-aos="fade-up">
+            <h2 class="display-5 fw-bold text-white">Why Choose Us</h2>
+            <p class="fs-5 text-brand-orange">Here is what sets PrimeTech Foundation apart.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="bg-brand-dark text-white p-4 rounded-3 border border-secondary">
+                    <i class="fas fa-lightbulb fa-3x text-brand-orange mb-3"></i>
+                    <h3 class="h5 fw-bold">Innovative Solutions</h3>
+                    <p class="small text-white-50">We provide creative and modern tech-based solutions that make lasting impact.</p>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="bg-brand-dark text-white p-4 rounded-3 border border-secondary">
+                    <i class="fas fa-handshake fa-3x text-brand-orange mb-3"></i>
+                    <h3 class="h5 fw-bold">Strong Partnerships</h3>
+                    <p class="small text-white-50">We collaborate with organizations and individuals to achieve mutual goals.</p>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="bg-brand-dark text-white p-4 rounded-3 border border-secondary">
+                    <i class="bx bx-group fa-3x text-brand-orange mb-3"></i>
+                    <h3 class="h5 fw-bold">Community Focused</h3>
+                    <p class="small text-white-50">We are deeply rooted in community development and empowerment.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row g-4 mt-2">
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="bg-brand-dark text-white p-4 rounded-3 border border-secondary">
+                    <i class="bx bx-rocket fa-3x text-brand-orange mb-3"></i>
+                    <h3 class="h5 fw-bold">Youth Empowerment</h3>
+                    <p class="small text-white-50">Our programs uplift and empower young people with digital skills.</p>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="bg-brand-dark text-white p-4 rounded-3 border border-secondary">
+                    <i class="fas fa-lock fa-3x text-brand-orange mb-3"></i>
+                    <h3 class="h5 fw-bold">Integrity & Transparency</h3>
+                    <p class="small text-white-50">We uphold high ethical standards in every aspect of our operations.</p>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="bg-brand-dark text-white p-4 rounded-3 border border-secondary">
+                    <i class="fas fa-clock fa-3x text-brand-orange mb-3"></i>
+                    <h3 class="h5 fw-bold">Self Paced Learning</h3>
+                    <p class="small text-white-50">With our flexible approach, you can study at your own pace from our LMS.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% comment %}
+<!-- Services -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="display-5 fw-bold text-brand-dark">Our Services</h2>
+            <p class="fs-5 text-muted">We offer innovative digital services to empower schools, businesses, and communities.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="p-4 bg-white rounded-3 border-start border-4 border-orange">
+                    <h4 class="fw-bold text-brand-dark">Graphic Design & Branding</h4>
+                    <p class="small text-muted">Professional designs for logos, posters, business cards, and more.</p>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="p-4 bg-white rounded-3 border-start border-4 border-orange">
+                    <h4 class="fw-bold text-brand-dark">Digital Training for Teachers</h4>
+                    <p class="small text-muted">Empowering educators with essential ICT skills and digital literacy.</p>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="p-4 bg-white rounded-3 border-start border-4 border-orange">
+                    <h4 class="fw-bold text-brand-dark">CV & Cover Letter Writing</h4>
+                    <p class="small text-muted">Polished CVs and cover letters tailored to your career goals.</p>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="p-4 bg-white rounded-3 border-start border-4 border-orange">
+                    <h4 class="fw-bold text-brand-dark">Mass Certificate Processing</h4>
+                    <p class="small text-muted">Batch generation for workshops, conferences, schools, and seminars.</p>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="p-4 bg-white rounded-3 border-start border-4 border-orange">
+                    <h4 class="fw-bold text-brand-dark">Web & System Development</h4>
+                    <p class="small text-muted">Custom websites and software systems tailored to your needs.</p>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="p-4 bg-white rounded-3 border-start border-4 border-orange">
+                    <h4 class="fw-bold text-brand-dark">SME & Local Business Training</h4>
+                    <p class="small text-muted">Helping small businesses adopt digital tools and technology.</p>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-4" data-aos="zoom-in">
+            <a href="#" class="btn btn-orange rounded-pill px-4" onclick="redirectToWhatsApp()">
+                Request a Service on WhatsApp
+            </a>
+        </div>
+    </div>
+</section>
+{% endcomment %}
+
+<!-- Statistics session -->
+{% if statistics %}
+<section class="py-5 bg-brand-dark text-white">
+    <div class="container">
+        <div class="row g-4 text-center">
+            {% for stat in statistics %}
+            <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
+                <div class="p-3">
+                    {% if stat.icon %}
+                    <i class="{{ stat.icon }} fa-3x text-brand-orange mb-3"></i>
+                    {% endif %}
+                    <div class="fs-1 fw-bold counter" data-target="{{ stat.value }}">0</div>
+                    <p class="text-uppercase small text-white-50">{{ stat.title }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+
+<!-- Popular Courses (static preview) -->
+<section class="py-5 bg-brand-dark">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="display-5 fw-bold text-white">Popular Courses</h2>
+            <p class="fs-5 text-brand-orange">Hands‑on programs to launch your tech career</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4" data-aos="zoom-in" data-aos-delay="100">
+                <div class="bg-white rounded-3 overflow-hidden h-100">
+                    <img src="{% static 'img/img 3.png' %}" alt="Artificial Intelligence" class="w-100" style="height:180px;object-fit:cover;">
+                    <div class="p-3">
+                        <h4 class="fw-bold text-brand-dark">Artificial Intelligence</h4>
+                        <p class="small text-muted">Hands-on projects and industry-ready skills to build AI systems.</p>
+                        <a href="{% url 'courses' %}" class="btn btn-outline-orange rounded-pill w-100">View Course</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="zoom-in" data-aos-delay="200">
+                <div class="bg-white rounded-3 overflow-hidden h-100">
+                    <img src="{% static 'img/img 4.png' %}" alt="Google Workspace" class="w-100" style="height:180px;object-fit:cover;">
+                    <div class="p-3">
+                        <h4 class="fw-bold text-brand-dark">Google Workspace</h4>
+                        <p class="small text-muted">Learn to use Google Workspace tools for productivity and collaboration.</p>
+                        <a href="{% url 'courses' %}" class="btn btn-outline-orange rounded-pill w-100">View Course</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="zoom-in" data-aos-delay="300">
+                <div class="bg-white rounded-3 overflow-hidden h-100">
+                    <img src="{% static 'img/img 5.png' %}" alt="Web Development" class="w-100" style="height:180px;object-fit:cover;">
+                    <div class="p-3">
+                        <h4 class="fw-bold text-brand-dark">Web Development</h4>
+                        <p class="small text-muted">From HTML/CSS to modern JS frameworks — build real websites.</p>
+                        <a href="{% url 'courses' %}" class="btn btn-outline-orange rounded-pill w-100">View Course</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-5" data-aos="fade-up">
+            <a href="{% url 'courses' %}" class="btn btn-orange btn-lg rounded-pill px-5">View All Courses</a>
+        </div>
+    </div>
+</section>
+
+<!-- ========== NEW: How It Works ========== -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="display-5 fw-bold text-brand-dark">How It Works</h2>
+            <p class="fs-5 text-muted brand-dark">Your journey to a tech career in four simple steps</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="text-center">
+                    <div class="bg-brand-orange text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width:80px; height:80px;">
+                        <i class="fas fa-search fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold">1. Browse Courses</h5>
+                    <p class="text-muted small">Explore our free digital skills programs.</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="text-center">
+                    <div class="bg-brand-orange text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width:80px; height:80px;">
+                        <i class="fas fa-file-alt fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold">2. Apply Online</h5>
+                    <p class="text-muted small">Fill a quick form – no experience needed.</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="text-center">
+                    <div class="bg-brand-orange text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width:80px; height:80px;">
+                        <i class="fas fa-user-check fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold">3. Get Enrolled</h5>
+                    <p class="text-muted small">Receive confirmation and start learning.</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="400">
+                <div class="text-center">
+                    <div class="bg-brand-orange text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width:80px; height:80px;">
+                        <i class="fas fa-laptop-code fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold">4. Start Learning</h5>
+                    <p class="text-muted small">Join live classes and build projects.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 bg-light text-center">
+    <div class="container" data-aos="zoom-in">
+        <h2 class="display-6 fw-bold text-brand-dark mb-3">Ready to Start Your Journey?</h2>
+        <p class="fs-5 text-muted mb-4">Join us today and become part of the change. We believe in your potential!</p>
+        <a href="{% url 'courses' %}" class="btn btn-orange btn-lg rounded-pill px-5">Apply Now and Change Your Future</a>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="py-5 bg-brand-dark border-top border-orange">
+    <div class="container">
+        <h2 class="text-center text-brand-orange mb-5 display-6 fw-bold">
+            What Our Students Say
+        </h2>
+        <div class="testimonials-slider-wrapper position-relative mx-auto" style="max-width:700px;">
+            <div class="testimonials-track d-flex overflow-hidden" id="testimonialsTrack">
+                {% for testimonial in testimonials %}
+                <div class="testimonial-slide flex-shrink-0 w-100 px-2">
+                    <div class="bg-white rounded-3 p-4">
+                        <i class="fas fa-quote-left text-brand-orange fs-3 mb-2"></i>
+                        <p class="text-muted">{{ testimonial.content }}</p>
+                        <div class="d-flex align-items-center gap-3 mt-3 pt-3 border-top border-light">
+                            {% if testimonial.photo %}
+                            <img src="{{ testimonial.photo.url }}"
+                            alt="{{ testimonial.name }}"
+                            class="rounded-circle border border-2 border-orange"
+                            width="50" height="50"
+                            style="object-fit:cover;" />
+                            {% endif %}
+                            <div>
+                                <h4 class="h6 fw-bold mb-0 text-brand-dark">{{ testimonial.name }}</h4>
+                                <span class="small text-brand-orange">{{ testimonial.role }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="testimonial-slide flex-shrink-0 w-100 px-2">
+                    <div class="bg-white rounded-3 p-4 text-center text-muted">
+                        <p>Testimonials coming soon!</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="testimonial-arrow left position-absolute top-50 start-0 translate-middle-y
+            btn btn-orange rounded-circle d-flex align-items-center justify-content-center"
+            style="width:44px;height:44px;z-index:2;" aria-label="Previous">
+            ‹
+        </button>
+        <button class="testimonial-arrow right position-absolute top-50 end-0 translate-middle-y
+        btn btn-orange rounded-circle d-flex align-items-center justify-content-center"
+        style="width:44px;height:44px;z-index:2;" aria-label="Next">
+        ›
+    </button>
+</div>
+</div>
+</section>
+<!-- ========== NEW: Newsletter Signup ========== -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 text-center" data-aos="fade-up">
+                <h2 class="display-6 fw-bold text-brand-dark mb-3">Stay in Touch</h2>
+                <p class="text-muted mb-4">Subscribe to our newsletter for new courses, events, and impact stories.</p>
+                <form class="d-flex flex-column flex-sm-row gap-2" method="post" action="{% url 'newsletter_signup' %}">
+                    {% csrf_token %}
+                    <input type="email" name="email" class="form-control form-control-lg rounded-pill" 
+                           placeholder="your@email.com" required>
+                    <button type="submit" class="btn btn-orange rounded-pill px-4">Subscribe</button>
+                </form>
+                <p class="small text-muted mt-2">We respect your privacy. Unsubscribe anytime.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends 'website/base.html' %}
+{% load static %}
+
+{% block title %}About PrimeTech Foundation{% endblock %}
+
+{% block extra_css %}
+<style>
+    .story-bg {
+        background: linear-gradient(90deg, rgb(27, 67, 50) 0%, rgb(27, 67, 50) 30%, rgb(27, 67, 50) 50%, transparent 100%),
+                    url('{% static "img/about us.jpg" %}') right center / cover no-repeat;
+    }
+    .team-member img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 30%;
+        border-bottom: 5px solid var(--brand-orange);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Our Story -->
+<section class="story-bg text-white py-5" data-aos="fade-right">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold text-brand-orange mb-4 typewriter">Our Story</h1>
+                <p class="lead">
+                    Millions of youths in slum areas face unemployment due to a lack of technical skills and opportunities.
+                    PrimeTech Foundation aims to bridge this gap by equipping them with digital skills, thereby increasing their
+                    chances of securing remote jobs, freelancing opportunities, or starting their own tech-based ventures.
+                </p>
+                <p>
+                    Through our programs, we empower young people to unlock their potential, build sustainable careers, and
+                    contribute to the growth of their communities. Our commitment is to create lasting impact by fostering
+                    innovation, mentorship, and access to technology for all.
+                </p>
+                <a href="#" class="btn btn-orange rounded-pill px-4" target="_blank">Read More</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mission & Vision -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-6" data-aos="fade-up">
+                <div class="bg-brand-dark text-white p-4 rounded-3 text-center h-100">
+                    <h2 class="h3 text-brand-orange mb-3">Our Mission</h2>
+                    <p>To empower youths in slum areas with digital skills, fostering self-employment and reducing unemployment.</p>
+                </div>
+            </div>
+            <div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="bg-brand-dark text-white p-4 rounded-3 text-center h-100">
+                    <h2 class="h3 text-brand-orange mb-3">Our Vision</h2>
+                    <p>A world where every youth has access to digital education and opportunities for economic growth.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Objectives -->
+<section class="py-5 bg-brand-dark text-white">
+    <div class="container" data-aos="fade-up">
+        <h2 class="text-center text-brand-orange display-5 mb-5">Our Objectives</h2>
+        <div class="row g-3">
+            <div class="col-md-6 col-lg-4" data-aos="zoom-in" data-aos-delay="100">
+                <div class="bg-light text-dark p-3 rounded-3">1. Provide digital skills training to 500+ youths annually.</div>
+            </div>
+            <div class="col-md-6 col-lg-4" data-aos="zoom-in" data-aos-delay="200">
+                <div class="bg-light text-dark p-3 rounded-3">2. Facilitate mentorship and career guidance.</div>
+            </div>
+            <div class="col-md-6 col-lg-4" data-aos="zoom-in" data-aos-delay="300">
+                <div class="bg-light text-dark p-3 rounded-3">3. Partner with companies to offer internship and job placement opportunities.</div>
+            </div>
+            <div class="col-md-6 col-lg-4" data-aos="zoom-in" data-aos-delay="400">
+                <div class="bg-light text-dark p-3 rounded-3">4. Support graduates in launching digital startups.</div>
+            </div>
+            <div class="col-md-6 col-lg-4" data-aos="zoom-in" data-aos-delay="500">
+                <div class="bg-light text-dark p-3 rounded-3">5. Promote digital inclusion and technology-driven solutions in underprivileged communities.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Team -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center display-5 fw-bold text-brand-dark mb-5" data-aos="fade-up">Our Team</h2>
+        <div class="row g-4">
+            <div class="col-md-3 text-center team-member" data-aos="fade-up" data-aos-delay="100">
+                <img src="{% static 'images/ronald.jpg' %}" alt="Ronald Wandili" class="mb-3">
+                <h4 class="fw-bold">Ronald Wandili</h4>
+                <p class="text-brand-orange">Founder & CEO</p>
+            </div>
+            <div class="col-md-3 text-center team-member" data-aos="fade-up" data-aos-delay="200">
+                <img src="{% static 'images/sharon.jpg' %}" alt="Sharon Jepkemoi" class="mb-3">
+                <h4 class="fw-bold">Sharon Jepkemoi</h4>
+                <p class="text-brand-orange">Co-founder & Instructor</p>
+            </div>
+            <div class="col-md-3 text-center team-member" data-aos="fade-up" data-aos-delay="300">
+                <img src="{% static 'images/ian.jpg' %}" alt="Ian Githinji" class="mb-3">
+                <h4 class="fw-bold">Ian Githinji</h4>
+                <p class="text-brand-orange">Co-founder & Instructor</p>
+            </div>
+            <div class="col-md-3 text-center team-member" data-aos="fade-up" data-aos-delay="400">
+                <img src="{% static 'images/seth.jpg' %}" alt="Seth Omondi" class="mb-3">
+                <h4 class="fw-bold">Seth Omondi</h4>
+                <p class="text-brand-orange">Co-founder & Instructor</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact CTA -->
+<section class="py-5 bg-white text-center">
+    <div class="container" data-aos="zoom-in">
+        <h2 class="display-6 fw-bold text-brand-dark mb-3">Contact Us</h2>
+        <p class="text-muted mb-4">If you have any questions or would like to get involved, feel free to reach out!</p>
+        <a href="{% url 'contact' %}" class="btn btn-orange rounded-pill px-4">Contact Us</a>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,327 @@
+<!-- templates/courses.html -->
+{% extends 'website/base.html' %}
+{% load static %}
+
+{% block title %}Our Courses | PrimeTech Foundation{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/courses.css' %}" />
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="courses-hero d-flex align-items-center" aria-label="Courses hero">
+    <span class="visually-hidden">Courses and training opportunities at PrimeTech Foundation</span>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-7">
+                <h1 class="hero-heading-typewriter text-brand-orange display-3 fw-bold mb-3">
+                    Empower Yourself
+                </h1>
+                <p class="lead text-white mb-4 hero-subtitle">
+                    Gain in-demand skills and knowledge through our comprehensive
+                    training programs designed for the digital age.
+                </p>
+                <a href="#course-application" class="btn btn-orange btn-lg rounded-pill px-4">
+                    Apply Now
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Course Listings -->
+<section id="courses-list" class="py-5">
+    <div class="container">
+        <div class="text-center mb-5 pt-5">
+            <h2 class="display-5 fw-bold text-brand-dark">Our Course Offerings</h2>
+            <p class="fs-5 text-muted">
+                Browse through our diverse range of courses and find the perfect fit
+                for your career goals.
+            </p>
+        </div>
+
+        <!-- Category Filter Buttons -->
+        <div class="d-flex flex-wrap justify-content-center gap-2 mb-5" id="categoryFilters">
+            <button class="btn btn-outline-orange rounded-pill px-4 active"
+            data-category="all">All Courses</button>
+            {% for category in categories %}
+            <button class="btn btn-outline-orange rounded-pill px-4"
+            data-category="{{ category.slug }}">
+            {{ category.name }}
+        </button>
+        {% endfor %}
+    </div>
+
+    <!-- Courses Grid (loaded from database) -->
+    <div class="row g-4" id="coursesGrid">
+        {% for course in courses %}
+        <div class="col-md-6 col-lg-4 course-item-wrapper"
+        data-category="{{ course.category.slug }}">
+        <div class="course-listing bg-white rounded-3 overflow-hidden h-100 d-flex flex-column
+        border border-light">
+        <!-- Course Image -->
+        <div class="position-relative">
+            {% if course.image %}
+            <img src="{{ course.image.url }}"
+            alt="{{ course.title }}"
+            class="w-100 course-thumb"
+            loading="lazy" />
+            {% else %}
+            <div class="course-thumb-placeholder d-flex align-items-center justify-content-center
+            bg-light">
+            <i class="fas fa-laptop-code fs-1 text-brand-orange"></i>
+        </div>
+        {% endif %}
+        <span class="badge bg-orange position-absolute top-0 start-0 m-3 rounded-pill px-3">
+            {{ course.category.name }}
+        </span>
+    </div>
+    <!-- Course Info -->
+    <div class="p-3 d-flex flex-column flex-grow-1">
+        <h3 class="h6 fw-bold text-brand-dark">{{ course.title }}</h3>
+        <p class="small text-muted flex-grow-1">
+            {{ course.short_description|default:course.description|truncatechars:100 }}
+        </p>
+        <div class="d-flex gap-3 small text-brand-orange mb-3">
+            <span><i class="fas fa-clock me-1"></i>{{ course.duration }}</span>
+            <span><i class="fas fa-user-graduate me-1"></i>{{ course.level }}</span>
+        </div>
+        <button class="btn btn-outline-orange rounded-pill w-100 view-course-btn"
+        data-course-id="{{ course.id }}">
+        View Details
+    </button>
+</div>
+</div>
+</div>
+{% empty %}
+<div class="col-12 text-center py-5">
+    <i class="fas fa-book-open fs-1 text-brand-orange mb-3"></i>
+    <p class="text-muted">No courses available at the moment. Check back soon!</p>
+</div>
+{% endfor %}
+</div>
+</div>
+</section>
+
+<!-- Course Details Section (populated via JS from the courses data) -->
+<section class="course-details-section py-5 bg-light" id="courseDetailsSection">
+    <div class="container">
+        <div class="bg-white rounded-3 overflow-hidden border border-light">
+            <div class="bg-brand-dark text-white p-4">
+                <h2 id="detailCourseTitle" class="h4 mb-1">Course Details</h2>
+                <p class="text-white-50 small mb-0">Select a course to view detailed information</p>
+            </div>
+            <div class="p-4" id="courseDetailsContent">
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-book-open fs-2 text-brand-orange mb-3"></i>
+                    <p>Please select a course to view its details, requirements, and duration.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Course Application Form -->
+<section id="course-application" class="py-5 bg-brand-dark">
+    <div class="container">
+        <h2 class="text-center text-white mb-2">Course Application Form</h2>
+        <p class="text-center text-brand-orange fs-5 mb-5">
+            Fill out the form below to register for your selected course
+        </p>
+        <form id="courseApplicationForm" class="bg-light rounded-3 p-4 mx-auto"
+        style="max-width:700px;">
+        <!-- Personal Information -->
+        <fieldset class="mb-4">
+            <legend class="h5 fw-bold text-brand-dark pb-2 border-bottom border-light">
+                Personal Information
+            </legend>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label for="applicantName" class="form-label fw-semibold">Full Name*</label>
+                    <input type="text" id="applicantName" name="applicantName"
+                    class="form-control" required />
+                </div>
+                <div class="col-md-6">
+                    <label for="applicantEmail" class="form-label fw-semibold">Email*</label>
+                    <input type="email" id="applicantEmail" name="applicantEmail"
+                    class="form-control" required />
+                </div>
+                <div class="col-md-6">
+                    <label for="applicantPhone" class="form-label fw-semibold">Phone*</label>
+                    <input type="tel" id="applicantPhone" name="applicantPhone"
+                    class="form-control" required />
+                </div>
+                <div class="col-md-6">
+                    <label for="applicantDob" class="form-label fw-semibold">Date of Birth</label>
+                    <input type="date" id="applicantDob" name="applicantDob"
+                    class="form-control" />
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Course Selection -->
+        <fieldset class="mb-4">
+            <legend class="h5 fw-bold text-brand-dark pb-2 border-bottom border-light">
+                Course Information
+            </legend>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label for="selectedCourse" class="form-label fw-semibold">Selected Course*</label>
+                    <input type="text" id="selectedCourse" name="selectedCourse"
+                    class="form-control" readonly required
+                    placeholder="Select a course above to apply" />
+                </div>
+                <div class="col-md-6">
+                    <label for="courseSchedule" class="form-label fw-semibold">
+                        Preferred Schedule*
+                    </label>
+                    <select id="courseSchedule" name="courseSchedule" class="form-select" required>
+                        <option value="">Select Schedule</option>
+                        <option value="sunday">Sunday Evening (8:30 PM - 10:30 PM)</option>
+                        <option value="tuesday">Tuesday Evening (8:30 PM - 10:30 PM)</option>
+                        <option value="thursday">Thursday Evening (8:30 PM - 10:30 PM)</option>
+                        <option value="friday">Friday Evening (8:30 PM - 10:30 PM)</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="startDate" class="form-label fw-semibold">
+                        Preferred Start Date*
+                    </label>
+                    <input type="date" id="startDate" name="startDate"
+                    class="form-control" required />
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Education -->
+        <fieldset class="mb-4">
+            <legend class="h5 fw-bold text-brand-dark pb-2 border-bottom border-light">
+                Education & Experience
+            </legend>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="educationLevel" class="form-label fw-semibold">
+                        Highest Education Level*
+                    </label>
+                    <select id="educationLevel" name="educationLevel" class="form-select" required>
+                        <option value="">Select Level</option>
+                        <option value="high-school">High School</option>
+                        <option value="diploma">Diploma</option>
+                        <option value="bachelor">Bachelor's Degree</option>
+                        <option value="master">Master's Degree</option>
+                        <option value="phd">PhD</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label for="experience" class="form-label fw-semibold">
+                        Relevant Experience
+                    </label>
+                    <textarea id="experience" name="experience" rows="3"
+                    class="form-control"></textarea>
+                </div>
+                <div class="col-12">
+                    <label for="motivation" class="form-label fw-semibold">
+                        Why are you interested in this course?*
+                    </label>
+                    <textarea id="motivation" name="motivation" rows="4"
+                    class="form-control" required></textarea>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Terms -->
+        <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" name="agreeTerms"
+            id="agreeTerms" required />
+            <label class="form-check-label small" for="agreeTerms">
+                I agree to the <a href="#" class="text-brand-orange">Terms and Conditions</a>
+                and understand that my data will be processed in accordance with
+                PrimeTech Foundation's <a href="#" class="text-brand-orange">Privacy Policy</a>.
+            </label>
+        </div>
+
+        <button type="submit" class="btn btn-orange rounded-pill px-5 py-2 w-100">
+            Submit Application
+        </button>
+    </form>
+</div>
+</section>
+
+<!-- Testimonials -->
+<section class="py-5 bg-brand-dark border-top border-orange">
+    <div class="container">
+        <h2 class="text-center text-brand-orange mb-5 display-6 fw-bold">
+            What Our Students Say
+        </h2>
+        <div class="testimonials-slider-wrapper position-relative mx-auto" style="max-width:700px;">
+            <div class="testimonials-track d-flex overflow-hidden" id="testimonialsTrack">
+                {% for testimonial in testimonials %}
+                <div class="testimonial-slide flex-shrink-0 w-100 px-2">
+                    <div class="bg-white rounded-3 p-4">
+                        <i class="fas fa-quote-left text-brand-orange fs-3 mb-2"></i>
+                        <p class="text-muted">{{ testimonial.content }}</p>
+                        <div class="d-flex align-items-center gap-3 mt-3 pt-3 border-top border-light">
+                            {% if testimonial.photo %}
+                            <img src="{{ testimonial.photo.url }}"
+                            alt="{{ testimonial.name }}"
+                            class="rounded-circle border border-2 border-orange"
+                            width="50" height="50"
+                            style="object-fit:cover;" />
+                            {% endif %}
+                            <div>
+                                <h4 class="h6 fw-bold mb-0 text-brand-dark">{{ testimonial.name }}</h4>
+                                <span class="small text-brand-orange">{{ testimonial.role }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="testimonial-slide flex-shrink-0 w-100 px-2">
+                    <div class="bg-white rounded-3 p-4 text-center text-muted">
+                        <p>Testimonials coming soon!</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="testimonial-arrow left position-absolute top-50 start-0 translate-middle-y
+            btn btn-orange rounded-circle d-flex align-items-center justify-content-center"
+            style="width:44px;height:44px;z-index:2;" aria-label="Previous">
+            ‹
+        </button>
+        <button class="testimonial-arrow right position-absolute top-50 end-0 translate-middle-y
+        btn btn-orange rounded-circle d-flex align-items-center justify-content-center"
+        style="width:44px;height:44px;z-index:2;" aria-label="Next">
+        ›
+    </button>
+</div>
+</div>
+</section>
+
+<!-- CTA -->
+<section class="py-5 bg-light text-center">
+    <div class="container">
+        <h2 class="display-6 fw-bold text-brand-dark">Ready to Transform Your Career?</h2>
+        <p class="fs-5 text-muted mb-4">
+            Take the first step towards your future today.
+            Our admissions team is ready to help you choose the perfect course.
+        </p>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <a href="#course-application" class="btn btn-orange rounded-pill px-4 py-2">Apply Now</a>
+            <a href="#" class="btn btn-outline-orange rounded-pill px-4 py-2"
+            onclick="redirectToWhatsApp()">Contact Advisor</a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Pass course data from Django to JavaScript for detail views
+    const coursesData = {{ courses_json|safe }};
+</script>
+<script src="{% static 'js/courses.js' %}"></script>
+{% endblock %}

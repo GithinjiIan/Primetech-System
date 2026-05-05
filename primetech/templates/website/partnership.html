@@ -1,0 +1,218 @@
+{% extends 'website/base.html' %}
+{% load static %}
+
+{% block title %}Partnership | PrimeTech Foundation{% endblock %}
+
+{% block extra_css %}
+<style>
+    .partnership-hero {
+        background: linear-gradient(135deg, rgba(25,18,36,0.9) 0%, rgba(25,18,36,0.7) 50%, rgba(25,18,36,0.3) 100%),
+                    url('{% static "img/img 8.png" %}') center/cover no-repeat fixed;
+        min-height: 75vh;
+    }
+    .activity-item {
+        border-left: 4px solid var(--brand-orange);
+        transition: transform 0.3s;
+    }
+    .activity-item:hover {
+        transform: translateY(-5px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="partnership-hero text-typewriter d-flex align-items-center text-white">
+    <div class="container py-5" data-aos="fade-up">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-3 fw-bold mb-4">Join Hands With PrimeTech Foundation</h1>
+                <p class="lead mb-4">Together, we can create lasting impact and drive positive change in our communities.</p>
+                <a href="#partnership-form" class="btn btn-orange btn-lg rounded-pill px-5">Become a Partner Today</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Benefits -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <h2 class="text-center display-5 fw-bold text-brand-dark mb-5" data-aos="fade-up">Why Partner With Us?</h2>
+        <div class="row g-4">
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
+                <div class="text-center p-4">
+                    <i class="fas fa-handshake fa-3x text-brand-orange mb-3"></i>
+                    <h3 class="h5 fw-bold">Strategic Alignment</h3>
+                    <p class="small text-muted">Align your brand with meaningful social impact and CSR goals.</p>
+                </div>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="200">
+                <div class="text-center p-4">
+                    <i class="fas fa-chart-line fa-3x text-brand-orange mb-3"></i>
+                    <h3 class="h5 fw-bold">Brand Visibility</h3>
+                    <p class="small text-muted">Gain exposure through our programs, events, and digital platforms.</p>
+                </div>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
+                <div class="text-center p-4">
+                    <i class="fas fa-users fa-3x text-brand-orange mb-3"></i>
+                    <h3 class="h5 fw-bold">Community Engagement</h3>
+                    <p class="small text-muted">Connect with communities and stakeholders who share your values.</p>
+                </div>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="400">
+                <div class="text-center p-4">
+                    <i class="fas fa-lightbulb fa-3x text-brand-orange mb-3"></i>
+                    <h3 class="h5 fw-bold">Innovation</h3>
+                    <p class="small text-muted">Collaborate on innovative solutions to pressing social challenges.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Conditions -->
+<section class="py-5 bg-brand-dark text-white">
+    <div class="container" data-aos="fade-up">
+        <h2 class="text-center text-brand-orange display-5 mb-5">Partnership Conditions</h2>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <ol class="fs-5">
+                    <li>Partners must align with PrimeTech Foundation's mission and values.</li>
+                    <li>Financial commitments must be fulfilled as agreed in the partnership terms.</li>
+                    <li>Partners are expected to maintain ethical business practices.</li>
+                    <li>Brand usage guidelines must be followed when referencing the partnership.</li>
+                    <li>Partnerships are subject to annual review for renewal.</li>
+                    <li>Both parties must agree to transparent communication and reporting.</li>
+                </ol>
+                <p class="mt-3">By submitting the partnership form, you acknowledge that you have read and agree to these conditions.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Activities -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center display-5 fw-bold text-brand-dark mb-5" data-aos="fade-up">Our Recent Activities</h2>
+        <div class="row g-4">
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="bg-white p-4 rounded-3 activity-item">
+                    <h3 class="h5 fw-bold">Digital Skills Classes</h3>
+                    <p class="text-muted">Empowered 30+ youth with digital skills in our recent classes.</p>
+                    <span class="text-brand-orange fw-semibold">March 2025</span>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="bg-white p-4 rounded-3 activity-item">
+                    <h3 class="h5 fw-bold">Educational Training</h3>
+                    <p class="text-muted">Offered training to 100+ youth.</p>
+                    <span class="text-brand-orange fw-semibold">May 2025</span>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="bg-white p-4 rounded-3 activity-item">
+                    <h3 class="h5 fw-bold">Career Mentorship Program</h3>
+                    <p class="text-muted">Mentored 50+ high school students with industry career guidance.</p>
+                    <span class="text-brand-orange fw-semibold">March 2025</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Partnership Form -->
+<section id="partnership-form" class="py-5 bg-white">
+    <div class="container" data-aos="fade-up">
+        <h2 class="text-center display-5 fw-bold text-brand-dark mb-5">Partnership Application</h2>
+        <form class="bg-light p-4 rounded-3 mx-auto" style="max-width:700px;">
+            <!-- Personal Info -->
+            <fieldset class="mb-4">
+                <legend class="h5 fw-bold pb-2 border-bottom">Personal Information</legend>
+                <div class="row g-3">
+                    <div class="col-12"><input class="form-control" placeholder="Full Name*" required></div>
+                    <div class="col-md-6"><input type="email" class="form-control" placeholder="Email*" required></div>
+                    <div class="col-md-6"><input type="tel" class="form-control" placeholder="Phone*" required></div>
+                    <div class="col-12"><input class="form-control" placeholder="Position/Title"></div>
+                </div>
+            </fieldset>
+            <!-- Company Info -->
+            <fieldset class="mb-4">
+                <legend class="h5 fw-bold pb-2 border-bottom">Company Information (if applicable)</legend>
+                <div class="row g-3">
+                    <div class="col-12"><input class="form-control" placeholder="Company/Organization Name"></div>
+                    <div class="col-md-6">
+                        <select class="form-select"><option>Select Industry</option><option>Technology</option><option>Education</option></select>
+                    </div>
+                    <div class="col-md-6"><input type="url" class="form-control" placeholder="Website"></div>
+                </div>
+            </fieldset>
+            <!-- Partnership Details -->
+            <fieldset class="mb-4">
+                <legend class="h5 fw-bold pb-2 border-bottom">Partnership Details</legend>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <select class="form-select" required>
+                            <option>Select Partnership Type</option>
+                            <option>Financial Support</option>
+                            <option>In-Kind Donations</option>
+                            <option>Volunteer Program</option>
+                            <option>Corporate Sponsorship</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Areas of Interest</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="education"> Education</div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="technology"> Technology Access</div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="youth"> Youth Empowerment</div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="community"> Community Development</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <textarea class="form-control" rows="4" placeholder="Tell us about your partnership proposal*" required></textarea>
+                    </div>
+                </div>
+            </fieldset>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" required id="agreeTerms">
+                <label class="form-check-label small" for="agreeTerms">I have read and agree to the partnership conditions.</label>
+            </div>
+            <button type="submit" class="btn btn-orange rounded-pill px-5 w-100">Submit Application</button>
+        </form>
+    </div>
+</section>
+
+<!-- Partnership Types -->
+<section class="py-5 bg-brand-dark text-white">
+    <div class="container">
+        <h2 class="text-center text-brand-orange display-5 mb-5" data-aos="fade-up">Our Partnership Models</h2>
+        <div class="row g-4">
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
+                <div class="p-4 rounded-3 border border-secondary h-100">
+                    <h3 class="h5 fw-bold">Corporate Sponsorship</h3>
+                    <p class="small text-white-50">Align your brand with our initiatives through financial support and shared visibility.</p>
+                </div>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="200">
+                <div class="p-4 rounded-3 border border-secondary h-100">
+                    <h3 class="h5 fw-bold">In-Kind Partnerships</h3>
+                    <p class="small text-white-50">Contribute products, services, or expertise that directly support our programs.</p>
+                </div>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
+                <div class="p-4 rounded-3 border border-secondary h-100">
+                    <h3 class="h5 fw-bold">Strategic Alliances</h3>
+                    <p class="small text-white-50">Long-term collaborations that combine resources for maximum impact.</p>
+                </div>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="400">
+                <div class="p-4 rounded-3 border border-secondary h-100">
+                    <h3 class="h5 fw-bold">Employee Engagement</h3>
+                    <p class="small text-white-50">Opportunities for your team to volunteer, mentor, or participate in our activities.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

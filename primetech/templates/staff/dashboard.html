@@ -1,0 +1,161 @@
+{% extends "website/base.html" %}
+{% load static %}
+
+{% block title %}Instructor Dashboard - PrimeTech LMS{% endblock %}
+
+{% block content %}
+<section style="margin-top: 90px; min-height: 80vh; padding: 30px 0;">
+<div class="container">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold mb-1">Instructor Panel 🎓</h2>
+            <p class="text-muted mb-0">Welcome back, {{ request.user.first_name }}</p>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <span class="position-relative">
+                <i class="fas fa-bell fs-5"></i>
+                {% if unread_notifications_count %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{ unread_notifications_count }}
+                </span>
+                {% endif %}
+            </span>
+            <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-4">
+                <i class="fas fa-book text-brand-orange mb-2" style="font-size: 2rem;"></i>
+                <h3 class="fw-bold mb-0">{{ courses.count }}</h3>
+                <small class="text-muted">Assigned Courses</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-4">
+                <i class="fas fa-user-graduate text-brand-orange mb-2" style="font-size: 2rem;"></i>
+                <h3 class="fw-bold mb-0">{{ enrollments.count }}</h3>
+                <small class="text-muted">Total Students</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-4">
+                <i class="fas fa-bell text-brand-orange mb-2" style="font-size: 2rem;"></i>
+                <h3 class="fw-bold mb-0">{{ unread_notifications_count }}</h3>
+                <small class="text-muted">Unread Notifications</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Courses -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold"><i class="fas fa-chalkboard text-brand-orange me-2"></i>My Courses</h5>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    {% if courses %}
+                    {% for course in courses %}
+                    <div class="card border rounded-3 mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="fw-bold mb-1">{{ course.title }}</h6>
+                                    <p class="small text-muted mb-1">{{ course.category }}</p>
+                                    <span class="badge bg-secondary">{{ course.get_level_display }}</span>
+                                    <span class="badge bg-info">{{ course.duration }}</span>
+                                </div>
+                                <span class="badge bg-success fs-6">
+                                    {{ course.enrollments.count }} students
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted text-center py-4">No courses assigned yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Students List -->
+            <div class="card border-0 shadow-sm rounded-4 mt-4">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold"><i class="fas fa-users text-brand-orange me-2"></i>My Students</h5>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    {% if enrollments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Course</th>
+                                    <th>Status</th>
+                                    <th>Enrolled</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for enrollment in enrollments %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ enrollment.student.get_full_name }}</strong>
+                                        <br><small class="text-muted">{{ enrollment.student.email }}</small>
+                                    </td>
+                                    <td>{{ enrollment.course.title }}</td>
+                                    <td><span class="badge bg-success">{{ enrollment.status|title }}</span></td>
+                                    <td>{{ enrollment.enrolled_at|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-3">No students enrolled yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-bell text-brand-orange me-2"></i>Notifications</h5>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    {% if notifications %}
+                    <div class="list-group list-group-flush">
+                        {% for notif in notifications %}
+                        <a href="{% url 'notifications:mark_as_read' notif.pk %}"
+                           class="list-group-item list-group-item-action border-0 px-0 {% if not notif.is_read %}bg-light{% endif %} rounded-3 mb-1">
+                            <div class="d-flex justify-content-between">
+                                <strong class="small">{{ notif.title }}</strong>
+                                {% if not notif.is_read %}
+                                <span class="badge bg-warning text-dark">New</span>
+                                {% endif %}
+                            </div>
+                            <p class="mb-0 small text-muted">{{ notif.message|truncatewords:15 }}</p>
+                            <small class="text-muted">{{ notif.created_at|timesince }} ago</small>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-3 mb-0">No notifications.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+{% endblock %}

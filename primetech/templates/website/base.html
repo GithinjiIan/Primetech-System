@@ -1,0 +1,160 @@
+<!-- templates/base.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}PrimeTech Foundation{% endblock %}</title>
+
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <!-- AOS (Animate on Scroll) -->
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+
+    <!-- Boxicons -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+
+    <!-- Custom CSS (brand overrides) -->
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'imag/logo new.png' %}" />
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <!-- ========== HEADER / NAVBAR ========== -->
+    <header>
+        <nav class="navbar navbar-expand-lg fixed-top bg-white shadow-sm" aria-label="Main Navigation">
+            <div class="container">
+                <a class="navbar-brand" href="{% url 'home' %}">
+                    <img src="{% static 'img/logo new.png' %}" alt="PrimeTech Foundation Logo"
+                    class="brand-logo" />
+                </a>
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
+                data-bs-target="#primaryNavigation" aria-controls="primaryNavigation"
+                aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fas fa-bars fs-4"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="primaryNavigation">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+                        href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}"
+                        href="{% url 'about' %}">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'courses' %}active{% endif %}"
+                        href="{% url 'courses' %}">Our Courses</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'partnership' %}active{% endif %}"
+                        href="{% url 'partnership' %}">Partner With Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}"
+                        href="{% url 'contact' %}">Contact Us</a>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        {% if user.is_authenticated %}
+                        <a class="btn btn-prime px-3 py-2 rounded-pill" href="{% if user.role == 'staff' %}{% url 'accounts:staff_dashboard' %}{% elif user.role == 'superadmin' %}{% url 'admin:index' %}{% else %}{% url 'accounts:student_dashboard' %}{% endif %}">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                        {% else %}
+                        <a class="btn btn-prime px-3 py-2 rounded-pill" href="{% url 'accounts:login' %}">PrimeTech LMS</a>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<!-- NOtification -->
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-success text-center">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<!-- ========== MAIN CONTENT ========== -->
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ========== FOOTER ========== -->
+<footer class="bg-brand-dark text-white pt-5 pb-0">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <h3 class="h5 text-white mb-3">About PrimeTech Foundation</h3>
+                <p class="text-white-50">
+                    {% block footer_about %}
+                    To empower youth in underserved areas with digital skills,
+                    fostering self-employment and reducing unemployment.
+                    {% endblock %}
+                </p>
+            </div>
+            <div class="col-lg-4">
+                <h3 class="h5 text-white mb-3">Quick Links</h3>
+                <ul class="list-unstyled">
+                    <li><a href="{% url 'about' %}" class="footer-link">More About Us</a></li>
+                    <li><a href="{% url 'partnership' %}" class="footer-link">Partner With Us</a></li>
+                    <li><a href="{% url 'courses' %}" class="footer-link">Our Courses</a></li>
+                    <li><a href="#" class="footer-link">Join Us Today</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-4">
+                <h3 class="h5 text-white mb-3">Contact Us Today</h3>
+                <p>
+                    <a href="mailto:info@primetechfoundation.org" class="footer-link">
+                        info@primetechfoundation.org
+                    </a>
+                </p>
+                <p>
+                    <a href="tel:+254794206054" class="footer-link">+254 794 206054</a>
+                </p>
+                <div class="social-icons d-flex gap-3 mt-3">
+                    <a href="#" class="social-icon" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="social-icon" aria-label="X"><i class="fab fa-x-twitter"></i></a>
+                    <a href="#" class="social-icon" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    <a href="#" class="social-icon" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-icon" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="border-top border-white-10 text-center py-3 mt-4">
+            <p class="text-white-50 small mb-0">©2026 PrimeTech Foundation. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Back to Top Button -->
+<button id="backToTop" title="Go to top" aria-label="Back to top">&#8679;</button>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- AOS JS -->
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+
+<!-- Main Custom JS -->
+<script src="{% static 'js/main.js' %}"></script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>
