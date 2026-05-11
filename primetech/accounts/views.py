@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, update_session_auth_hash, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.utils.http import urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_decode 
 from django.utils.encoding import force_str
 from django.views.decorators.http import require_POST, require_http_methods
 from django.views.decorators.cache import never_cache
@@ -21,10 +21,10 @@ User = get_user_model()
 def _redirect_to_dashboard(user):
     """Return the correct dashboard URL for a user's role."""
     if user.role == 'staff':
-        return redirect('accounts:staff_dashboard')
+        return redirect('staff:dashboard')
     elif user.role == 'superadmin':
         return redirect('admin:index')
-    return redirect('accounts:student_dashboard')
+    return redirect('students:dashboard')
 
 
 # ── auth views ───────────────────────────────────────────────────
@@ -45,7 +45,7 @@ def login_view(request):
             if not form.cleaned_data.get('remember_me'):
                 request.session.set_expiry(0)
             else:
-                request.session.set_expiry(1209600)  # 2 weeks
+                request.session.set_expiry(604800)  # 1 weeks
             login(request, user)
 
             if user.must_change_password:
@@ -160,7 +160,7 @@ def verify_email(request, uidb64, token):
         user = None
 
     if user and email_verification_token.check_token(user, token):
-        if not user.email_verified:  # Idempotent — only update if needed
+        if not user.email_verified:  
             user.email_verified = True
             user.save(update_fields=['email_verified'])
         messages.success(request, 'Email verified successfully!')
@@ -170,46 +170,5 @@ def verify_email(request, uidb64, token):
         return redirect('accounts:login')
 
 
-# ── dashboard views ─────────────────────────────────────────────
-@student_required
-def student_dashboard(request):
-    """Student dashboard: shows enrolled courses and notifications."""
-    from website.models import Enrollment
-    from notifications.models import Notification
+# Dashboards are now handled in their respective apps (staff and students)
 
-    enrollments = Enrollment.objects.filter(
-        student=request.user
-    ).select_related('course', 'course__category')
-
-    notifications = Notification.objects.filter(
-        recipient=request.user
-    ).order_by('-created_at')[:10]
-
-    return render(request, 'students/dashboard.html', {
-        'enrollments': enrollments,
-        'notifications': notifications,
-    })
-
-
-@staff_required
-def staff_dashboard(request):
-    """Staff/instructor dashboard: shows assigned courses and students."""
-    from website.models import Course, Enrollment
-    from notifications.models import Notification
-
-    courses = Course.objects.filter(
-        assigned_instructor=request.user, is_active=True
-    )
-    enrollments = Enrollment.objects.filter(
-        course__assigned_instructor=request.user
-    ).select_related('student', 'course')
-
-    notifications = Notification.objects.filter(
-        recipient=request.user
-    ).order_by('-created_at')[:10]
-
-    return render(request, 'staff/dashboard.html', {
-        'courses': courses,
-        'enrollments': enrollments,
-        'notifications': notifications,
-    })

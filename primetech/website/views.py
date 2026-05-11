@@ -17,8 +17,10 @@ def newsletter_signup(request):
 def home_view(request):
     """Render the homepage with static content."""
     statistics = Statistic.objects.all()
+    testimonials = Testimonial.objects.filter(is_active=True)
     context = {
         'statistics': statistics,
+        'testimonials': testimonials,
     }
     return render(request, 'website/home.html', context)
 

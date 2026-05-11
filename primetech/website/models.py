@@ -59,12 +59,12 @@ class Course(models.Model):
 
     price = models.CharField(max_length=50, default="Ksh 0")
     image = models.ImageField(upload_to='courses/', blank=True, null=True)
-    requirements = models.JSONField(
+    requirements = models.TextField(
         default=list,
         blank=True,
         help_text="List of requirements, e.g., ['Basic computer literacy', 'Internet access']"
     )
-    outcomes = models.JSONField(
+    outcomes = models.TextField(
         default=list,
         blank=True,
         help_text="List of learning outcomes"
@@ -202,3 +202,72 @@ class Enrollment(models.Model):
 
     def __str__(self):
         return f"{self.student.get_full_name()} — {self.course.title}"
+    
+    
+    #Patnership Applicatoin Form─────────────────────────────────────────────────
+class PartnershipApplication(models.Model):
+    """Application from a prospective partner organization."""
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    PARTNERSHIP_CHOICES = [
+        ('financial_support', 'Financial Support'),
+        ('in_kind_donations', 'In-Kind Donations'),
+        ('volunteer_program', 'Volunteer Program'),
+        ('corporate_sponsorship', 'Corporate Sponsorship'),
+    ]
+    
+    INTERESTED_IN = [
+        ('education', 'Education'),
+        ('technology_access', 'Technology Access'),
+        ('youth_empowerment', 'Youth Empowerment'),
+        ('community_development', 'Community Development'),
+    ]
+
+
+    full_name = models.CharField(max_length=200)
+    email = models.EmailField()
+    phone_number = models.CharField(max_length=20)
+    organization_name = models.CharField(max_length=200)
+    position = models.CharField(max_length=100, blank=True)
+    company_name = models.CharField(max_length=200, blank=True)
+    industry = models.CharField(max_length=100, blank=True)
+    company_website = models.URLField(blank=True)
+    partnership_type = models.CharField(
+        max_length=100,
+        choices=PARTNERSHIP_CHOICES,
+        help_text="Type of partnership"
+    )
+    
+    interested_in = models.CharField(max_length= 200,
+                                    choices=INTERESTED_IN,
+                                    blank=True ,
+                                    help_text="Areas of interest for partnership")
+    
+    about_proposal = models.TextField(
+        blank=True,
+        help_text="Why the organization wants to partner with PrimeTech Foundation"
+    )
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
+    admin_notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    processed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='processed_partnerships',
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Partnership Application'
+        verbose_name_plural = 'Partnership Applications'
+
+    def __str__(self):
+        return f"{self.organization_name} ({self.full_name}) — {self.partnership_type} ({self.status})"

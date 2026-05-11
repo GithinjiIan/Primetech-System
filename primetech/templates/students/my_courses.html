@@ -1,0 +1,108 @@
+{% extends "students/base.html" %}
+{% load static %}
+
+{% block title %}Courses - PrimeTech LMS{% endblock %}
+{% block page_title %}Catalog{% endblock %}
+
+{% block content %}
+
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="section mb-0 border-0 bg-transparent shadow-none">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="display-6 fw-bold mb-2">Explore Digital Skills</h2>
+                    <p class="text-muted fs-6 mb-0">Master in-demand technologies with PrimeTech Foundation.</p>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <span class="badge bg-white text-primary border border-primary px-3 py-2 rounded-pill shadow-sm">{{ courses.count|default:0 }} Courses Available</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="section mb-0">
+            <div class="section-body py-3">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white text-muted border-end-0"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control border-start-0 ps-0 shadow-none" id="searchInput" placeholder="Search by course...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select shadow-none" id="categorySelect">
+                            <option value="all">All Categories</option>
+                            <option>Development</option>
+                            <option>Data Science</option>
+                            <option>Design</option>
+                            <option>Cybersecurity</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select shadow-none" id="ratingSelect">
+                            <option value="0">Any Level</option>
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-prime w-100">Filter</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="row g-4" id="courseList">
+            {% for course in courses %}
+            <div class="col-md-6 col-xl-4 course-item" data-category="{{ course.category }}">
+                <div class="section h-100 mb-0 hover-lift d-flex flex-column">
+                    <div class="section-body p-4 flex-grow-1 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="stats-icon bg-primary bg-opacity-10 text-primary mb-0 shadow-sm">
+                                <i class="fas fa-laptop-code"></i>
+                            </div>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 py-1 px-2">{{ course.price|default:"Free" }}</span>
+                        </div>
+                        
+                        <h5 class="fw-bold mb-2 text-dark">{{ course.title }}</h5>
+                        <p class="text-muted small mb-4 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">{{ course.description|default:"Learn the core essentials and build real-world projects." }}</p>
+                        
+                        <div class="d-flex flex-wrap gap-3 text-muted smaller mb-4 border-top pt-3">
+                            <span><i class="far fa-clock me-1 text-primary opacity-75"></i> {{ course.duration|default:"8 Weeks" }}</span>
+                            <span><i class="fas fa-layer-group me-1 text-primary opacity-75"></i> {{ course.category|default:"Tech" }}</span>
+                            <span><i class="fas fa-signal me-1 text-primary opacity-75"></i> {{ course.get_level_display|default:"All Levels" }}</span>
+                        </div>
+                        
+                        <div class="d-grid mt-auto">
+                            <a href="{% url 'students:enroll' %}?course={{ course.slug }}" class="btn btn-outline-prime py-2">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <div class="bg-white rounded-circle d-inline-flex p-4 mb-3 border shadow-sm">
+                    <i class="fas fa-search fs-2 text-muted"></i>
+                </div>
+                <div class="text-muted fw-medium mt-2">No courses found matching your Profile.</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filter logic placeholder
+    });
+</script>
+{% endblock %}

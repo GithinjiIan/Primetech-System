@@ -48,3 +48,5 @@ class Notification(models.Model):
             self.save(update_fields=['is_read', 'read_at'])
             # Invalidate cached unread count
             cache.delete(f'unread_notif_count_{self.recipient_id}')
+
+

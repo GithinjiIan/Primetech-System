@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PrimeTech LMS{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo New.png' %}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/student.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="d-flex wrapper">
+
+    <!-- ═══════════════════════════════════════════════
+         SIDEBAR
+    ════════════════════════════════════════════════ -->
+    <aside class="offcanvas offcanvas-start offcanvas-lg sidebar flex-shrink-0" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
+
+        <!-- Header: logo + close -->
+        <div class="offcanvas-header pb-0 border-0">
+            <div class="sidebar-header border-0 p-0 w-100 d-flex align-items-center justify-content-between">
+                <div class="logo d-flex align-items-center gap-2">
+                    <div class="logo-ring">
+                        <img src="{% static 'img/logo New.png' %}" alt="Logo" width="26" height="26">
+                    </div>
+                    <div>
+                        <span class="brand-name d-block">PRIMETECH</span>
+                        <span class="brand-sub d-block">LMS System</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white d-lg-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+        </div>
+
+        <!-- Nav body -->
+        <div class="offcanvas-body d-flex flex-column mt-3 px-0">
+            <nav class="sidebar-menu flex-grow-1">
+
+                <!-- Main -->
+                <div class="nav-section-label">Main Menu</div>
+                <ul class="nav flex-column mb-3">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                           href="{% url 'students:dashboard' %}">
+                            <span class="nav-icon"><i class="fas fa-columns"></i></span>
+                            <span class="nav-label">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'my_courses' %}active{% endif %}"
+                           href="{% url 'students:my_courses' %}">
+                            <span class="nav-icon"><i class="fas fa-book-bookmark"></i></span>
+                            <span class="nav-label">My Learning</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'sessions' %}active{% endif %}"
+                           href="{% url 'students:sessions' %}">
+                            <span class="nav-icon"><i class="fas fa-calendar-check"></i></span>
+                            <span class="nav-label">Class Sessions</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'submissions' %}active{% endif %}"
+                           href="{% url 'students:submissions' %}">
+                            <span class="nav-icon"><i class="fas fa-file-arrow-up"></i></span>
+                            <span class="nav-label">Submissions</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Account -->
+                <div class="nav-section-label">Account</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'student_profile' %}active{% endif %}"
+                           href="{% url 'students:student_profile' %}">
+                            <span class="nav-icon"><i class="fas fa-id-card"></i></span>
+                            <span class="nav-label">Profile Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Logout -->
+            <div class="sidebar-footer mt-auto">
+                <form action="{% url 'accounts:logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-logout">
+                        <i class="fas fa-power-off"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════
+         MAIN CONTENT
+    ════════════════════════════════════════════════ -->
+    <main class="main-content w-100 flex-grow-1 d-flex flex-column">
+
+        <!-- Top Header -->
+        <header class="header d-flex align-items-center justify-content-between" id="topHeader">
+
+            <!-- Left: toggle + page title -->
+            <div class="d-flex align-items-center gap-2 gap-sm-3">
+                <button class="btn btn-link menu-toggle d-lg-none text-dark p-0"
+                        data-bs-toggle="offcanvas" data-bs-target="#sidebar"
+                        aria-label="Toggle Navigation">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title d-none d-sm-block">{% block page_title %}Dashboard{% endblock %}</h1>
+            </div>
+
+            <!-- Right: search + bell + user -->
+            <div class="header-right d-flex align-items-center gap-2 gap-md-3">
+
+                <!-- Search (hidden on mobile) -->
+                <div class="search-bar d-none d-md-flex">
+                    <input type="text" class="form-control border-end-0 shadow-none" placeholder="Search courses…">
+                    <button class="btn-search shadow-none" type="button" aria-label="Search">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+
+                <!-- Notifications -->
+                <div class="notification-icon" role="button" tabindex="0" aria-label="Notifications">
+                    <i class="fas fa-bell"></i>
+                </div>
+
+                <!-- User dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-link dropdown-toggle d-flex align-items-center gap-2 text-decoration-none p-0 shadow-none border-0"
+                            type="button" id="userDropdown"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="user-avatar shadow-sm">
+                            {{ request.user.username|slice:":1"|upper|default:"U" }}
+                        </div>
+                        <div class="text-start d-none d-lg-block">
+                            <div class="fw-bold text-dark" style="font-size:0.85rem; line-height:1.1;">
+                                {{ request.user.get_full_name|default:request.user.username }}
+                            </div>
+                            <div class="text-muted" style="font-size:0.72rem;">Student</div>
+                        </div>
+                    </button>
+
+                    <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="userDropdown">
+                        <!-- Shown only on mobile where name is hidden -->
+                        <li class="px-3 py-2 border-bottom d-lg-none">
+                            <div class="fw-bold text-dark small">{{ request.user.get_full_name|default:request.user.username }}</div>
+                            <div class="text-muted" style="font-size:0.75rem;">Student</div>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'students:student_profile' %}">
+                                <i class="fas fa-user-circle text-primary"></i> My Profile
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'students:my_courses' %}">
+                                <i class="fas fa-book-open text-primary"></i> My Courses
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider mx-2"></li>
+                        <li>
+                            <form action="{% url 'accounts:logout' %}" method="post" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div class="content flex-grow-1">
+            {% block content %}{% endblock %}
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer text-center mt-auto">
+            <p class="mb-0">&copy; 2026 PrimeTech Foundation. All rights reserved.</p>
+        </footer>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Add .scrolled class to header on scroll for shadow
+    const header = document.getElementById('topHeader');
+    if (header) {
+        window.addEventListener('scroll', () => {
+            header.classList.toggle('scrolled', window.scrollY > 8);
+        }, { passive: true });
+    }
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

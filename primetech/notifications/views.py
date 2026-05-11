@@ -33,3 +33,5 @@ def mark_all_read(request):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'status': 'ok'})
     return redirect(request.META.get('HTTP_REFERER', '/'))
+
+

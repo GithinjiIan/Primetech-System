@@ -10,21 +10,28 @@
 }
 ===========*/
 :root {
-    --brand-dark: #1B4332;        /* replaces #191224 */
-    --brand-orange: #FFC107;      /* replaces #F7941D */
-    --brand-light: #FEFAE0;       /* replaces #f5f5f2 */
-    --brand-gray: #6B705C;        /* for muted text */
+    --brand-dark: #020617;        /* Deeper Navy */
+    --brand-navy: #0f172a;        /* Primary Navy */
+    --brand-accent: #0ea5e9;      /* Sky Blue Accent */
+    --brand-light: #f8fafc;       
+    --brand-gray: #cbd5e1;        
     --transition-speed: 0.3s;
+    
+    /* Legacy aliases to avoid breaking existing classes */
+    --brand-orange: var(--brand-accent); 
 }
-
-
 
 /* ========== GLOBAL ========== */
 body {
     background-color: var(--brand-light);
-    color: var(--brand-dark);
-    font-family: 'Outfit', sans-serif;
+    color: var(--brand-navy);
+    font-family: 'Open Sans', sans-serif;
     overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+    font-family: 'Merriweather', serif;
+    font-weight: 700;
 }
 
 /*========== Hero section ======== */

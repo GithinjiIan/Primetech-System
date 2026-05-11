@@ -1,0 +1,82 @@
+{% extends "students/base.html" %}
+{% load static %}
+
+{% block title %}Enroll - PrimeTech LMS{% endblock %}
+{% block page_title %}Enrollment{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+        <div class="section shadow-sm border-0">
+            <div class="section-header bg-light border-bottom-0 py-4 text-center rounded-top">
+                <div class="stats-icon bg-primary text-white mx-auto mb-3 shadow-sm" style="width: 56px; height: 56px; font-size: 1.5rem;">
+                    <i class="fas fa-file-signature"></i>
+                </div>
+                <h2 class="section-title fs-4">Complete Enrollment</h2>
+                <p class="text-muted mt-2 mb-0 small">You are enrolling in: <strong id="courseName" class="text-dark">Selected Course</strong></p>
+            </div>
+            
+            <div class="section-body p-4 p-md-5">
+                <form class="row g-4" method="post">
+                    {% csrf_token %}
+                    
+                    <div class="col-md-6">
+                        <label for="fullName" class="form-label fw-bold small text-muted text-uppercase">Full Name</label>
+                        <input type="text" class="form-control" id="fullName" placeholder="John Doe" required>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="email" class="form-label fw-bold small text-muted text-uppercase">Email Address</label>
+                        <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="phone" class="form-label fw-bold small text-muted text-uppercase">Phone Number</label>
+                        <input type="tel" class="form-control" id="phone" placeholder="+254 700 000000">
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="country" class="form-label fw-bold small text-muted text-uppercase">Country</label>
+                        <select class="form-select" id="country" required>
+                            <option value="" disabled selected>Select a country...</option>
+                            <option value="KE">Kenya</option>
+                            <option value="UG">Uganda</option>
+                            <option value="TZ">Tanzania</option>
+                            <option value="RW">Rwanda</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-12">
+                        <label for="reason" class="form-label fw-bold small text-muted text-uppercase">Reason for Enrollment</label>
+                        <textarea class="form-control" id="reason" rows="3" placeholder="Briefly tell us why you want to take this course..." required></textarea>
+                    </div>
+                    
+                    <div class="col-12 mt-5 border-top pt-4 d-flex justify-content-end gap-3">
+                        <a href="{% url 'students:my_courses' %}" class="btn btn-light px-4 text-muted fw-bold border">Cancel</a>
+                        <button type="submit" class="btn btn-prime px-5">Submit Application</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        const params = new URLSearchParams(window.location.search);
+        const course = params.get('course');
+        const nameMap = {
+            'data-science': 'Data Science Foundations',
+            'web-dev': 'Web Development Essentials',
+            'cybersecurity': 'Cybersecurity Fundamentals'
+        };
+        const courseText = course ? (nameMap[course] || course.replace(/-/g,' ')) : 'Selected Course';
+        document.getElementById('courseName').textContent = courseText;
+    });
+</script>
+{% endblock %}

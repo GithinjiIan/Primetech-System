@@ -6,7 +6,7 @@
 {% block extra_css %}
 <style>
     .partnership-hero {
-        background: linear-gradient(135deg, rgba(25,18,36,0.9) 0%, rgba(25,18,36,0.7) 50%, rgba(25,18,36,0.3) 100%),
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.8) 50%, rgba(15, 23, 42, 0.4) 100%),
                     url('{% static "img/img 8.png" %}') center/cover no-repeat fixed;
         min-height: 75vh;
     }
@@ -91,41 +91,12 @@
     </div>
 </section>
 
-<!-- Activities -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <h2 class="text-center display-5 fw-bold text-brand-dark mb-5" data-aos="fade-up">Our Recent Activities</h2>
-        <div class="row g-4">
-            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
-                <div class="bg-white p-4 rounded-3 activity-item">
-                    <h3 class="h5 fw-bold">Digital Skills Classes</h3>
-                    <p class="text-muted">Empowered 30+ youth with digital skills in our recent classes.</p>
-                    <span class="text-brand-orange fw-semibold">March 2025</span>
-                </div>
-            </div>
-            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
-                <div class="bg-white p-4 rounded-3 activity-item">
-                    <h3 class="h5 fw-bold">Educational Training</h3>
-                    <p class="text-muted">Offered training to 100+ youth.</p>
-                    <span class="text-brand-orange fw-semibold">May 2025</span>
-                </div>
-            </div>
-            <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
-                <div class="bg-white p-4 rounded-3 activity-item">
-                    <h3 class="h5 fw-bold">Career Mentorship Program</h3>
-                    <p class="text-muted">Mentored 50+ high school students with industry career guidance.</p>
-                    <span class="text-brand-orange fw-semibold">March 2025</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 
 <!-- Partnership Form -->
 <section id="partnership-form" class="py-5 bg-white">
     <div class="container" data-aos="fade-up">
         <h2 class="text-center display-5 fw-bold text-brand-dark mb-5">Partnership Application</h2>
-        <form class="bg-light p-4 rounded-3 mx-auto" style="max-width:700px;">
+        <form class="bg-light p-4 rounded-3 mx-auto" style="max-width:920px;">
             <!-- Personal Info -->
             <fieldset class="mb-4">
                 <legend class="h5 fw-bold pb-2 border-bottom">Personal Information</legend>
@@ -133,7 +104,7 @@
                     <div class="col-12"><input class="form-control" placeholder="Full Name*" required></div>
                     <div class="col-md-6"><input type="email" class="form-control" placeholder="Email*" required></div>
                     <div class="col-md-6"><input type="tel" class="form-control" placeholder="Phone*" required></div>
-                    <div class="col-12"><input class="form-control" placeholder="Position/Title"></div>
+                    <div class="col-12"><input class="form-control" placeholder="Position or Title"></div>
                 </div>
             </fieldset>
             <!-- Company Info -->
@@ -152,21 +123,21 @@
                 <legend class="h5 fw-bold pb-2 border-bottom">Partnership Details</legend>
                 <div class="row g-3">
                     <div class="col-12">
-                        <select class="form-select" required>
+                        <select class="form-select" name="partnership_type" required>
                             <option>Select Partnership Type</option>
-                            <option>Financial Support</option>
-                            <option>In-Kind Donations</option>
-                            <option>Volunteer Program</option>
-                            <option>Corporate Sponsorship</option>
+                            <option value="financial_support">Financial Support</option>
+                            <option value="in_kind_donations">In-Kind Donations</option>
+                            <option value="volunteer_program">Volunteer Program</option>
+                            <option value="corporate_sponsorship">Corporate Sponsorship</option>
                         </select>
                     </div>
                     <div class="col-12">
-                        <label class="form-label fw-semibold">Areas of Interest</label>
+                        <label class="form-label fw-semibold" for="interested_in">Areas of Interest</label>
                         <div class="d-flex flex-wrap gap-3">
-                            <div class="form-check"><input class="form-check-input" type="checkbox" value="education"> Education</div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" value="technology"> Technology Access</div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" value="youth"> Youth Empowerment</div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" value="community"> Community Development</div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="education" id="education"> <label class="form-check-label" for="education">Education</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="technology" id="technology"> <label class="form-check-label" for="technology">Technology Access</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="youth" id="youth"> <label class="form-check-label" for="youth">Youth Empowerment</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="community" id="community"> <label class="form-check-label" for="community">Community Development</label></div>
                         </div>
                     </div>
                     <div class="col-12">
@@ -175,6 +146,7 @@
                 </div>
             </fieldset>
             <div class="form-check mb-3">
+                <a href="#partnership-conditions" class="text-decoration-none">Read partnership conditions</a>
                 <input class="form-check-input" type="checkbox" required id="agreeTerms">
                 <label class="form-check-label small" for="agreeTerms">I have read and agree to the partnership conditions.</label>
             </div>

@@ -1,0 +1,30 @@
+
+{% extends "staff/base.html" %}
+{% block title %}Sessions & Calendar{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm p-3 rounded-4">
+            <h5 class="fw-bold"><i class="fas fa-calendar-plus"></i> Schedule Session</h5>
+            <form id="sessionForm">
+                <input type="hidden" id="sessionId">
+                <div class="mb-2"><label>Title</label><input id="sessTitle" class="form-control" required></div>
+                <div class="mb-2"><label>Course</label><select id="sessCourse" class="form-select">{% for c in allocated_courses %}<option value="{{ c.id }}">{{ c.title }}</option>{% endfor %}</select></div>
+                <div class="mb-2"><label>Date</label><input type="date" id="sessDate" class="form-control"></div>
+                <div class="mb-2"><label>Time</label><input type="time" id="sessTime" class="form-control"></div>
+                <button type="submit" class="btn btn-brand w-100">Create/Update Session</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white fw-bold">Upcoming Sessions</div>
+            <ul class="list-group list-group-flush" id="sessionList"></ul>
+        </div>
+    </div>
+</div>
+<script>
+    let sessions = [/* mock replace with django json */];
+    function renderSessions() { /* bootstrap list with edit/delete using modals */ }
+</script>
+{% endblock %}

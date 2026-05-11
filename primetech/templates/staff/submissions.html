@@ -1,0 +1,25 @@
+
+{% extends "staff/base.html" %}
+{% block title %}Student Submissions{% endblock %}
+{% block content %}
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table align-middle table-hover">
+                <thead><tr><th>Student</th><th>Assignment</th><th>Link/File</th><th>Submitted</th><th>Grade</th><th>Actions</th></tr></thead>
+                <tbody>
+                    {% for sub in submissions %}
+                    <tr>
+                        <td>{{ sub.student_name }}</td><td>{{ sub.title }}</td>
+                        <td>{% if sub.link %}<a href="{{ sub.link }}" target="_blank"><i class="fab fa-github"></i> Repo</a>{% else %}file attached{% endif %}</td>
+                        <td>{{ sub.submitted_at|date:"d M Y" }}</td>
+                        <td><input type="number" class="form-control form-control-sm grade-input" style="width:80px" data-sub="{{ sub.id }}" value="{{ sub.grade|default:'' }}"></td>
+                        <td><button class="btn btn-sm btn-brand save-grade" data-id="{{ sub.id }}">Save</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
