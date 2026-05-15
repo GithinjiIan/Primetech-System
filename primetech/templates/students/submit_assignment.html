@@ -1,0 +1,127 @@
+{% extends "students/base.html" %}
+{% load static %}
+
+{% block title %}Submit: {{ assignment.title }}{% endblock %}
+{% block page_title %}Submit Assignment{% endblock %}
+
+{% block content %}
+{% if messages %}
+  {% for msg in messages %}
+  <div class="alert alert-{{ msg.tags }} alert-dismissible fade show mx-3 mt-3" role="alert">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+{% endif %}
+
+<div class="container-fluid p-3 p-md-4 max-w-4xl mx-auto" style="max-width:1000px;">
+  
+  <div class="mb-4">
+    <a href="{% url 'students:submissions' %}" class="text-decoration-none text-muted small fw-semibold">
+      <i class="fas fa-arrow-left me-1"></i> Back to Assignments
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left: Instructions -->
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm rounded-4 mb-4 h-100">
+        <div class="card-header bg-white border-bottom p-4">
+          <span class="badge bg-secondary mb-2">{{ assignment.course.title }}</span>
+          <h3 class="fw-bold mb-1">{{ assignment.title }}</h3>
+          <div class="d-flex gap-3 text-muted small mt-2">
+            <div><i class="fas fa-clock me-1"></i> Due: {{ assignment.due_date|date:"M d, Y H:i" }}</div>
+            <div><i class="fas fa-star me-1"></i> Points: {{ assignment.max_score }}</div>
+          </div>
+        </div>
+        <div class="card-body p-4 p-md-5">
+          <h6 class="text-uppercase fw-bold text-muted small mb-3">Instructions</h6>
+          <div class="ck-content">
+            {{ assignment.instructions|safe }}
+          </div>
+          
+          {% if assignment.attachment %}
+          <div class="mt-4 pt-4 border-top">
+            <h6 class="text-uppercase fw-bold text-muted small mb-3">Attached Resource</h6>
+            <a href="{{ assignment.attachment.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+              <i class="fas fa-paperclip me-1"></i> Download {{ assignment.attachment.name|cut:"assignment_files/" }}
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Submission Form -->
+    <div class="col-lg-5">
+      
+      <!-- Grade Box (if graded) -->
+      {% if existing and existing.status == 'graded' %}
+      <div class="card border-0 shadow-sm rounded-4 border-success border mb-4">
+        <div class="card-body p-4 text-center">
+          <h6 class="text-success fw-bold text-uppercase small mb-2"><i class="fas fa-check-double me-1"></i> Graded</h6>
+          <div class="display-4 fw-bold text-success mb-2">{{ existing.grade.score }}<span class="fs-4 text-muted">/{{ assignment.max_score }}</span></div>
+          {% if existing.grade.feedback %}
+          <div class="bg-success bg-opacity-10 rounded-3 p-3 text-start small mt-3 border border-success border-opacity-25">
+            <strong>Feedback:</strong> {{ existing.grade.feedback|safe }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Form Box -->
+      <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top:80px;">
+        <div class="card-header bg-white border-bottom p-4 fw-bold">
+          <i class="fas fa-file-arrow-up text-brand-orange me-2"></i> Your Work
+        </div>
+        <div class="card-body p-4">
+          
+          {% if assignment.is_past_due and not assignment.allow_late_submission and not existing %}
+            <div class="alert alert-danger">
+              <i class="fas fa-exclamation-triangle me-2"></i> The deadline for this assignment has passed, and late submissions are not allowed.
+            </div>
+          {% elif existing and existing.status == 'graded' %}
+            <div class="alert alert-info small">
+              This assignment has been graded. You can no longer edit your submission.
+            </div>
+            {% if existing.content %}
+              <h6 class="fw-semibold small mt-3">Your Answer:</h6>
+              <div class="bg-light p-3 rounded small">{{ existing.content|linebreaks }}</div>
+            {% endif %}
+            {% if existing.file %}
+              <a href="{{ existing.file.url }}" class="btn btn-sm btn-outline-secondary mt-2 w-100"><i class="fas fa-download me-1"></i> Download your submitted file</a>
+            {% endif %}
+          {% else %}
+          
+            {% if assignment.is_past_due %}
+            <div class="alert alert-warning py-2 small">
+              <i class="fas fa-clock me-1"></i> This assignment is past due. It will be marked as late.
+            </div>
+            {% endif %}
+            
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="mb-3">
+                <label class="form-label fw-semibold small">Text Answer / Notes</label>
+                {{ form.content }}
+              </div>
+              <div class="mb-4">
+                <label class="form-label fw-semibold small">File Upload</label>
+                {{ form.file }}
+                {% if existing and existing.file %}
+                  <div class="form-text mt-2"><i class="fas fa-paperclip me-1"></i> Current file: <a href="{{ existing.file.url }}" target="_blank">Download</a></div>
+                {% endif %}
+              </div>
+              <button type="submit" class="btn btn-brand w-100 fw-bold py-2">
+                {% if existing %}<i class="fas fa-sync-alt me-2"></i> Update Submission{% else %}<i class="fas fa-paper-plane me-2"></i> Submit Assignment{% endif %}
+              </button>
+            </form>
+          {% endif %}
+          
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>
+{% endblock %}

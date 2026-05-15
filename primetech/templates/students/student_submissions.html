@@ -1,134 +1,85 @@
 {% extends "students/base.html" %}
 {% load static %}
 
-{% block title %}Submissions - PrimeTech LMS{% endblock %}
-{% block page_title %}Submissions{% endblock %}
+{% block title %}Assignments{% endblock %}
+{% block page_title %}Assignments{% endblock %}
 
 {% block content %}
+{% if messages %}
+  {% for msg in messages %}
+  <div class="alert alert-{{ msg.tags }} alert-dismissible fade show mx-3 mt-3" role="alert">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+{% endif %}
 
-
-<div class="row g-4">
-    <div class="col-12">
-        <div class="section mb-0 border-0 bg-transparent shadow-none">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h2 class="display-6 fw-bold mb-2">My Submissions</h2>
-                    <p class="text-muted fs-6 mb-0">Track your assignments, quizzes, and project feedback.</p>
-                </div>
-                <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                    <div class="d-inline-flex gap-2">
-                        <div class="px-3 py-2 bg-success bg-opacity-10 text-success rounded-pill smaller fw-bold border border-success border-opacity-25 shadow-sm">
-                            <i class="fas fa-check-circle me-1"></i> Graded
-                        </div>
-                        <div class="px-3 py-2 bg-warning bg-opacity-10 text-warning rounded-pill smaller fw-bold border border-warning border-opacity-25 shadow-sm">
-                            <i class="fas fa-clock me-1"></i> Pending
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="container-fluid p-3 p-md-4">
+  {% if assignments %}
+  <div class="row g-4">
+    {% for asgn in assignments %}
+    <div class="col-md-6 col-xl-4">
+      <div class="card border-0 shadow-sm rounded-4 h-100 d-flex flex-column">
+        <div class="card-header bg-transparent border-bottom-0 pt-4 px-4 pb-0">
+          <span class="badge bg-light text-dark border mb-2">{{ asgn.course.title }}</span>
+          <h5 class="fw-bold mb-1">{{ asgn.title }}</h5>
+          <div class="small text-muted mb-2">
+            <i class="fas fa-clock me-1"></i> Due: {{ asgn.due_date|date:"M d, Y H:i" }}
+            {% if asgn.is_past_due %}<span class="text-danger fw-bold ms-1">(Past Due)</span>{% endif %}
+          </div>
         </div>
-    </div>
-
-    <div class="col-12">
-        <div class="section mb-0">
-            <div class="section-body py-3">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <div class="input-group">
-                            <span class="input-group-text bg-white text-muted border-end-0"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control border-start-0 ps-0 shadow-none" id="searchInput" placeholder="Search by title...">
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-select shadow-none" id="courseSelect">
-                            <option value="all">All Courses</option>
-                            {% for enrollment in enrollments %}
-                            <option value="{{ enrollment.course.title }}">{{ enrollment.course.title }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-select shadow-none" id="statusSelect">
-                            <option value="all">All Statuses</option>
-                            <option value="Graded">Graded</option>
-                            <option value="Submitted">Submitted</option>
-                            <option value="Returned">Returned</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button class="btn btn-prime w-100">Apply Filters</button>
-                    </div>
-                </div>
+        
+        <div class="card-body px-4 py-3 flex-grow-1">
+          <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded-3" style="background:#f8fafc;">
+            <div>
+              <div class="small text-muted mb-1 text-uppercase fw-bold" style="font-size:0.7rem;">Max Score</div>
+              <div class="fw-bold fs-5">{{ asgn.max_score }}</div>
             </div>
+            <div class="text-end">
+              <div class="small text-muted mb-1 text-uppercase fw-bold" style="font-size:0.7rem;">Status</div>
+              {% if asgn.my_submission %}
+                {% if asgn.my_submission.status == 'graded' %}
+                  <span class="badge bg-success"><i class="fas fa-check-double me-1"></i> Graded</span>
+                {% elif asgn.my_submission.status == 'returned' %}
+                  <span class="badge bg-warning text-dark"><i class="fas fa-undo me-1"></i> Returned</span>
+                {% else %}
+                  <span class="badge bg-info text-dark"><i class="fas fa-check me-1"></i> Submitted</span>
+                {% endif %}
+              {% else %}
+                <span class="badge bg-secondary">Not Submitted</span>
+              {% endif %}
+            </div>
+          </div>
+          
+          {% if asgn.my_submission and asgn.my_submission.grade %}
+          <div class="p-3 rounded-3 border border-success bg-success bg-opacity-10 mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-bold text-success">Your Grade:</span>
+              <span class="fw-bold fs-5 text-success">{{ asgn.my_submission.grade.score }}<span class="fs-6 fw-normal">/{{ asgn.max_score }}</span></span>
+            </div>
+            {% if asgn.my_submission.grade.feedback %}
+            <div class="small text-muted mt-2 border-top border-success border-opacity-25 pt-2">
+              <strong>Feedback:</strong> {{ asgn.my_submission.grade.feedback|safe|truncatewords_html:15 }}
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
         </div>
-    </div>
-
-    <div class="col-12">
-        <div id="submissionList" class="row g-4">
-            {% for sub in submissions %}
-            <div class="col-12 submission-item" data-status="{{ sub.status }}">
-                <div class="section mb-0 hover-lift">
-                    <div class="section-body p-4">
-                        <div class="row align-items-center">
-                            <div class="col-auto">
-                                <div class="stats-icon bg-light text-muted border mb-0 shadow-sm">
-                                    <i class="fas fa-file-alt"></i>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                    <h5 class="fw-bold mb-0 text-dark">{{ sub.title|default:"Assignment Module" }}</h5>
-                                    <span class="badge bg-{{ sub.status_color|default:'primary' }} bg-opacity-10 text-{{ sub.status_color|default:'primary' }} border border-{{ sub.status_color|default:'primary' }} border-opacity-25 py-1 px-2">{{ sub.status|default:"Submitted" }}</span>
-                                </div>
-                                <div class="d-flex flex-wrap gap-4 text-muted small mt-2">
-                                    <span><i class="fas fa-book me-1 text-primary opacity-50"></i> {{ sub.course|default:"Course Name" }}</span>
-                                    <span><i class="fas fa-tag me-1 text-primary opacity-50"></i> {{ sub.type|default:"Project" }}</span>
-                                    <span><i class="far fa-calendar me-1 text-primary opacity-50"></i> {{ sub.date|default:"Today" }}</span>
-                                    {% if sub.score %}
-                                    <span class="fw-bold text-success"><i class="fas fa-chart-bar me-1"></i> Score: {{ sub.score }}%</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="col-md-auto text-md-end mt-3 mt-md-0 border-start ps-md-4">
-                                <button class="btn btn-sm btn-outline-prime px-3 py-2" data-bs-toggle="collapse" data-bs-target="#fb{{ forloop.counter }}">
-                                    View Feedback <i class="fas fa-chevron-down ms-2 small"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div id="fb{{ forloop.counter }}" class="collapse mt-4 pt-3 border-top">
-                            <div class="p-4 bg-light rounded-3 border-start border-4 border-primary">
-                                <h6 class="fw-bold small text-uppercase text-muted mb-2 letter-spacing-1">Instructor Feedback</h6>
-                                <p class="mb-0 text-dark fs-6">{{ sub.feedback|default:"No feedback provided yet. Your instructor will review your submission shortly." }}</p>
-                                {% if sub.detail %}
-                                <div class="mt-3 pt-3 border-top small text-muted fst-italic">
-                                    {{ sub.detail }}
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="col-12 text-center py-5">
-                <div class="bg-white rounded-circle d-inline-flex p-4 mb-3 shadow-sm border">
-                    <i class="fas fa-folder-open fs-2 text-muted"></i>
-                </div>
-                <p class="text-muted fw-medium mt-2">You haven't submitted any assignments yet.</p>
-            </div>
-            {% endfor %}
+        
+        <div class="card-footer bg-transparent border-top p-3 text-center mt-auto">
+          <a href="{% url 'students:submit_assignment' asgn.pk %}" class="btn {% if asgn.my_submission %}btn-outline-brand{% else %}btn-brand{% endif %} w-100 fw-bold">
+            {% if asgn.my_submission %}View Submission{% else %}Submit Work{% endif %}
+          </a>
         </div>
+      </div>
     </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="fas fa-clipboard-check fs-1 mb-3 opacity-50"></i>
+    <h5>No Assignments</h5>
+    <p>You don't have any assignments due at the moment.</p>
+  </div>
+  {% endif %}
 </div>
-
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Filter logic placeholder
-    });
-</script>
-
 {% endblock %}

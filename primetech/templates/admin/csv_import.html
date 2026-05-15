@@ -1,0 +1,54 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div class="module" style="max-width:600px; margin:2rem auto; padding:2rem;">
+  <h2> Bulk Learner CSV Import</h2>
+  <p>Upload a CSV file to create student accounts and enroll them into courses in bulk.</p>
+
+  <div class="help" style="background:#f8f8f8; border-left:4px solid #417690; padding:1rem; margin-bottom:1.5rem; border-radius:4px;">
+    <strong>Required CSV columns:</strong>
+    <ul style="margin:0.5rem 0 0;">
+      <li><code>full_name</code> — Student's full name</li>
+      <li><code>email</code> — Email address (used for login)</li>
+      <li><code>course_id</code> — Course ID (find it in the Courses list)</li>
+    </ul>
+    <strong>Optional columns:</strong>
+    <ul style="margin:0.5rem 0 0;">
+      <li><code>phone_number</code>, <code>nationality</code>, <code>gender</code> (male/female)</li>
+    </ul>
+    <p style="margin-top:0.75rem; color:#555;">
+      New accounts will receive a welcome email with temporary login credentials.
+      Existing accounts will just be enrolled (no duplicate email sent).
+    </p>
+  </div>
+
+  <p><strong>Example row:</strong></p>
+  <pre style="background:#222; color:#eee; padding:0.75rem; border-radius:4px; font-size:0.85rem; overflow-x:auto;">full_name,email,course_id,phone_number,nationality,gender
+Jane Doe,jane@example.com,3,+254700000000,Kenyan,female
+John Smith,john@example.com,3,+254712345678,Ugandan,male</pre>
+
+  <form method="post" enctype="multipart/form-data" style="margin-top:1.5rem;">
+    {% csrf_token %}
+    <div style="margin-bottom:1rem;">
+      <label for="csv_file" style="display:block; font-weight:bold; margin-bottom:0.4rem;">Select CSV File</label>
+      <input type="file" name="csv_file" id="csv_file" accept=".csv" required
+             style="display:block; padding:0.5rem; border:1px solid #ccc; border-radius:4px; width:100%;">
+    </div>
+    <div style="display:flex; gap:1rem; align-items:center;">
+      <input type="submit" value="⬆ Upload & Import"
+             style="background:#417690; color:white; border:none; padding:0.6rem 1.5rem; border-radius:4px; cursor:pointer; font-weight:bold;">
+      <a href="../" style="color:#555;">Cancel</a>
+    </div>
+  </form>
+
+  {% if messages %}
+  <div style="margin-top:1.5rem;">
+    {% for message in messages %}
+    <p class="{% if message.tags == 'success' %}success{% else %}errornote{% endif %}"
+       style="padding:0.75rem; border-radius:4px; margin-bottom:0.5rem;">
+      {{ message }}
+    </p>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

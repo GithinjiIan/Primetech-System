@@ -1,0 +1,172 @@
+{% extends "staff/base.html" %}
+{% load static %}
+{% block title %}Assignments{% endblock %}
+{% block page_heading %}Assignments{% endblock %}
+
+{% block content %}
+{% if messages %}
+  {% for msg in messages %}
+  <div class="alert alert-{{ msg.tags }} alert-dismissible fade show mb-4" role="alert">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+{% endif %}
+
+<!-- Mobile: horizontal course bar -->
+<div class="mobile-course-bar mb-3">
+  <div class="course-picker-mobile">
+    {% for course in allocated_courses %}
+    <a href="?course_id={{ course.pk }}"
+       class="list-group-item {% if selected_course.pk == course.pk %}active{% endif %}">
+      {{ course.title }}
+    </a>
+    {% empty %}
+    <span class="text-muted small">No courses assigned.</span>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Desktop: sidebar course picker -->
+  <div class="col-lg-3 sidebar-course-panel">
+    <div class="card">
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="fas fa-book-open text-accent"></i> My Courses
+      </div>
+      <div class="list-group list-group-flush px-2 pb-3 pt-2">
+        {% for course in allocated_courses %}
+        <a href="?course_id={{ course.pk }}"
+           class="list-group-item list-group-item-action {% if selected_course.pk == course.pk %}active{% endif %}">
+          <div class="fw-semibold" style="font-size:.875rem;">{{ course.title }}</div>
+          <small>{{ course.category }}</small>
+        </a>
+        {% empty %}
+        <p class="text-muted px-2 py-2 small mb-0">No courses assigned.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Assignments panel -->
+  <div class="col-lg-9">
+    {% if selected_course %}
+    <div class="page-header">
+      <h5>{{ selected_course.title }} — Assignments</h5>
+      <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#addAssignmentModal">
+        <i class="fas fa-plus me-1"></i> New Assignment
+      </button>
+    </div>
+
+    {% if assignments %}
+    <div class="d-flex flex-column gap-3">
+      {% for asgn in assignments %}
+      <div class="item-card">
+        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+          <div class="flex-grow-1">
+            <div class="fw-bold mb-2" style="font-size:.95rem;">{{ asgn.title }}</div>
+            <div class="d-flex flex-wrap gap-2">
+              <span class="badge bg-secondary">Max: {{ asgn.max_score }} pts</span>
+              <span class="badge {% if asgn.is_past_due %}bg-danger{% else %}bg-success{% endif %}">
+                Due {{ asgn.due_date|date:"M d, Y" }}
+              </span>
+              <span class="badge" style="background:var(--brand-accent-soft);color:var(--brand-accent);">
+                {{ asgn.sub_count }} submission(s)
+              </span>
+              {% if asgn.pending_count > 0 %}
+              <span class="badge bg-warning text-dark">{{ asgn.pending_count }} ungraded</span>
+              {% endif %}
+              {% if not asgn.is_published %}
+              <span class="badge bg-light text-dark border">Draft</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="d-flex gap-2 flex-shrink-0">
+            <a href="{% url 'staff:submissions' %}?course_id={{ selected_course.pk }}"
+               class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-tasks me-1"></i><span class="d-none d-sm-inline">Submissions</span>
+            </a>
+            <form method="post" onsubmit="return confirm('Delete this assignment?')">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete_assignment">
+              <input type="hidden" name="assignment_id" value="{{ asgn.pk }}">
+              <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
+              <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-file-pen"></i>
+      <p>No assignments yet for this course.</p>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-hand-pointer"></i>
+      <p>Select a course to manage its assignments.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Add Assignment Modal -->
+{% if selected_course %}
+<div class="modal fade" id="addAssignmentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-file-pen text-accent me-2"></i>New Assignment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_assignment">
+          <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Title <span class="text-danger">*</span></label>
+              {{ form.title }}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Instructions <span class="text-danger">*</span></label>
+              {{ form.instructions }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Max Score</label>
+              {{ form.max_score }}
+            </div>
+            <div class="col-md-8">
+              <label class="form-label">Due Date & Time <span class="text-danger">*</span></label>
+              {{ form.due_date }}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Optional Attachment</label>
+              {{ form.attachment }}
+            </div>
+            <div class="col-12 d-flex flex-wrap gap-4">
+              <div class="form-check">
+                {{ form.allow_late_submission }}
+                <label class="form-check-label" style="font-size:.875rem;">Allow late submissions</label>
+              </div>
+              <div class="form-check">
+                {{ form.is_published }}
+                <label class="form-check-label" style="font-size:.875rem;">Publish immediately</label>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-brand"><i class="fas fa-save me-1"></i> Create</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

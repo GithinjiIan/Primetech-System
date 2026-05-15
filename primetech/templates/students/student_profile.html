@@ -1,100 +1,111 @@
 {% extends "students/base.html" %}
 {% load static %}
 
-{% block title %}Profile - PrimeTech LMS{% endblock %}
-{% block page_title %}Profile{% endblock %}
-{% block active_page %}profile{% endblock %}
+{% block title %}My Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
 
 {% block content %}
+{% if messages %}
+  {% for msg in messages %}
+  <div class="alert alert-{{ msg.tags }} alert-dismissible fade show mx-3 mt-3" role="alert">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+{% endif %}
 
-<div class="row g-4">
-    <div class="col-lg-7">
-        <div class="section h-100 mb-0">
-            <div class="section-header">
-                <h2 class="section-title"><i class="fas fa-id-card me-2"></i>Account Information</h2>
+<div class="container-fluid p-3 p-md-4 max-w-4xl mx-auto" style="max-width:900px;">
+  
+  <div class="row g-4">
+    <!-- Left: Profile Summary -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 text-center p-4">
+        <div class="mb-3">
+          {% if request.user.profile_picture %}
+            <img src="{{ request.user.profile_picture.url }}" alt="Profile" class="rounded-circle shadow-sm" style="width:120px; height:120px; object-fit:cover; border:4px solid white;">
+          {% else %}
+            <div class="rounded-circle bg-brand-orange text-white d-flex align-items-center justify-content-center mx-auto shadow-sm" style="width:120px; height:120px; font-size:3rem; border:4px solid white;">
+              {{ request.user.first_name|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}
             </div>
-            <div class="section-body">
-                <div class="d-flex align-items-center gap-4 mb-4 pb-4 border-bottom">
-                    <div class="stats-icon bg-primary text-white" style="width: 80px; height: 80px; font-size: 2rem; border-radius: 20px;">
-                        {{ request.user.username|slice:":1"|upper }}
-                    </div>
-                    <div>
-                        <h4 class="fw-bold mb-1">{{ request.user.get_full_name|default:request.user.username }}</h4>
-                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">Active Student</span>
-                    </div>
-                </div>
-
-                <div class="row g-4">
-                    <div class="col-sm-6">
-                        <label class="smaller text-muted text-uppercase fw-bold mb-1">Full Name</label>
-                        <div class="fw-bold">{{ request.user.get_full_name|default:"Not provided" }}</div>
-                    </div>
-                    <div class="col-sm-6">
-                        <label class="smaller text-muted text-uppercase fw-bold mb-1">Email Address</label>
-                        <div class="fw-bold">{{ request.user.email }}</div>
-                    </div>
-                    <div class="col-sm-6">
-                        <label class="smaller text-muted text-uppercase fw-bold mb-1">Phone Number</label>
-                        <div class="fw-bold text-primary">{{ request.user.phone_number|default:"Not provided" }}</div>
-                    </div>
-                    <div class="col-sm-6">
-                        <label class="smaller text-muted text-uppercase fw-bold mb-1">Member Since</label>
-                        <div class="fw-bold">{{ request.user.date_joined|date:"M Y" }}</div>
-                    </div>
-                    <div class="col-12">
-                        <label class="smaller text-muted text-uppercase fw-bold mb-1">Enrolled In</label>
-                        <div class="d-flex flex-wrap gap-2 mt-1">
-                            {% for enrollment in enrollments %}
-                            <span class="badge bg-light text-dark border py-2 px-3">{{ enrollment.course.title }}</span>
-                            {% empty %}
-                            <span class="text-muted small italic">No active enrollments</span>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
+          {% endif %}
         </div>
-    </div>
-
-    <div class="col-lg-5">
-        <div class="section mb-0">
-            <div class="section-header">
-                <h2 class="section-title"><i class="fas fa-wallet me-2 text-success"></i>Billing & Payments</h2>
-            </div>
-            <div class="section-body">
-                <div class="card bg-light border-0 rounded-4 mb-4">
-                    <div class="card-body p-4">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="smaller text-muted text-uppercase fw-bold mb-1">Total Due</div>
-                                <h3 class="fw-bold mb-0 text-primary" id="totalDue">KES 0</h3>
-                            </div>
-                            <div class="col-6">
-                                <div class="smaller text-muted text-uppercase fw-bold mb-1">Total Paid</div>
-                                <h3 class="fw-bold mb-0 text-success" id="amountPaid">KES 0</h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="alert alert-info border-0 rounded-3 mb-4 small">
-                    <i class="fas fa-info-circle me-2"></i> This is a demonstration of the payment interface. Real transactions are not processed in this demo.
-                </div>
-
-                <button class="btn btn-prime w-100 py-3 shadow-sm" id="payBtn">
-                    <i class="fas fa-credit-card me-2"></i> Proceed to Checkout
-                </button>
-            </div>
+        <h4 class="fw-bold mb-1">{{ request.user.get_full_name }}</h4>
+        <p class="text-muted small mb-3">{{ request.user.email }}</p>
+        
+        <div class="d-flex justify-content-center gap-2 mb-4">
+          {% if request.user.email_verified %}
+          <span class="badge bg-success bg-opacity-10 text-success"><i class="fas fa-check-circle me-1"></i> Verified Email</span>
+          {% else %}
+          <span class="badge bg-warning bg-opacity-10 text-warning"><i class="fas fa-exclamation-circle me-1"></i> Unverified Email</span>
+          {% endif %}
         </div>
+        
+        <hr>
+        <div class="text-start small">
+          <div class="mb-2"><span class="text-muted fw-bold d-inline-block" style="width:80px;">Role:</span> Student</div>
+          <div class="mb-2"><span class="text-muted fw-bold d-inline-block" style="width:80px;">Joined:</span> {{ request.user.date_joined|date:"M Y" }}</div>
+          <div class="mb-2"><span class="text-muted fw-bold d-inline-block" style="width:80px;">Enrolled:</span> {{ enrollments.count }} Course(s)</div>
+        </div>
+      </div>
     </div>
+    
+    <!-- Right: Edit Form -->
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-bottom p-4 fw-bold">
+          <i class="fas fa-user-edit text-brand-orange me-2"></i> Edit Profile Details
+        </div>
+        <div class="card-body p-4">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">First Name</label>
+                {{ form.first_name }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Last Name</label>
+                {{ form.last_name }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Phone Number</label>
+                {{ form.phone_number }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Nationality</label>
+                {{ form.nationality }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Gender</label>
+                {{ form.gender }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Profile Picture</label>
+                {{ form.profile_picture }}
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold small">Short Bio</label>
+                {{ form.bio }}
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-top text-end">
+              <button type="submit" class="btn btn-brand px-4 fw-bold"><i class="fas fa-save me-2"></i> Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Security Section -->
+      <div class="card border-0 shadow-sm rounded-4 mt-4">
+        <div class="card-body p-4 d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="fw-bold mb-1"><i class="fas fa-shield-alt text-secondary me-2"></i> Account Security</h6>
+            <p class="text-muted small mb-0">Update your password to keep your account secure.</p>
+          </div>
+          <a href="#" class="btn btn-outline-secondary btn-sm">Change Password</a>
+        </div>
+      </div>
+      
+    </div>
+  </div>
 </div>
-
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function(){
-        // Same payment logic as original, kept as is.
-    });
-</script>
 {% endblock %}

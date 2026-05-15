@@ -1,0 +1,111 @@
+{% extends "students/base.html" %}
+{% load static %}
+
+{% block title %}{{ material.title }}{% endblock %}
+{% block page_title %}Material Detail{% endblock %}
+
+{% block content %}
+{% if messages %}
+  {% for msg in messages %}
+  <div class="alert alert-{{ msg.tags }} alert-dismissible fade show mx-3 mt-3" role="alert">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+{% endif %}
+
+<div class="container-fluid p-3 p-md-4 max-w-4xl mx-auto" style="max-width:900px;">
+  <!-- Navigation -->
+  <div class="mb-4">
+    <a href="{% url 'students:course_materials' course.pk %}" class="text-decoration-none text-muted small fw-semibold">
+      <i class="fas fa-arrow-left me-1"></i> Back to {{ course.title }}
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <!-- Header -->
+    <div class="card-header bg-white border-bottom p-4">
+      <div class="d-flex justify-content-between align-items-start gap-3">
+        <div>
+          <span class="badge bg-secondary mb-2">{{ material.get_material_type_display }}</span>
+          <h2 class="h3 fw-bold mb-1">{{ material.title }}</h2>
+          {% if material.description %}
+            <p class="text-muted mb-0">{{ material.description }}</p>
+          {% endif %}
+        </div>
+        
+        {% if progress.completed %}
+          <div class="text-success text-center px-3 py-2 bg-success bg-opacity-10 rounded-3">
+            <i class="fas fa-check-circle fs-4 mb-1 d-block"></i>
+            <span class="small fw-bold">Completed</span>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body p-4 p-md-5">
+      
+      {% if material.material_type == 'text' %}
+        <div class="ck-content">
+          {{ material.content|safe }}
+        </div>
+        
+      {% elif material.material_type == 'video' %}
+        {% if material.url %}
+        <div class="ratio ratio-16x9 bg-dark rounded-3 overflow-hidden shadow-sm">
+          <iframe src="{{ material.url }}" title="{{ material.title }}" allowfullscreen></iframe>
+        </div>
+        <p class="mt-3 text-muted small text-center"><i class="fas fa-info-circle me-1"></i> If the video doesn't play, <a href="{{ material.url }}" target="_blank">click here to watch it directly</a>.</p>
+        {% else %}
+        <div class="alert alert-warning">No video URL provided.</div>
+        {% endif %}
+        
+      {% elif material.material_type == 'pdf' or material.material_type == 'file' %}
+        <div class="text-center py-5 bg-light rounded-4 border">
+          <i class="fas {% if material.material_type == 'pdf' %}fa-file-pdf text-danger{% else %}fa-file-arrow-down text-success{% endif %} fs-1 mb-3"></i>
+          <h5 class="fw-bold">Download Resource</h5>
+          <p class="text-muted mb-4">Click below to download or view the file.</p>
+          {% if material.file %}
+          <a href="{{ material.file.url }}" target="_blank" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">
+            <i class="fas fa-download me-2"></i> Download File
+          </a>
+          {% else %}
+          <span class="text-danger">File is missing.</span>
+          {% endif %}
+        </div>
+        
+      {% elif material.material_type == 'link' %}
+        <div class="text-center py-5 bg-light rounded-4 border">
+          <i class="fas fa-external-link-alt text-primary fs-1 mb-3"></i>
+          <h5 class="fw-bold">External Resource</h5>
+          <p class="text-muted mb-4">This material links to an external website.</p>
+          {% if material.url %}
+          <a href="{{ material.url }}" target="_blank" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">
+            Open Link <i class="fas fa-arrow-right ms-2"></i>
+          </a>
+          {% else %}
+          <span class="text-danger">URL is missing.</span>
+          {% endif %}
+        </div>
+      {% endif %}
+
+    </div>
+    
+    <!-- Footer action -->
+    <div class="card-footer bg-light border-top p-4 text-center">
+      {% if not progress.completed %}
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success px-5 py-2 fw-bold shadow-sm">
+          <i class="fas fa-check me-2"></i> Mark as Completed
+        </button>
+      </form>
+      {% else %}
+      <a href="{% url 'students:course_materials' course.pk %}" class="btn btn-outline-secondary px-4 py-2">
+        Return to Materials
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

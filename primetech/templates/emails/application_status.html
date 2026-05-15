@@ -1,42 +1,19 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        .header { background: linear-gradient(135deg, #1B4332, #2d5a45); padding: 30px; text-align: center; }
-        .header h1 { color: #FFC107; margin: 0; font-size: 24px; }
-        .body { padding: 30px; }
-        .body h2 { color: #1B4332; }
-        .status-approved { color: #28a745; font-weight: bold; }
-        .status-rejected { color: #dc3545; font-weight: bold; }
-        .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Application Update</h1>
-        </div>
-        <div class="body">
-            <h2>Hello, {{ application.full_name }}!</h2>
-            <p>Your application for <strong>{{ application.course.title }}</strong> has been
-            {% if status == 'approved' %}
-                <span class="status-approved">approved</span>! 
-            {% else %}
-                <span class="status-rejected">not approved</span> at this time.
-            {% endif %}
-            </p>
-            {% if status == 'approved' %}
-            <p>You will receive a separate email with your login credentials shortly. Welcome to PrimeTech LMS!</p>
-            {% else %}
-            <p>We appreciate your interest. Please feel free to apply again in the future or contact us for more information.</p>
-            {% endif %}
-        </div>
-        <div class="footer">
-            <p>© 20265 PrimeTech Foundation. All rights reserved.</p>
-        </div>
-    </div>
-</body>
-</html>
+{% extends "emails/base_email.html" %}
+
+{% block header_title %}Application Update{% endblock %}
+
+{% block body %}
+    <h2>Hello, {{ application.full_name }}!</h2>
+    <p>Your application for <strong>{{ application.course.title }}</strong> has been
+    {% if status == 'approved' %}
+        <span class="status-approved">approved</span>!
+    {% else %}
+        <span class="status-rejected">not approved</span> at this time.
+    {% endif %}
+    </p>
+    {% if status == 'approved' %}
+    <p>You will receive a separate email with your login credentials shortly. Welcome to PrimeTech LMS!</p>
+    {% else %}
+    <p>We appreciate your interest. Please feel free to apply again in the future or contact us for more information.</p>
+    {% endif %}
+{% endblock %}

@@ -1,14 +1,20 @@
 """
-Website admin — course management with application approval workflow.
+Website admin — course management with application approval workflow + CSV bulk import.
 """
+import csv
+import io
 import secrets
 import string
 
 from django.contrib import admin, messages
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from django.urls import path
 
 from .models import CourseCategory, Course, Testimonial, Statistic, CourseApplication, Enrollment
+from .models import PartnershipApplication
 
 User = get_user_model()
 
@@ -32,6 +38,22 @@ class CourseAdmin(admin.ModelAdmin):
     search_fields = ('title', 'instructor')
     prepopulated_fields = {'slug': ('title',)}
     raw_id_fields = ('assigned_instructor',)
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('title', 'slug', 'category', 'level', 'price', 'image', 'is_active')
+        }),
+        ('Description', {
+            'fields': ('short_description', 'description'),
+            'description': 'Use clear, readable prose. No JSON required.',
+        }),
+        ('Details', {
+            'fields': ('duration', 'schedule', 'requirements', 'outcomes'),
+            'description': 'Write each requirement/outcome on its own line, or use bullet points.',
+        }),
+        ('Instructor', {
+            'fields': ('assigned_instructor',),
+        }),
+    )
 
 
 @admin.register(Testimonial)
@@ -70,7 +92,6 @@ class CourseApplicationAdmin(admin.ModelAdmin):
 
         approved = 0
         for application in queryset.filter(status='pending'):
-            # 1. Create or get the student user account
             temp_password = _generate_temp_password()
             user, created = User.objects.get_or_create(
                 email=application.email,
@@ -89,39 +110,34 @@ class CourseApplicationAdmin(admin.ModelAdmin):
                 user.set_password(temp_password)
                 user.save()
 
-            # 2. Create enrollment (skip if already enrolled)
-            enrollment, enr_created = Enrollment.objects.get_or_create(
+            Enrollment.objects.get_or_create(
                 student=user,
                 course=application.course,
                 defaults={'application': application}
             )
 
-            # 3. Update application status
             application.status = 'approved'
             application.processed_by = request.user
             application.processed_at = timezone.now()
             application.save()
 
-            # 4. Send congratulatory email with credentials
             if created:
                 send_welcome_email.delay(user.id, temp_password)
 
-            # 5. In-app notifications
             create_notification(
                 recipient=user,
                 notification_type='enrollment',
                 title=f'Enrolled in {application.course.title}',
                 message=f'Congratulations! You have been enrolled in "{application.course.title}". '
                         f'Please log in and start learning!',
-                send_email=False,  # Welcome email already sent
+                send_email=not created,  # welcome email already sent if new user
             )
 
-            # Notify the instructor if assigned
             if application.course.assigned_instructor:
                 create_notification(
                     recipient=application.course.assigned_instructor,
                     notification_type='enrollment',
-                    title=f'New Student Enrolled',
+                    title='New Student Enrolled',
                     message=f'{user.get_full_name()} has been enrolled in your course '
                             f'"{application.course.title}".',
                 )
@@ -148,11 +164,7 @@ class CourseApplicationAdmin(admin.ModelAdmin):
             send_application_status_email.delay(application.id, 'rejected')
             count += 1
 
-        self.message_user(
-            request,
-            f'{count} application(s) rejected.',
-            messages.WARNING,
-        )
+        self.message_user(request, f'{count} application(s) rejected.', messages.WARNING)
 
 
 @admin.register(Enrollment)
@@ -161,3 +173,101 @@ class EnrollmentAdmin(admin.ModelAdmin):
     list_filter = ('status', 'course')
     search_fields = ('student__email', 'student__first_name', 'course__title')
     raw_id_fields = ('student', 'application')
+    actions = ['bulk_csv_enroll']
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [path('csv-import/', self.admin_site.admin_view(self.csv_import_view), name='enrollment-csv-import')]
+        return custom + urls
+
+    def csv_import_view(self, request):
+        """
+        Handle bulk CSV learner import.
+        CSV columns: full_name, email, phone_number, course_id, [nationality], [gender]
+        """
+        from notifications.tasks import send_welcome_email
+
+        if request.method == 'POST' and request.FILES.get('csv_file'):
+            csv_file = request.FILES['csv_file']
+            decoded = csv_file.read().decode('utf-8')
+            reader = csv.DictReader(io.StringIO(decoded))
+
+            created_count = 0
+            enrolled_count = 0
+            errors = []
+
+            for i, row in enumerate(reader, start=2):
+                try:
+                    full_name = row.get('full_name', '').strip()
+                    email = row.get('email', '').strip().lower()
+                    phone = row.get('phone_number', '').strip()
+                    course_id = row.get('course_id', '').strip()
+                    nationality = row.get('nationality', '').strip()
+                    gender = row.get('gender', '').strip().lower()
+
+                    if not full_name or not email or not course_id:
+                        errors.append(f"Row {i}: missing required fields (full_name, email, course_id).")
+                        continue
+
+                    try:
+                        from website.models import Course as CourseModel
+                        course = CourseModel.objects.get(pk=course_id)
+                    except (CourseModel.DoesNotExist, ValueError):
+                        errors.append(f"Row {i}: course_id '{course_id}' not found.")
+                        continue
+
+                    name_parts = full_name.split()
+                    temp_password = _generate_temp_password()
+
+                    user, created = User.objects.get_or_create(
+                        email=email,
+                        defaults={
+                            'first_name': name_parts[0],
+                            'last_name': ' '.join(name_parts[1:]) or '-',
+                            'role': 'student',
+                            'phone_number': phone,
+                            'nationality': nationality,
+                            'gender': gender if gender in ('male', 'female') else '',
+                            'must_change_password': True,
+                            'is_active': True,
+                        }
+                    )
+                    if created:
+                        user.set_password(temp_password)
+                        user.save()
+                        created_count += 1
+                        send_welcome_email.delay(user.id, temp_password)
+
+                    _, enr_created = Enrollment.objects.get_or_create(
+                        student=user,
+                        course=course,
+                    )
+                    if enr_created:
+                        enrolled_count += 1
+
+                except Exception as e:
+                    errors.append(f"Row {i}: unexpected error — {e}")
+
+            msg = f"Import complete: {created_count} new account(s) created, {enrolled_count} enrollment(s) added."
+            if errors:
+                msg += f" {len(errors)} row(s) had errors."
+                for err in errors[:5]:
+                    messages.warning(request, err)
+            messages.success(request, msg)
+            return HttpResponseRedirect('../')
+
+        # GET — render the upload form
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Bulk CSV Learner Import',
+            'opts': self.model._meta,
+        }
+        return render(request, 'admin/csv_import.html', context)
+
+
+@admin.register(PartnershipApplication)
+class PartnershipApplicationAdmin(admin.ModelAdmin):
+    list_display = ('organization_name', 'email', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('organization_name', 'email')
+    readonly_fields = ('created_at',)

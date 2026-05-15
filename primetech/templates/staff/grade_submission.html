@@ -1,0 +1,125 @@
+{% extends "staff/base.html" %}
+{% load static %}
+{% block title %}Grade Submission{% endblock %}
+{% block page_heading %}Grade Submission{% endblock %}
+
+{% block content %}
+{% if messages %}
+  {% for msg in messages %}
+  <div class="alert alert-{{ msg.tags }} alert-dismissible fade show mb-4" role="alert">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+{% endif %}
+
+<div class="row g-4">
+  <!-- Left: Submission -->
+  <div class="col-lg-7">
+    <div class="card mb-4">
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="fas fa-file-alt text-accent"></i> Student Submission
+      </div>
+      <div class="card-body">
+        <!-- Meta -->
+        <div class="row g-2 mb-3">
+          <div class="col-sm-4">
+            <div class="text-muted" style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Student</div>
+            <div class="fw-bold" style="font-size:.875rem;">{{ submission.student.get_full_name }}</div>
+          </div>
+          <div class="col-sm-4">
+            <div class="text-muted" style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Assignment</div>
+            <div class="fw-bold" style="font-size:.875rem;">{{ submission.assignment.title }}</div>
+          </div>
+          <div class="col-sm-4">
+            <div class="text-muted" style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Course</div>
+            <div class="fw-bold" style="font-size:.875rem;">{{ submission.assignment.course.title }}</div>
+          </div>
+        </div>
+        <div class="d-flex flex-wrap gap-3 mb-3" style="font-size:.8rem;">
+          <span><i class="fas fa-clock me-1 text-muted"></i>{{ submission.submitted_at|date:"M d, Y H:i" }}</span>
+          <span><i class="fas fa-star me-1 text-muted"></i>Max: {{ submission.assignment.max_score }} pts</span>
+          {% if submission.is_late %}<span class="badge bg-danger">Late</span>{% endif %}
+        </div>
+
+        <hr style="border-color:#f1f5f9;">
+
+        {% if submission.content %}
+        <div class="mb-3">
+          <div class="fw-bold mb-2" style="font-size:.875rem;">Written Response</div>
+          <div class="p-3 rounded-xl" style="background:#f8fafc;font-size:.875rem;line-height:1.7;">{{ submission.content|linebreaks }}</div>
+        </div>
+        {% endif %}
+
+        {% if submission.file %}
+        <div class="mb-3">
+          <div class="fw-bold mb-2" style="font-size:.875rem;">Attached File</div>
+          <a href="{{ submission.file.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-download me-1"></i> Download File
+          </a>
+        </div>
+        {% endif %}
+
+        {% if not submission.content and not submission.file %}
+        <p class="text-muted" style="font-size:.875rem;">No content or file submitted.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="card">
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="fas fa-clipboard-list text-accent"></i> Assignment Instructions
+      </div>
+      <div class="card-body" style="font-size:.875rem;">
+        {{ submission.assignment.instructions|safe }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Grade form -->
+  <div class="col-lg-5">
+    <div class="card grade-sticky">
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="fas fa-star text-accent"></i>
+        {% if grade %}Edit Grade{% else %}Grade Submission{% endif %}
+      </div>
+      <div class="card-body">
+        {% if grade %}
+        <div class="p-3 mb-3 rounded-xl d-flex align-items-center gap-3"
+             style="background:var(--brand-accent-soft);border:1px solid rgba(14,165,233,.2);">
+          <i class="fas fa-check-circle text-accent fs-4"></i>
+          <div>
+            <div class="fw-bold" style="color:var(--brand-accent);">
+              {{ grade.score }}/{{ submission.assignment.max_score }}
+            </div>
+            <div style="font-size:.78rem;color:var(--brand-muted);">
+              {{ grade.percentage }}% — {{ grade.letter_grade }}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">
+              Score <span class="text-muted" style="font-weight:400;">(out of {{ submission.assignment.max_score }})</span>
+            </label>
+            {{ form.score }}
+          </div>
+          <div class="mb-4">
+            <label class="form-label">Feedback to Student</label>
+            {{ form.feedback }}
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-brand flex-grow-1">
+              <i class="fas fa-check me-1"></i> Save Grade
+            </button>
+            <a href="{% url 'staff:submissions' %}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

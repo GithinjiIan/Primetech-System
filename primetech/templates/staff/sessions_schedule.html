@@ -1,30 +1,186 @@
-
 {% extends "staff/base.html" %}
-{% block title %}Sessions & Calendar{% endblock %}
+{% load static %}
+{% block title %}Class Sessions{% endblock %}
+{% block page_heading %}Sessions{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-md-5">
-        <div class="card border-0 shadow-sm p-3 rounded-4">
-            <h5 class="fw-bold"><i class="fas fa-calendar-plus"></i> Schedule Session</h5>
-            <form id="sessionForm">
-                <input type="hidden" id="sessionId">
-                <div class="mb-2"><label>Title</label><input id="sessTitle" class="form-control" required></div>
-                <div class="mb-2"><label>Course</label><select id="sessCourse" class="form-select">{% for c in allocated_courses %}<option value="{{ c.id }}">{{ c.title }}</option>{% endfor %}</select></div>
-                <div class="mb-2"><label>Date</label><input type="date" id="sessDate" class="form-control"></div>
-                <div class="mb-2"><label>Time</label><input type="time" id="sessTime" class="form-control"></div>
-                <button type="submit" class="btn btn-brand w-100">Create/Update Session</button>
-            </form>
-        </div>
-    </div>
-    <div class="col-md-7">
-        <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-header bg-white fw-bold">Upcoming Sessions</div>
-            <ul class="list-group list-group-flush" id="sessionList"></ul>
-        </div>
-    </div>
+{% if messages %}
+  {% for msg in messages %}
+  <div class="alert alert-{{ msg.tags }} alert-dismissible fade show mb-4" role="alert">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+{% endif %}
+
+<!-- Mobile course bar -->
+<div class="mobile-course-bar mb-3">
+  <div class="course-picker-mobile">
+    {% for course in allocated_courses %}
+    <a href="?course_id={{ course.pk }}"
+       class="list-group-item {% if selected_course.pk == course.pk %}active{% endif %}">
+      {{ course.title }}
+    </a>
+    {% empty %}
+    <span class="text-muted small">No courses assigned.</span>
+    {% endfor %}
+  </div>
 </div>
-<script>
-    let sessions = [/* mock replace with django json */];
-    function renderSessions() { /* bootstrap list with edit/delete using modals */ }
-</script>
+
+<div class="row g-4">
+  <!-- Desktop sidebar -->
+  <div class="col-lg-3 sidebar-course-panel">
+    <div class="card">
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="fas fa-book-open text-accent"></i> My Courses
+      </div>
+      <div class="list-group list-group-flush px-2 pb-3 pt-2">
+        {% for course in allocated_courses %}
+        <a href="?course_id={{ course.pk }}"
+           class="list-group-item list-group-item-action {% if selected_course.pk == course.pk %}active{% endif %}">
+          <div class="fw-semibold" style="font-size:.875rem;">{{ course.title }}</div>
+          <small>{{ course.category }}</small>
+        </a>
+        {% empty %}
+        <p class="text-muted px-2 py-2 small mb-0">No courses assigned.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Sessions panel -->
+  <div class="col-lg-9">
+    {% if selected_course %}
+    <div class="page-header">
+      <h5>{{ selected_course.title }} — Sessions</h5>
+      <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#addSessionModal">
+        <i class="fas fa-plus me-1"></i> Schedule
+      </button>
+    </div>
+
+    {% if sessions %}
+    <div class="d-flex flex-column gap-3">
+      {% for sess in sessions %}
+      <div class="item-card">
+        <div class="d-flex align-items-start gap-3">
+          <!-- Date badge -->
+          <div class="session-date-badge flex-shrink-0">
+            <div class="day">{{ sess.session_date|date:"d" }}</div>
+            <div class="month">{{ sess.session_date|date:"M" }}</div>
+          </div>
+          <!-- Info -->
+          <div class="flex-grow-1 min-width-0">
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+              <span class="fw-bold" style="font-size:.9rem;">{{ sess.title }}</span>
+              <span class="badge {% if sess.mode == 'online' %}bg-info text-dark{% elif sess.mode == 'physical' %}bg-success{% else %}bg-secondary{% endif %}">
+                {{ sess.get_mode_display }}
+              </span>
+              {% if sess.is_upcoming %}
+              <span class="badge" style="background:var(--brand-accent-soft);color:var(--brand-accent);">Upcoming</span>
+              {% else %}
+              <span class="badge bg-light text-muted border">Past</span>
+              {% endif %}
+            </div>
+            <div class="text-muted d-flex flex-wrap gap-3" style="font-size:.8rem;">
+              <span><i class="fas fa-clock me-1"></i>{{ sess.start_time|time:"H:i" }} – {{ sess.end_time|time:"H:i" }}</span>
+              {% if sess.location %}
+              <span><i class="fas fa-map-marker-alt me-1"></i>{{ sess.location }}</span>
+              {% endif %}
+              {% if sess.meeting_link %}
+              <a href="{{ sess.meeting_link }}" target="_blank" class="text-accent text-decoration-none">
+                <i class="fas fa-video me-1"></i>Join Link
+              </a>
+              {% endif %}
+            </div>
+            {% if sess.description %}
+            <p class="text-muted mb-0 mt-1" style="font-size:.8rem;">{{ sess.description }}</p>
+            {% endif %}
+          </div>
+          <!-- Delete -->
+          <div class="flex-shrink-0">
+            <form method="post" onsubmit="return confirm('Delete this session?')">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete_session">
+              <input type="hidden" name="session_id" value="{{ sess.pk }}">
+              <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
+              <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-calendar-plus"></i>
+      <p>No sessions scheduled. Add one above!</p>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-hand-pointer"></i>
+      <p>Select a course to manage its sessions.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Schedule Session Modal -->
+{% if selected_course %}
+<div class="modal fade" id="addSessionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-calendar-plus text-accent me-2"></i>Schedule Session</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_session">
+          <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Session Title <span class="text-danger">*</span></label>
+              {{ form.title }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Date <span class="text-danger">*</span></label>
+              {{ form.session_date }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Start Time</label>
+              {{ form.start_time }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">End Time</label>
+              {{ form.end_time }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Mode</label>
+              {{ form.mode }}
+            </div>
+            <div class="col-md-8">
+              <label class="form-label">Location / Venue</label>
+              {{ form.location }}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Meeting Link</label>
+              {{ form.meeting_link }}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Notes</label>
+              {{ form.description }}
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-brand"><i class="fas fa-calendar-check me-1"></i> Schedule</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

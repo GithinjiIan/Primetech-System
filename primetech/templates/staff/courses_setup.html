@@ -1,69 +1,202 @@
-{# staff/templates/staff/staff_course_content.html #}
 {% extends "staff/base.html" %}
 {% load static %}
-{% block title %}Course Content Builder{% endblock %}
-{% block extra_css %}{% endblock %}
+{% block title %}Course Content{% endblock %}
+{% block page_heading %}Course Content{% endblock %}
+
+{% block extra_css %}
+<style>
+#contentField-wrapper { display:none; }
+#fileField-wrapper    { display:none; }
+#urlField-wrapper     { display:none; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="card shadow-sm rounded-4 border-0 mb-4">
-    <div class="card-body">
-        <h5 class="fw-bold"><i class="fas fa-edit text-brand-orange me-2"></i> Course Metadata</h5>
-        <form id="metadataForm">
-            <div class="row g-3">
-                <div class="col-md-6"><label>Title</label><input type="text" id="metaTitle" class="form-control" required></div>
-                <div class="col-md-3"><label>Category</label><select id="metaCategory" class="form-select"><option>Web Dev</option><option>Data Science</option></select></div>
-                <div class="col-md-3"><label>Duration (weeks)</label><input type="number" id="metaDuration" class="form-control"></div>
-                <div class="col-12"><label>Description</label><textarea id="metaDesc" rows="2" class="form-control"></textarea></div>
-                <div class="col-12"><button type="button" id="saveMetadataBtn" class="btn btn-brand">Save Metadata</button></div>
-            </div>
-        </form>
-    </div>
+{% if messages %}
+  {% for msg in messages %}
+  <div class="alert alert-{{ msg.tags }} alert-dismissible fade show mb-4" role="alert">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+{% endif %}
+
+<!-- Mobile course bar -->
+<div class="mobile-course-bar mb-3">
+  <div class="course-picker-mobile">
+    {% for course in allocated_courses %}
+    <a href="?course_id={{ course.pk }}"
+       class="list-group-item {% if selected_course.pk == course.pk %}active{% endif %}">
+      {{ course.title }}
+    </a>
+    {% empty %}
+    <span class="text-muted small">No courses assigned.</span>
+    {% endfor %}
+  </div>
 </div>
 
-<div class="card shadow-sm rounded-4 border-0">
-    <div class="card-header bg-transparent d-flex justify-content-between">
-        <h5 class="fw-bold mt-2"><i class="fas fa-layer-group"></i> Modules</h5>
-        <button id="addModuleBtn" class="btn btn-sm btn-brand"><i class="fas fa-plus"></i> Module</button>
+<div class="row g-4">
+  <!-- Desktop sidebar -->
+  <div class="col-lg-3 sidebar-course-panel">
+    <div class="card">
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="fas fa-book-open text-accent"></i> My Courses
+      </div>
+      <div class="list-group list-group-flush px-2 pb-3 pt-2">
+        {% for course in allocated_courses %}
+        <a href="?course_id={{ course.pk }}"
+           class="list-group-item list-group-item-action {% if selected_course.pk == course.pk %}active{% endif %}">
+          <div class="fw-semibold" style="font-size:.875rem;">{{ course.title }}</div>
+          <small>{{ course.category }}</small>
+        </a>
+        {% empty %}
+        <p class="text-muted px-2 py-2 small mb-0">No courses assigned.</p>
+        {% endfor %}
+      </div>
     </div>
-    <div class="card-body" id="modulesContainer">
-        <p class="text-muted">Loading modules...</p>
+  </div>
+
+  <!-- Materials panel -->
+  <div class="col-lg-9">
+    {% if selected_course %}
+    <div class="page-header">
+      <h5>{{ selected_course.title }} — Materials</h5>
+      <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
+        <i class="fas fa-plus me-1"></i> Add Material
+      </button>
     </div>
-</div>
-<script>
-// Full dynamic course builder 
-document.addEventListener('DOMContentLoaded', function() {
-    let currentCourse = { id: null, title: '', modules: [] };
-    let selectedCourseId = new URLSearchParams(window.location.search).get('course_id');
-    function renderModules() {
-        const container = document.getElementById('modulesContainer');
-        if (!currentCourse.modules.length) {
-            container.innerHTML = '<div class="alert alert-light">No modules yet. Click "Add Module" to start building.</div>';
-            return;
-        }
-        container.innerHTML = currentCourse.modules.map(mod => `
-            <div class="module-card mb-3" data-module-id="${mod.id}">
-                <div class="module-header d-flex justify-content-between">
-                    <strong><i class="fas fa-folder-open"></i> ${escapeHtml(mod.name)}</strong>
-                    <div><button class="btn btn-sm btn-outline-secondary rename-module" data-id="${mod.id}">Rename</button>
-                    <button class="btn btn-sm btn-outline-danger delete-module" data-id="${mod.id}">Delete</button></div>
-                </div>
-                <div class="p-3">
-                    <button class="btn btn-sm btn-outline-primary add-section mb-2" data-module="${mod.id}">+ Section</button>
-                    <div class="sections-list">${(mod.sections || []).map(sec => `
-                        <div class="section-item p-2 mb-2">
-                            <div class="fw-semibold">${escapeHtml(sec.title)} (${sec.type}) 
-                                <button class="btn btn-sm btn-link text-danger float-end delete-section" data-module="${mod.id}" data-section="${sec.id}">✖</button>
-                            </div>
-                            ${sec.type === 'text' ? `<div class="rte-editable mt-2" contenteditable="true" data-sec="${sec.id}">${sec.content?.html || ''}</div>` : ''}
-                            ${sec.type === 'video' ? `<input class="form-control mt-2" placeholder="Video URL" value="${sec.content?.url || ''}" data-video="${sec.id}">` : ''}
-                        </div>
-                    `).join('')}</div>
-                </div>
+
+    {% if materials %}
+    <div class="d-flex flex-column gap-3">
+      {% for mat in materials %}
+      <div class="item-card">
+        <div class="d-flex align-items-start gap-3">
+          <!-- Type icon -->
+          <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-xl"
+               style="width:42px;height:42px;background:var(--brand-accent-soft);">
+            {% if mat.material_type == 'video' %}<i class="fas fa-play-circle text-accent"></i>
+            {% elif mat.material_type == 'pdf' %}<i class="fas fa-file-pdf" style="color:#991b1b;"></i>
+            {% elif mat.material_type == 'file' %}<i class="fas fa-file-arrow-down" style="color:#065f46;"></i>
+            {% elif mat.material_type == 'link' %}<i class="fas fa-link" style="color:#5b21b6;"></i>
+            {% else %}<i class="fas fa-file-lines" style="color:#1d4ed8;"></i>{% endif %}
+          </div>
+          <!-- Info -->
+          <div class="flex-grow-1 min-width-0">
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+              <span class="fw-bold" style="font-size:.9rem;">{{ mat.title }}</span>
+              <span class="type-badge-{{ mat.material_type }}">{{ mat.get_material_type_display }}</span>
+              {% if not mat.is_published %}<span class="badge bg-warning text-dark">Draft</span>{% endif %}
+              <span class="badge bg-light text-muted border">#{{ mat.order }}</span>
             </div>
-        `).join('');
-        attachDynamicEvents();
-    }
-    function attachDynamicEvents() { /* event handlers omitted for brevity but implement similar to original with Bootstrap */ }
-    window.renderModules = renderModules;
-});
+            {% if mat.description %}
+            <p class="text-muted mb-0" style="font-size:.8rem;">{{ mat.description }}</p>
+            {% endif %}
+          </div>
+          <!-- Delete -->
+          <div class="flex-shrink-0">
+            <form method="post" onsubmit="return confirm('Delete this material?')">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete_material">
+              <input type="hidden" name="material_id" value="{{ mat.pk }}">
+              <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-inbox"></i>
+      <p>No materials yet. Add your first one!</p>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-hand-pointer"></i>
+      <p>Select a course to manage its content.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Add Material Modal -->
+{% if selected_course %}
+<div class="modal fade" id="addMaterialModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-plus-circle text-accent me-2"></i>Add Course Material</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post" enctype="multipart/form-data" id="materialForm">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_material">
+          <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label">Title <span class="text-danger">*</span></label>
+              {{ form.title }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Type <span class="text-danger">*</span></label>
+              {{ form.material_type }}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Description</label>
+              {{ form.description }}
+            </div>
+            <div class="col-12" id="contentField-wrapper">
+              <label class="form-label">Rich Text Content</label>
+              {{ form.content }}
+            </div>
+            <div class="col-12" id="fileField-wrapper">
+              <label class="form-label">Upload File</label>
+              {{ form.file }}
+            </div>
+            <div class="col-12" id="urlField-wrapper">
+              <label class="form-label">URL</label>
+              {{ form.url }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Display Order</label>
+              {{ form.order }}
+            </div>
+            <div class="col-md-8 d-flex align-items-end gap-2 pb-1">
+              {{ form.is_published }}
+              <label class="form-check-label" style="font-size:.875rem;">Publish immediately</label>
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-brand"><i class="fas fa-save me-1"></i> Save</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const typeSelect = document.getElementById('materialTypeSelect');
+const contentWrapper = document.getElementById('contentField-wrapper');
+const fileWrapper    = document.getElementById('fileField-wrapper');
+const urlWrapper     = document.getElementById('urlField-wrapper');
+
+function updateFields() {
+  const val = typeSelect ? typeSelect.value : '';
+  contentWrapper.style.display = val === 'text' ? 'block' : 'none';
+  fileWrapper.style.display    = (val === 'pdf' || val === 'file') ? 'block' : 'none';
+  urlWrapper.style.display     = (val === 'video' || val === 'link') ? 'block' : 'none';
+}
+if (typeSelect) {
+  typeSelect.addEventListener('change', updateFields);
+  updateFields();
+}
 </script>
 {% endblock %}

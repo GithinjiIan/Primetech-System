@@ -5,111 +5,157 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PrimeTech Staff | {% block title %}Dashboard{% endblock %}</title>
-    <!-- Google Fonts: Merriweather & Open Sans -->
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-     <!-- Favicon -->
-     <link rel="icon" type="image/png" href="{% static 'img/logo New.png' %}" />
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
-    <!-- AOS (Animate on Scroll) -->
-    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'img/logo New.png' %}">
 
-    <!-- Boxicons -->
-    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
-
-    <!-- Staff custom styles -->
+    <!-- Staff styles -->
     <link rel="stylesheet" href="{% static '/css/staff.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
 
-<div class="staff-wrapper d-flex">
-    <!-- SIDEBAR (Bootstrap styled, fixed) -->
-    <aside class="staff-sidebar bg-dark text-white flex-shrink-0">
-        <div class="sidebar-header text-center py-4 border-bottom border-secondary">
+<!-- Mobile sidebar overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="staff-wrapper">
+
+    <!-- ═══════════════ SIDEBAR ═══════════════ -->
+    <aside class="staff-sidebar" id="staffSidebar">
+
+        <!-- Logo -->
+        <div class="sidebar-header">
             <div class="logo">
-                <img src="{% static 'img/logo New.png' %}" alt="PrimeTech" width="40" height="40" class="me-2">
-                <span class="fw-bold fs-5">PrimeTech LMS</span>
+                <img src="{% static 'img/logo New.png' %}" alt="PrimeTech" width="34" height="34" style="border-radius:8px;">
+                <span>PrimeTech LMS</span>
             </div>
         </div>
-        <nav class="sidebar-nav mt-3">
+
+        <!-- Nav -->
+        <nav class="sidebar-nav">
+            <p class="sidebar-section-label">Main Menu</p>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'staff:dashboard' %}">
-                        <i class="fas fa-gauge me-2"></i> Dashboard
+                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                       href="{% url 'staff:dashboard' %}">
+                        <i class="fas fa-gauge-high"></i> Dashboard
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'students_rollcall' %}active{% endif %}" href="{% url 'staff:students_rollcall' %}">
-                        <i class="fas fa-users me-2"></i> My Students
+                    <a class="nav-link {% if request.resolver_match.url_name == 'students_rollcall' %}active{% endif %}"
+                       href="{% url 'staff:students_rollcall' %}">
+                        <i class="fas fa-users"></i> My Students
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'course_allocation' %}active{% endif %}" href="{% url 'staff:course_allocation' %}">
-                        <i class="fas fa-book me-2"></i> Allocated Courses
+                    <a class="nav-link {% if request.resolver_match.url_name == 'course_allocation' %}active{% endif %}"
+                       href="{% url 'staff:course_allocation' %}">
+                        <i class="fas fa-book"></i> Allocated Courses
+                    </a>
+                </li>
+            </ul>
+
+            <p class="sidebar-section-label">Teaching</p>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'courses_setup' %}active{% endif %}"
+                       href="{% url 'staff:courses_setup' %}">
+                        <i class="fas fa-chalkboard-user"></i> Course Content
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'courses_setup' %}active{% endif %}" href="{% url 'staff:courses_setup' %}">
-                        <i class="fas fa-chalkboard-user me-2"></i> Course Content
+                    <a class="nav-link {% if request.resolver_match.url_name == 'assignments' %}active{% endif %}"
+                       href="{% url 'staff:assignments' %}">
+                        <i class="fas fa-file-pen"></i> Assignments
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'sessions' %}active{% endif %}" href="{% url 'staff:sessions' %}">
-                        <i class="fas fa-calendar-alt me-2"></i> Sessions
+                    <a class="nav-link {% if request.resolver_match.url_name == 'sessions' %}active{% endif %}"
+                       href="{% url 'staff:sessions' %}">
+                        <i class="fas fa-calendar-alt"></i> Sessions
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'submissions' %}active{% endif %}" href="{% url 'staff:submissions' %}">
-                        <i class="fas fa-tasks me-2"></i> Submissions
+                    <a class="nav-link {% if request.resolver_match.url_name == 'submissions' %}active{% endif %}"
+                       href="{% url 'staff:submissions' %}">
+                        <i class="fas fa-tasks"></i> Submissions
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'send_notification' %}active{% endif %}"
+                       href="{% url 'staff:send_notification' %}">
+                        <i class="fas fa-bullhorn"></i> Send Notification
                     </a>
                 </li>
             </ul>
         </nav>
-        <div class="sidebar-footer mt-auto p-3 border-top border-secondary small">
+
+        <!-- Footer -->
+        <div class="sidebar-footer">
             <form method="post" action="{% url 'accounts:logout' %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-outline-light btn-sm w-100">
-                    <i class="fas fa-sign-out-alt me-1"></i> Logout
+                <button type="submit" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </form>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
-    <div class="staff-main flex-grow-1">
-        <!-- Top navbar / header -->
-        <header class="top-navbar bg-brand-orange text-white py-2 px-4 d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-link text-white d-md-none" id="mobileSidebarToggle"><i class="fas fa-bars fs-5"></i></button>
-                <h1 class="h5 mb-0">{% block page_heading %}Staff Panel{% endblock %}</h1>
-            </div>
+    <!-- ═══════════════ MAIN ═══════════════ -->
+    <div class="staff-main">
+
+        <!-- Top navbar -->
+        <header class="top-navbar">
             <div class="d-flex align-items-center gap-3">
-                <div class="position-relative">
-                    <i class="fas fa-bell fs-5" role="button" id="notiBell"></i>
+                <!-- Mobile hamburger -->
+                <button class="btn-hamburger" id="mobileSidebarToggle" aria-label="Open menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title">{% block page_heading %}Staff Panel{% endblock %}</h1>
+            </div>
+
+            <div class="nav-actions">
+                <!-- Notifications bell -->
+                <button class="btn-icon" id="notiBell" aria-label="Notifications">
+                    <i class="fas fa-bell" style="font-size:.95rem;"></i>
                     {% if unread_notifications_count %}
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        {{ unread_notifications_count }}
-                    </span>
+                    <span class="notification-dot"></span>
                     {% endif %}
-                </div>
+                </button>
+
+                <!-- User dropdown -->
                 <div class="dropdown">
-                    <button class="btn btn-link text-white dropdown-toggle p-0" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle fs-5"></i> {{ request.user.get_full_name|default:"Staff" }}
+                    <button class="user-chip dropdown-toggle" data-bs-toggle="dropdown" style="background:rgba(255,255,255,.18); border:none; color:#fff; font-size:.85rem; font-weight:600; display:flex; align-items:center; gap:8px; padding:5px 12px 5px 5px; border-radius:999px; cursor:pointer;">
+                        <span class="user-avatar"><i class="fas fa-user" style="font-size:.75rem;"></i></span>
+                        <span class="d-none d-sm-inline">{{ request.user.first_name|default:"Staff" }}</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Profile</a></li>
-                        <li><hr class="dropdown-divider"></li>
+                    <ul class="dropdown-menu dropdown-menu-end mt-2">
+                        <li>
+                            <span class="dropdown-item-text px-3 py-2">
+                                <div class="fw-bold" style="font-size:.85rem;">{{ request.user.get_full_name|default:"Staff User" }}</div>
+                                <div class="text-muted" style="font-size:.75rem;">{{ request.user.email }}</div>
+                            </span>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> My Profile</a></li>
+                        <li><hr class="dropdown-divider my-1"></li>
                         <li>
                             <form method="post" action="{% url 'accounts:logout' %}">
                                 {% csrf_token %}
-                                <button class="dropdown-item" type="submit"><i class="fas fa-sign-out-alt me-2"></i> Logout</button>
+                                <button class="dropdown-item text-danger" type="submit">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                </button>
                             </form>
                         </li>
                     </ul>
@@ -117,37 +163,49 @@
             </div>
         </header>
 
-        <!-- main container -->
-        <main class="p-4">
+        <!-- Page content -->
+        <main class="staff-page">
             {% block content %}{% endblock %}
         </main>
-    </div>
-</div>
+    </div><!-- /staff-main -->
+</div><!-- /staff-wrapper -->
 
-<!-- Scripts: Bootstrap + custom staff -->
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-    // staff/js/staff_base.js
-document.addEventListener('DOMContentLoaded', function() {
-    // mobile sidebar toggle
-    const toggle = document.getElementById('mobileSidebarToggle');
-    const sidebar = document.querySelector('.staff-sidebar');
-    if (toggle && sidebar) {
-        toggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            sidebar.classList.toggle('mobile-open');
-        });
-        document.addEventListener('click', function(e) {
-            if (window.innerWidth < 768 && sidebar.classList.contains('mobile-open')) {
-                if (!e.target.closest('.staff-sidebar') && !e.target.closest('#mobileSidebarToggle')) {
-                    sidebar.classList.remove('mobile-open');
-                }
-            }
-        });
+document.addEventListener('DOMContentLoaded', function () {
+    const toggle   = document.getElementById('mobileSidebarToggle');
+    const sidebar  = document.getElementById('staffSidebar');
+    const overlay  = document.getElementById('sidebarOverlay');
+
+    function openSidebar() {
+        sidebar.classList.add('mobile-open');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
     }
-    
+    function closeSidebar() {
+        sidebar.classList.remove('mobile-open');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    if (toggle) toggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        sidebar.classList.contains('mobile-open') ? closeSidebar() : openSidebar();
+    });
+
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+
+    // Close on nav-link click on mobile
+    sidebar.querySelectorAll('.nav-link').forEach(function (link) {
+        link.addEventListener('click', function () {
+            if (window.innerWidth < 769) closeSidebar();
+        });
+    });
 });
 </script>
+
 {% block extra_js %}{% endblock %}
 </body>
 </html>

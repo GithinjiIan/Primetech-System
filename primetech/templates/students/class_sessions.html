@@ -5,72 +5,63 @@
 {% block page_title %}Class Sessions{% endblock %}
 
 {% block content %}
-
-<div class="row g-4">
-    <div class="col-lg-8 d-flex flex-column gap-4">
-        <div class="section mb-0">
-            <div class="section-header">
-                <h2 class="section-title"><i class="fas fa-list-check text-primary opacity-75 me-2"></i> This Week</h2>
-            </div>
-            <div class="section-body">
-                <div id="weekList" class="text-center py-5 text-muted">
-                    <i class="fas fa-spinner fa-spin fs-4 mb-3 text-primary"></i>
-                    <p class="small mb-0 fw-medium">Loading schedule...</p>
+<div class="container-fluid p-3 p-md-4">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-calendar-alt text-brand-orange me-2"></i> Upcoming & Past Sessions</h5>
                 </div>
-            </div>
-        </div>
-
-        <div class="section mb-0">
-            <div class="section-header border-0 pb-0">
-                <h2 class="section-title"><i class="fas fa-calendar-alt text-primary opacity-75 me-2"></i> Calendar</h2>
-            </div>
-            <div class="section-body">
-                <div class="d-flex align-items-center justify-content-between mb-4 bg-light p-2 rounded-3">
-                    <button class="btn btn-white border bg-white btn-sm px-3 shadow-sm hover-lift" id="prevMonth"><i class="fas fa-chevron-left text-muted"></i></button>
-                    <span id="monthLabel" class="fw-bold fs-6 text-dark text-uppercase letter-spacing-1"></span>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-prime btn-sm px-3" id="todayBtn">Today</button>
-                        <button class="btn btn-white border bg-white btn-sm px-3 shadow-sm hover-lift" id="nextMonth"><i class="fas fa-chevron-right text-muted"></i></button>
-                    </div>
-                </div>
-                <div id="calendarGrid" class="row row-cols-7 g-2 text-center">
-                    <div class="col fw-bold text-muted small py-2 border-bottom">MON</div>
-                    <div class="col fw-bold text-muted small py-2 border-bottom">TUE</div>
-                    <div class="col fw-bold text-muted small py-2 border-bottom">WED</div>
-                    <div class="col fw-bold text-muted small py-2 border-bottom">THU</div>
-                    <div class="col fw-bold text-muted small py-2 border-bottom">FRI</div>
-                    <div class="col fw-bold text-muted small py-2 border-bottom">SAT</div>
-                    <div class="col fw-bold text-muted small py-2 border-bottom">SUN</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4">
-        <div class="section h-100 mb-0">
-            <div class="section-header">
-                <h2 class="section-title"><i class="fas fa-star text-warning me-2"></i> Events</h2>
-            </div>
-            <div class="section-body">
-                <div id="eventList">
-                    <div class="text-center py-5">
-                        <div class="bg-light rounded-circle d-inline-flex p-4 mb-3">
-                            <i class="fas fa-calendar-check fs-2 text-muted"></i>
+                <div class="card-body p-4">
+                    {% if sessions %}
+                    <div class="row g-3">
+                        {% for sess in sessions %}
+                        <div class="col-12">
+                            <div class="border rounded-3 p-3 d-flex align-items-start gap-3 bg-light hover-lift">
+                                <div class="text-center rounded-3 p-2 flex-shrink-0" style="background:#fff; min-width:70px; border:1px solid #dee2e6;">
+                                    <div class="fw-bold" style="font-size:1.4rem; color:#e65100;">{{ sess.session_date|date:"d" }}</div>
+                                    <div class="small text-muted text-uppercase fw-bold">{{ sess.session_date|date:"M" }}</div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                        <h6 class="fw-bold mb-0">{{ sess.title }}</h6>
+                                        <span class="badge bg-secondary">{{ sess.course.title }}</span>
+                                        <span class="badge {% if sess.mode == 'online' %}bg-info text-dark{% elif sess.mode == 'physical' %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {{ sess.get_mode_display }}
+                                        </span>
+                                        {% if sess.is_upcoming %}
+                                            <span class="badge bg-primary">Upcoming</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark border">Past</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-muted small mt-2">
+                                        <span class="me-3"><i class="fas fa-clock me-1"></i> {{ sess.start_time|time:"H:i" }} – {{ sess.end_time|time:"H:i" }}</span>
+                                        {% if sess.location %}
+                                        <span class="me-3"><i class="fas fa-map-marker-alt me-1 text-danger"></i> {{ sess.location }}</span>
+                                        {% endif %}
+                                        {% if sess.meeting_link %}
+                                        <a href="{{ sess.meeting_link }}" target="_blank" class="btn btn-sm btn-outline-brand py-0 px-2 rounded-pill"><i class="fas fa-video me-1"></i> Join Meeting</a>
+                                        {% endif %}
+                                    </div>
+                                    {% if sess.description %}
+                                        <p class="small text-muted mb-0 mt-2 border-top pt-2">{{ sess.description }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
-                        <p class="small text-muted fw-medium">No special events this month</p>
+                        {% endfor %}
                     </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-calendar-times fs-1 mb-3 opacity-50"></i>
+                        <h5>No Sessions Scheduled</h5>
+                        <p>You have no class sessions scheduled at the moment.</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Calendar logic placeholder
-    });
-</script>
 {% endblock %}

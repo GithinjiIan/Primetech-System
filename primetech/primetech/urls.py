@@ -11,7 +11,9 @@ urlpatterns = [
     path('', include('website.urls')),
     path('staff/', include('staff.urls')),
     path('student/', include('students.urls')),
+    path('ckeditor5/', include('django_ckeditor_5.urls')),
 ]
+
 
 if settings.DEBUG:
     # Include django_browser_reload URLs only in DEBUG mode

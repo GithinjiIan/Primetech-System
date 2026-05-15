@@ -5,170 +5,124 @@
 {% block page_title %}Overview{% endblock %}
 
 {% block content %}
-
-
-<div class="row g-4">
-       <!-- Messages -->
-        {% if messages %}
+<div class="container-fluid p-3 p-md-4">
+    <div class="row g-4">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="col-12">
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mx-auto" style="max-width:1000px;" role="alert">
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         {% endfor %}
-        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Welcome Banner -->
     <div class="col-12">
-        <div class="welcome-banner text-white p-4 p-md-5 rounded-4 shadow-sm mb-2">
+        <div class="welcome-banner text-white p-4 p-md-5 rounded-4 " style="background: linear-gradient(135deg, #1e3a8a, #020617);">
             <div class="position-relative z-1">
-                <h2 class="display-6 fw-bold mb-2 text-white">Welcome back, {{ request.user.first_name|default:request.user.username }}!</h2>
+                <h2 class="display-6 fw-bold mb-2 text-white">Welcome back, {{ request.user.first_name }}!</h2>
                 <p class="lead mb-0 opacity-75 fs-6">Ready to continue your learning journey with PrimeTech?</p>
                 <div class="mt-4">
-                    <a href="{% url 'students:my_courses' %}" class="btn btn-light text-primary fw-bold px-4 shadow-sm">Explore Courses</a>
+                    <a href="{% url 'students:my_courses' %}" class="btn btn-light text-primary fw-bold px-4 py-2 shadow-sm">My Courses</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-12">
+    <!-- Stats -->
+    <div class="col-xx-12">
         <div class="row g-3">
-            <div class="col-6 col-lg-3">
-                <div class="stats-card hover-lift h-100">
-                    <div class="stats-icon bg-primary bg-opacity-10 text-primary">
+            <div class="col-sm-6 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift p-4 d-flex align-items-center flex-row gap-3">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:60px;height:60px;font-size:1.5rem;">
                         <i class="fas fa-book"></i>
                     </div>
-                    <h3 class="h4 fw-bold mb-1">{{ enrollments.count|default:0 }}</h3>
-                    <div class="text-muted small fw-medium">Enrolled Courses</div>
+                    <div>
+                        <h3 class="fw-bold mb-0">{{ enrollments.count|default:0 }}</h3>
+                        <div class="text-muted small fw-medium text-uppercase">Enrolled Courses</div>
+                    </div>
                 </div>
             </div>
-            <div class="col-6 col-lg-3">
-                <div class="stats-card hover-lift h-100">
-                    <div class="stats-icon bg-success bg-opacity-10 text-success">
-                        <i class="fas fa-check-circle"></i>
+            <div class="col-sm-6 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift p-4 d-flex align-items-center flex-row gap-3">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:60px;height:60px;font-size:1.5rem;">
+                        <i class="fas fa-file-pen"></i>
                     </div>
-                    <h3 class="h4 fw-bold mb-1">2/16</h3>
-                    <div class="text-muted small fw-medium">Completed Modules</div>
+                    <div>
+                        <h3 class="fw-bold mb-0">{{ pending_assignments|default:0 }}</h3>
+                        <div class="text-muted small fw-medium text-uppercase">Pending Assignments</div>
+                    </div>
                 </div>
             </div>
-            <div class="col-6 col-lg-3">
-                <div class="stats-card hover-lift h-100">
-                    <div class="stats-icon bg-info bg-opacity-10 text-info">
-                        <i class="fas fa-chart-line"></i>
+            <div class="col-sm-12 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift p-4 d-flex align-items-center flex-row gap-3">
+                    <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:60px;height:60px;font-size:1.5rem;">
+                        <i class="fas fa-bell"></i>
                     </div>
-                    <h3 class="h4 fw-bold mb-1">25%</h3>
-                    <div class="text-muted small fw-medium">Avg. Progress</div>
-                </div>
-            </div>
-            <div class="col-6 col-lg-3">
-                <div class="stats-card hover-lift h-100">
-                    <div class="stats-icon bg-danger bg-opacity-10 text-danger">
-                        <i class="fas fa-fire"></i>
+                    <div>
+                        <h3 class="fw-bold mb-0">{{ notifications.count|default:0 }}</h3>
+                        <div class="text-muted small fw-medium text-uppercase">Recent Notifications</div>
                     </div>
-                    <h3 class="h4 fw-bold mb-1">10</h3>
-                    <div class="text-muted small fw-medium">Day Streak</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-8">
-        <div class="section h-100">
-            <div class="section-header">
-                <h2 class="section-title"><i class="fas fa-graduation-cap text-primary me-2 opacity-75"></i> Recent Activity</h2>
-                <a href="{% url 'students:my_courses' %}" class="btn btn-link btn-sm text-decoration-none fw-medium">View All</a>
+    <!-- Main Content Row -->
+    <div class="col-lg-8 d-flex flex-column gap-2">
+        <!-- Quick Access: Courses -->
+        <div class="card border-0 shadow-sm rounded-4 flex-grow-1">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-4 px-4">
+                <h5 class="fw-bold mb-0"><i class="fas fa-graduation-cap text-brand-orange me-2"></i> Enrolled Courses</h5>
+                <a href="{% url 'students:my_courses' %}" class="btn btn-link btn-sm text-decoration-none fw-bold p-0">View All</a>
             </div>
-            <div class="section-body">
-                {% for enrollment in enrollments %}
-                <div class="p-4 border rounded-3 mb-3 bg-white hover-lift">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="fw-bold mb-0 text-dark">{{ enrollment.course.title }}</h6>
-                        <span class="badge bg-light text-dark border">{{ enrollment.progress|default:0 }}%</span>
+            <div class="card-body p-4">
+                {% for enrollment in enrollments|slice:":3" %}
+                <div class="d-flex align-items-center justify-content-between p-3 border rounded-3 mb-3 bg-light hover-lift">
+                    <div>
+                        <h6 class="fw-bold mb-1 text-dark">{{ enrollment.course.title }}</h6>
+                        <span class="badge bg-white text-dark border"><i class="fas fa-tag text-muted me-1"></i> {{ enrollment.course.category }}</span>
                     </div>
-                    <div class="progress mb-3">
-                        <div class="progress-bar" role="progressbar" style="width: {{ enrollment.progress|default:0 }}%"></div>
-                    </div>
-                    <div class="d-flex justify-content-end mt-3">
-                        <a href="#" class="btn btn-prime btn-sm px-4">Continue <i class="fas fa-arrow-right ms-2 fs-xs"></i></a>
-                    </div>
+                    <a href="{% url 'students:course_materials' enrollment.course.pk %}" class="btn btn-brand btn-sm px-3 fw-bold shadow-sm">Enter <i class="fas fa-arrow-right ms-1"></i></a>
                 </div>
                 {% empty %}
-                <div class="text-center py-5">
-                    <div class="bg-light rounded-circle d-inline-flex p-4 mb-3">
-                        <i class="fas fa-book-open fs-2 text-muted"></i>
-                    </div>
+                <div class="text-center py-4">
+                    <i class="fas fa-book-open fs-1 text-muted opacity-50 mb-3 d-block"></i>
                     <p class="text-muted fw-medium">You are not enrolled in any courses yet.</p>
-                    <a href="{% url 'students:my_courses' %}" class="btn btn-outline-prime mt-2">Browse Catalog</a>
                 </div>
                 {% endfor %}
             </div>
         </div>
     </div>
 
-    <div class="col-lg-4 d-flex flex-column gap-4">
-        <div class="section mb-0">
-            <div class="section-header">
-                <h2 class="section-title"><i class="fas fa-calendar-day text-primary me-2 opacity-75"></i> Sessions</h2>
+    <div class="col-lg-4 d-flex flex-column gap-2">
+        <!-- Notifications Box -->
+        <div class="card border-0 shadow-sm rounded-4 flex-grow-1">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-bell text-warning me-2"></i> Notifications</h5>
             </div>
-            <div class="section-body p-0">
-                <div id="upcomingList" class="p-4 text-center">
-                    <p class="text-muted small mb-0">No sessions scheduled today</p>
-                </div>
-                <div class="border-top p-3 text-center">
-                    <a href="{% url 'students:sessions' %}" class="btn btn-link btn-sm text-decoration-none p-0 fw-medium">Full Schedule <i class="fas fa-chevron-right ms-1 small"></i></a>
-                </div>
-            </div>
-        </div>
-
-        <div class="section mb-0 flex-grow-1">
-            <div class="section-header border-0 pb-0">
-                <h2 class="section-title"><i class="fas fa-medal text-warning me-2"></i> Leaderboard</h2>
-            </div>
-            <div class="section-body">
-                <div class="leaderboard-list">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="rank-badge bg-warning text-white me-3 shadow-sm">1</div>
-                        <div class="flex-grow-1">
-                            <div class="fw-bold text-dark small lh-1">Sarah Jepkosgei</div>
-                            <div class="smaller text-muted mt-1">Web Dev</div>
+            <div class="card-body p-4">
+                <div class="list-group list-group-flush">
+                    {% for note in notifications|slice:":5" %}
+                    <div class="list-group-item px-0 py-3 border-bottom border-light">
+                        <div class="d-flex w-100 justify-content-between mb-1">
+                            <h6 class="mb-0 fw-bold fs-6">{{ note.title }}</h6>
+                            <small class="text-muted">{{ note.created_at|timesince }} ago</small>
                         </div>
-                        <div class="fw-bold text-primary small">1,250 <span class="smaller fw-normal text-muted">pts</span></div>
+                        <p class="mb-0 small text-muted">{{ note.message|truncatewords:15 }}</p>
                     </div>
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="rank-badge bg-light text-secondary border me-3">2</div>
-                        <div class="flex-grow-1">
-                            <div class="fw-bold text-dark small lh-1">Michael Kimani</div>
-                            <div class="smaller text-muted mt-1">Cybersecurity</div>
-                        </div>
-                        <div class="fw-bold text-primary small">1,180 <span class="smaller fw-normal text-muted">pts</span></div>
+                    {% empty %}
+                    <div class="text-center py-4 text-muted small">
+                        No recent notifications.
                     </div>
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="rank-badge bg-light text-secondary border me-3">3</div>
-                        <div class="flex-grow-1">
-                            <div class="fw-bold text-dark small lh-1">Grace Atieno</div>
-                            <div class="smaller text-muted mt-1">Data Science</div>
-                        </div>
-                        <div class="fw-bold text-primary small">1,050 <span class="smaller fw-normal text-muted">pts</span></div>
-                    </div>
-                    <div class="d-flex align-items-center mt-4 p-3 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-10">
-                        <div class="rank-badge bg-primary text-white me-3">12</div>
-                        <div class="flex-grow-1">
-                            <div class="fw-bold text-dark small lh-1">You</div>
-                            <div class="smaller text-muted mt-1">Rank 12th</div>
-                        </div>
-                        <div class="fw-bold text-primary small">780 <span class="smaller fw-normal text-muted">pts</span></div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
-</div>
-
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Populate upcoming sessions script placeholder
-    });
-</script>
+    </div>
 </div>
 {% endblock %}

@@ -91,8 +91,7 @@ h1, h2, h3, h4, h5, h6 {
     flex-direction: column;
 }
 
-/* always visible on desktop */
-.sidebar.offcanvas { visibility: visible !important; }
+/* desktop overrides handled below */
 
 @media (min-width: 992px) {
     .sidebar.offcanvas-lg {
@@ -100,6 +99,10 @@ h1, h2, h3, h4, h5, h6 {
         visibility: visible !important;
         position: fixed;
         top: 0; bottom: 0; left: 0;
+    }
+    .sidebar .offcanvas-header {
+        display: flex !important;
+        padding: 1.35rem 1.5rem;
     }
     .main-content {
         margin-left: var(--sidebar-width);
@@ -459,7 +462,7 @@ h1, h2, h3, h4, h5, h6 {
 .content {
     padding: 1.75rem 2rem;
     min-height: calc(100vh - var(--header-height) - 56px);
-    max-width: 1400px;
+    max-width: 1260px;
     margin: 0 auto;
     width: 100%;
 }
@@ -544,8 +547,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .stats-icon {
-    width: 42px;
-    height: 42px;
+    width: 30px;
+    height: 30px;
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -710,6 +713,25 @@ h1, h2, h3, h4, h5, h6 {
     .dropdown-menu {
         min-width: 180px !important;
     }
+
+    /* Prevent narrow mobile cards from overflowing when using horizontal flex rows */
+    .material-card .d-flex,
+    .card-header .d-flex,
+    .main-content .d-flex.justify-content-between,
+    .main-content .d-flex.align-items-center.flex-row {
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    .material-card .flex-grow-1,
+    .card-header .d-flex > div,
+    .main-content .d-flex.justify-content-between > *,
+    .main-content .d-flex.align-items-center.flex-row > * {
+        min-width: 0;
+    }
+    .material-card .mt-auto {
+        width: 100%;
+    }
 }
 
 /* Extra small (< 400px) */
@@ -725,14 +747,20 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ─── Sidebar mobile offcanvas refinements ─────────────── */
 @media (max-width: 991.98px) {
-    .sidebar.offcanvas {
+    .sidebar.offcanvas-lg {
         box-shadow: var(--shadow-lg) !important;
         width: min(var(--sidebar-width), 85vw) !important;
     }
 
     .sidebar .offcanvas-header {
+        display: flex !important;
         padding: 1rem 1.25rem 0.5rem;
         border-bottom: 1px solid var(--sidebar-divider);
+    }
+
+    .sidebar .offcanvas-body {
+        display: flex !important;
+        padding-top: 0.5rem;
     }
 
     /* Override Bootstrap's close btn */
@@ -744,10 +772,6 @@ h1, h2, h3, h4, h5, h6 {
         height: 24px;
     }
     .sidebar .btn-close-white:hover { opacity: 1; }
-
-    .sidebar .offcanvas-body {
-        padding-top: 0.5rem;
-    }
 }
 
 /* ─── Utility helpers ─────────────────────────────────── */

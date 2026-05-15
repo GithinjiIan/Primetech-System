@@ -21,10 +21,12 @@ INSTALLED_APPS = [
     'website',
     'students',
     'accounts',
+    'courses',
     'jazzmin',
     'notifications',
     'rest_framework',
-    'django_bootstrap5',       
+    'django_bootstrap5',
+    'django_ckeditor_5',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -166,18 +168,14 @@ MEDIA_ROOT = BASE_DIR / 'media'
    # }
 #}   
 
-#Caching  for Development
+# Caching — local memory for development, Redis for production
 CACHES = {
     'default': {
-        "BACKEND" : 'django.core.cache.backends.locmem.LocMemCache',
-        
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-SESSION_CACHE_ALIAS = 'default'  
-
-#locall caching and worker 
-SESSION_ENGINE = "django.contrib.sessions.backends.db"
+# Single SESSION_ENGINE definition (db for dev; switch to cache for prod)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 
 # ── Email configuration ─────────────────────────────────────────
@@ -209,19 +207,21 @@ CELERY_TASK_EAGER_PROPAGATES = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ── Security hardening ──────────────────────────────────────────
-SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
-CSRF_COOKIE_HTTPONLY = True
+# CSRF_COOKIE_HTTPONLY must be False so AJAX can read the token
+CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-# Production-only settings (uncomment for deployment)
-# SECURE_SSL_REDIRECT = True
-# SECURE_HSTS_SECONDS = 31536000
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIE_SECURE = True
+# Production-only security settings — auto-enabled when DEBUG=False
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # ── Logging ─────────────────────────────────────────────────────
 LOGGING = {
@@ -268,3 +268,33 @@ JAZZMIN_SETTINGS = {
         {"model": "auth.User"},
     ],
 }
+
+# ── CKEditor 5 configuration ────────────────────────────────────
+CKEDITOR_5_CONFIGS = {
+    'default': {
+        'toolbar': [
+            'heading', '|',
+            'bold', 'italic', 'underline', 'strikethrough', '|',
+            'bulletedList', 'numberedList', '|',
+            'link', 'blockQuote', 'insertTable', '|',
+            'imageUpload', 'mediaEmbed', '|',
+            'undo', 'redo',
+        ],
+        'image': {
+            'toolbar': ['imageTextAlternative', 'imageTitle', '|', 'imageStyle:full', 'imageStyle:side'],
+        },
+        'table': {
+            'contentToolbar': ['tableColumn', 'tableRow', 'mergeTableCells'],
+        },
+        'height': 350,
+        'width': '100%',
+    },
+    'minimal': {
+        'toolbar': ['bold', 'italic', 'underline', '|', 'bulletedList', 'numberedList', '|', 'link', 'blockQuote'],
+        'height': 200,
+        'width': '100%',
+    },
+}
+# Upload path for CKEditor image uploads
+CKEDITOR_5_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+CKEDITOR_5_UPLOAD_PATH = 'ckeditor_uploads/'

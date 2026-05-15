@@ -60,14 +60,12 @@ class Course(models.Model):
     price = models.CharField(max_length=50, default="Ksh 0")
     image = models.ImageField(upload_to='courses/', blank=True, null=True)
     requirements = models.TextField(
-        default=list,
         blank=True,
-        help_text="List of requirements, e.g., ['Basic computer literacy', 'Internet access']"
+        help_text="Course entry requirements. Use bullet points or a numbered list."
     )
     outcomes = models.TextField(
-        default=list,
         blank=True,
-        help_text="List of learning outcomes"
+        help_text="What students will learn. Use bullet points or a numbered list."
     )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
