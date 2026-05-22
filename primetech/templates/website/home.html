@@ -1,8 +1,8 @@
 {% extends 'website/base.html' %}
 {% load static %}
 {% block title %}PrimeTech Foundation – Empower Through Tech{% endblock %}
-{% block content %}
 
+{% block content %}
 <!-- Hero Carousel -->
 <section class="hero-section">
   <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
@@ -20,14 +20,14 @@
       <!-- Slide 1 -->
       <div class="carousel-item active">
         <div class="hero-slide d-flex align-items-center"
-             style="background: linear-gradient(90deg, #0f172a 0%, rgba(15, 23, 42, 0.8) 50%, rgba(15, 23, 42, 0) 100%), url('{% static "img/img 1.png" %}') center/cover no-repeat;">
+             style="background: linear-gradient(90deg, #0f172a 0%, rgba(15, 23, 42, 0.8) 50%, rgba(0, 162, 255, 0.82) 100%), url('{% static "img/img 1.png" %}') center/cover no-repeat;">
           <div class="container">
             <div class="row">
               <div class="col-lg-7 text-white" data-aos="fade-up">
-                <h2 class="display-3 fw-bold mb-3">PrimeTech Foundation</h2>
+                <h2 class="display-2 fw-bold mb-3">PrimeTech Foundation</h2>
                 <p class="fs-4 text-brand-orange fw-semibold mb-3">Empowering Youth Through Technology</p>
                 <p class="lead mb-4">Join our free courses and build a career in tech with hands-on projects</p>
-                <a href="#" class="btn btn-orange btn-lg rounded-pill px-4">
+                <a href="{% url 'courses' %}" class="btn btn-orange btn-lg rounded-pill px-4">
                   Start Your Journey <i class="fas fa-arrow-right ms-2"></i>
                 </a>
               </div>
@@ -39,11 +39,11 @@
       <!-- Slide 2 -->
       <div class="carousel-item">
         <div class="hero-slide d-flex align-items-center justify-content-end"
-             style="background: linear-gradient(270deg, #0f172a 0%, rgba(15, 23, 42, 0.8) 50%, rgba(15, 23, 42, 0) 100%), url('{% static "img/img 2.png" %}') center/cover no-repeat;">
+             style="background: linear-gradient(270deg, #0f172a 0%, rgba(15, 23, 42, 0.8) 50%, rgba(0, 162, 255, 0.82) 100%), url('{% static "img/img 2.png" %}') center/cover no-repeat;">
           <div class="container">
             <div class="row justify-content-end">
               <div class="col-lg-6 text-white text-lg-end" data-aos="fade-left">
-                <h2 class="display-3 fw-bold mb-3">Learn. Build. Grow.</h2>
+                <h2 class="display-2 fw-bold mb-3">Learn. Build. Grow.</h2>
                 <p class="lead mb-4">Hands-on training with industry experts and real-world projects</p>
                 <a href="{% url 'about' %}" class="btn btn-orange btn-lg rounded-pill px-4">
                   Discover More <i class="fas fa-arrow-right ms-2"></i>
@@ -57,10 +57,10 @@
       <!-- Slide 3 -->
       <div class="carousel-item">
         <div class="hero-slide d-flex align-items-center justify-content-center text-center"
-             style="background: radial-gradient(circle, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.7) 60%, rgba(15, 23, 42, 0.4) 100%), url('{% static "img/img 1.png" %}') center/cover no-repeat;">
+             style="background: radial-gradient(circle, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.7) 60%, rgba(0, 162, 255, 0.82) 100%), url('{% static "img/img 1.png" %}') center/cover no-repeat;">
           <div class="container">
             <div class="col-lg-8 mx-auto text-white" data-aos="zoom-in">
-              <h2 class="display-3 fw-bold mb-3">Your Tech Journey Starts Here</h2>
+              <h2 class="display-2 fw-bold mb-3">Your Tech Journey Starts Here</h2>
               <p class="lead mb-4">No experience needed. Start from scratch and build in-demand skills</p>
               <a href="{% url 'courses' %}" class="btn btn-orange btn-lg rounded-pill px-4">
                 Enroll Now <i class="fas fa-rocket ms-2"></i>
@@ -88,7 +88,7 @@
 
 <!-- Who are we-->
 <section class="py-5 bg-brand-dark">
-    <div class="container text-center">
+    <div class="container text-start">
         <div class="mb-5" data-aos="fade-up">
             <h2 class="display-5 fw-bold text-white">Who Are We</h2>
             <p  class= "fs-5 text-brand-orange"> We are dedicated to empowering Africa's next generation to shape their own futures. In just 16 weeks, our learners learn valuable programming languages,<br>
@@ -100,7 +100,7 @@
 
 
 <!-- Why Choose Us -->
-<section class="py-5 bg-brand-dark">
+<section class="py-5 bg-brand-dark footer-bg">
     <div class="container text-center">
         <div class="mb-5" data-aos="fade-up">
             <h2 class="display-5 fw-bold text-white">Why Choose Us</h2>
@@ -212,12 +212,12 @@
 
 <!-- Statistics session -->
 {% if statistics %}
-<section class="py-5 bg-brand-dark text-white text-center">
-    <div class="container">
+<section class="py-5 bg-brand-dark text-white ">
+    <div class="container align-items-center">
         <div class="row g-4 text-center">
             {% for stat in statistics %}
             <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
-                <div class="p-3">
+                <div class="p-3 text-center">
                     {% if stat.icon %}
                     <i class="{{ stat.icon }} fa-3x text-brand-orange mb-3"></i>
                     {% endif %}
@@ -262,44 +262,34 @@
 </section>
 
 
-<!-- Popular Courses (static preview) -->
-<section class="py-5 bg-brand-dark">
+<!-- Popular Courses (latest 3 courses from database) -->
+<section class="py-5 bg-brand-dark footer-bg2">
     <div class="container">
         <div class="text-center mb-5" data-aos="fade-up">
-            <h2 class="display-5 fw-bold text-white">Popular Courses on Offer</h2>
+            <h2 class="display-5 fw-bold text-white">Some Courses We Offer</h2>
             <p class="fs-5 text-brand-orange">Hands‑on programs to launch your tech career</p>
         </div>
         <div class="row g-4">
-            <div class="col-md-4" data-aos="zoom-in" data-aos-delay="100">
+            {% for course in latest_courses %}
+            <div class="col-md-4" data-aos="zoom-in" data-aos-delay="{% if forloop.first %}100{% elif forloop.counter == 2 %}200{% else %}300{% endif %}">
                 <div class="bg-white rounded-3 overflow-hidden h-100">
-                    <img src="{% static 'img/img 3.png' %}" alt="Artificial Intelligence" class="w-100" style="height:180px;object-fit:cover;">
+                    {% if course.image %}
+                    <img src="{{ course.image.url }}" alt="{{ course.title }}" class="w-100" style="height:180px;object-fit:cover;">
+                    {% else %}
+                    <img src="{% static 'img/img 3.png' %}" alt="{{ course.title }}" class="w-100" style="height:180px;object-fit:cover;">
+                    {% endif %}
                     <div class="p-3">
-                        <h4 class="fw-bold text-brand-dark">Artificial Intelligence</h4>
-                        <p class="small text-muted">Hands-on projects and industry-ready skills to build AI systems.</p>
+                        <h4 class="fw-bold text-brand-dark">{{ course.title }}</h4>
+                        <p class="small text-muted">{{ course.description|truncatechars:150 }}</p>
                         <a href="{% url 'courses' %}" class="btn btn-outline-orange rounded-pill w-100">View Course</a>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4" data-aos="zoom-in" data-aos-delay="200">
-                <div class="bg-white rounded-3 overflow-hidden h-100">
-                    <img src="{% static 'img/img 4.png' %}" alt="Google Workspace" class="w-100" style="height:180px;object-fit:cover;">
-                    <div class="p-3">
-                        <h4 class="fw-bold text-brand-dark">Google Workspace</h4>
-                        <p class="small text-muted">Learn to use Google Workspace tools for productivity and collaboration.</p>
-                        <a href="{% url 'courses' %}" class="btn btn-outline-orange rounded-pill w-100">View Course</a>
-                    </div>
-                </div>
+            {% empty %}
+            <div class="col-12 text-center" data-aos="fade-up" data-aos-delay="100">
+                <p class="text-white-50">No courses are available right now. Check back soon.</p>
             </div>
-            <div class="col-md-4" data-aos="zoom-in" data-aos-delay="300">
-                <div class="bg-white rounded-3 overflow-hidden h-100">
-                    <img src="{% static 'img/img 5.png' %}" alt="Web Development" class="w-100" style="height:180px;object-fit:cover;">
-                    <div class="p-3">
-                        <h4 class="fw-bold text-brand-dark">Web Development</h4>
-                        <p class="small text-muted">From HTML/CSS to modern JS frameworks — build real websites.</p>
-                        <a href="{% url 'courses' %}" class="btn btn-outline-orange rounded-pill w-100">View Course</a>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
         <div class="text-center mt-5" data-aos="fade-up">
             <a href="{% url 'courses' %}" class="btn btn-orange btn-lg rounded-pill px-5">View All Courses</a>
@@ -311,13 +301,13 @@
 <section class="py-5 bg-light">
     <div class="container">
         <div class="text-center mb-5" data-aos="fade-up">
-            <h2 class="display-5 fw-bold text-brand-dark">How It Works</h2>
-            <p class="fs-5 text-muted brand-dark">Your journey to a tech career in four simple steps</p>
+            <h2 class="display-5 fw-bold text-brand-accent">How It Works</h2>
+            <p class="fs-5 text-muted brand-accent">Your journey to a tech career in four simple steps</p>
         </div>
         <div class="row g-4">
             <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="100">
                 <div class="text-center">
-                    <div class="bg-brand-orange text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                    <div class=" text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
                          style="width:80px; height:80px;">
                         <i class="fas fa-search fa-2x"></i>
                     </div>
@@ -417,6 +407,7 @@
 </div>
 </div>
 </section>
+
 <!-- ========== NEW: Newsletter Signup ========== -->
 <section class="py-5 bg-white">
     <div class="container">

@@ -69,3 +69,67 @@ function animateCounters() {
 
 // Call after DOM loaded
 document.addEventListener('DOMContentLoaded', animateCounters);
+
+// ===== Testimonials Slider =====
+const track = document.getElementById('testimonialsTrack');
+const slides = track.querySelectorAll('.testimonial-slide');
+const leftArrow = document.querySelector('.testimonial-arrow.left');
+const rightArrow = document.querySelector('.testimonial-arrow.right');
+let currentSlide = 0;
+let autoSlideInterval;
+let isPaused = false;
+
+function showSlide(index) {
+    if (slides.length === 0) return;
+    currentSlide = (index + slides.length) % slides.length;
+    track.style.transform = `translateX(-${currentSlide * 100}%)`;
+}
+
+function nextSlide() { showSlide(currentSlide + 1); }
+function prevSlide() { showSlide(currentSlide - 1); }
+
+if (leftArrow && rightArrow && slides.length > 1) {
+    rightArrow.addEventListener('click', nextSlide);
+    leftArrow.addEventListener('click', prevSlide);
+
+    track.addEventListener('mouseenter', () => { isPaused = true; });
+    track.addEventListener('mouseleave', () => { isPaused = false; });
+
+    autoSlideInterval = setInterval(() => {
+        if (!isPaused) nextSlide();
+    }, 4000);
+
+    showSlide(0);
+}
+
+// ===== Testimonials Slider =====
+const track = document.getElementById('testimonialsTrack');
+const slides = track.querySelectorAll('.testimonial-slide');
+const leftArrow = document.querySelector('.testimonial-arrow.left');
+const rightArrow = document.querySelector('.testimonial-arrow.right');
+let currentSlide = 0;
+let autoSlideInterval;
+let isPaused = false;
+
+function showSlide(index) {
+    if (slides.length === 0) return;
+    currentSlide = (index + slides.length) % slides.length;
+    track.style.transform = `translateX(-${currentSlide * 100}%)`;
+}
+
+function nextSlide() { showSlide(currentSlide + 1); }
+function prevSlide() { showSlide(currentSlide - 1); }
+
+if (leftArrow && rightArrow && slides.length > 1) {
+    rightArrow.addEventListener('click', nextSlide);
+    leftArrow.addEventListener('click', prevSlide);
+
+    track.addEventListener('mouseenter', () => { isPaused = true; });
+    track.addEventListener('mouseleave', () => { isPaused = false; });
+
+    autoSlideInterval = setInterval(() => {
+        if (!isPaused) nextSlide();
+    }, 4000);
+
+    showSlide(0);
+}

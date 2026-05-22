@@ -1,0 +1,37 @@
+{% extends "students/base.html" %}
+{% load static %}
+
+{% block title %}Notification Detail - PrimeTech LMS{% endblock %}
+{% block page_title %}Notification Detail{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-2 p-md-4">
+  <div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-10">
+      <div class="card border-0 rounded-4 shadow-sm">
+        <div class="card-header bg-transparent border-0 py-4 px-4 d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="fw-bold mb-1">{{ notification.title }}</h5>
+            <div class="small text-muted">{{ notification.created_at|date:'F j, Y \a\t g:i A' }}</div>
+          </div>
+          <a href="{% url 'students:notifications' %}" class="btn btn-link small">Back to notifications</a>
+        </div>
+        <div class="card-body p-4">
+          <div class="mb-3">
+            <span class="badge bg-secondary bg-opacity-10 text-secondary me-2">{{ notification.get_notification_type_display }}</span>
+            {% if notification.is_read %}
+              <span class="badge bg-success">Read</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">Unread</span>
+            {% endif %}
+          </div>
+          <p class="mb-4">{{ notification.message }}</p>
+          {% if notification.archived_at %}
+            <div class="text-muted small">Archived on {{ notification.archived_at|date:'F j, Y' }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -5,6 +5,7 @@
 {% block page_title %}Assignments{% endblock %}
 
 {% block content %}
+
 {% if messages %}
   {% for msg in messages %}
   <div class="alert alert-{{ msg.tags }} alert-dismissible fade show mx-3 mt-3" role="alert">
@@ -20,7 +21,7 @@
     <div class="col-md-6 col-xl-4">
       <div class="card border-0 shadow-sm rounded-4 h-100 d-flex flex-column">
         <div class="card-header bg-transparent border-bottom-0 pt-4 px-4 pb-0">
-          <span class="badge bg-light text-dark border mb-2">{{ asgn.course.title }}</span>
+          <span class="badge bg-light text-dark border mb-2 overflow-hidden">{{ asgn.course.title }}</span>
           <h5 class="fw-bold mb-1">{{ asgn.title }}</h5>
           <div class="small text-muted mb-2">
             <i class="fas fa-clock me-1"></i> Due: {{ asgn.due_date|date:"M d, Y H:i" }}
@@ -51,17 +52,20 @@
           </div>
           
           {% if asgn.my_submission and asgn.my_submission.grade %}
+
           <div class="p-3 rounded-3 border border-success bg-success bg-opacity-10 mb-3">
             <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="fw-bold text-success">Your Grade:</span>
-              <span class="fw-bold fs-5 text-success">{{ asgn.my_submission.grade.score }}<span class="fs-6 fw-normal">/{{ asgn.max_score }}</span></span>
+              <span class="fw-bold text-white">Your Grade:</span>
+              <span class="fw-bold fs-5 text-white">{{ asgn.my_submission.grade.score }}<span class="fs-6 fw-normal">/{{ asgn.max_score }}</span></span>
             </div>
+
             {% if asgn.my_submission.grade.feedback %}
-            <div class="small text-muted mt-2 border-top border-success border-opacity-25 pt-2">
+            <div class="small mt-2 border-top border-success text-white border-opacity-25 pt-2">
               <strong>Feedback:</strong> {{ asgn.my_submission.grade.feedback|safe|truncatewords_html:15 }}
             </div>
             {% endif %}
           </div>
+
           {% endif %}
         </div>
         

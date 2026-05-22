@@ -19,14 +19,15 @@
 <!-- Welcome -->
 <div class="mb-4">
     <h4 class="fw-bold mb-1" style="font-family:'Merriweather',serif;">
-        Welcome back, {{ request.user.first_name|default:"Instructor" }} 👋
+        Welcome back, {{ request.user.first_name|default:"Instructor" }} 
     </h4>
     <p class="text-muted mb-0" style="font-size:.9rem;">Here's what's happening across your courses today.</p>
 </div>
 
 <!-- Stats Row -->
-<div class="stats-row mb-4">
-    <div class="stats-card">
+<div class="row mb-4 p-4 gap-2">
+
+    <div class="col-md-4 stats-card ">
         <div class="stat-icon-wrap">
             <i class="fas fa-book-open"></i>
         </div>
@@ -35,7 +36,8 @@
             <div class="stat-label">Assigned Courses</div>
         </div>
     </div>
-    <div class="stats-card">
+
+    <div class="col-md-4 stats-card">
         <div class="stat-icon-wrap">
             <i class="fas fa-user-graduate"></i>
         </div>
@@ -44,7 +46,8 @@
             <div class="stat-label">Total Students</div>
         </div>
     </div>
-    <div class="stats-card">
+    
+    <div class="col-md-4 stats-card">
         <div class="stat-icon-wrap">
             <i class="fas fa-clock"></i>
         </div>

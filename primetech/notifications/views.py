@@ -1,7 +1,7 @@
 """
 Views for notification management (mark read, list).
 """
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.http import JsonResponse
@@ -33,5 +33,14 @@ def mark_all_read(request):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'status': 'ok'})
     return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+@login_required(login_url='accounts:login')
+def notification_list(request):
+    """Render a full notification listing page for the current user."""
+    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
+    return render(request, 'notifications/notification_list.html', {
+        'notifications': notifications,
+    })
 
 

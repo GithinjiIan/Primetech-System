@@ -1,0 +1,10 @@
+{% extends "emails/base_email.html" %}
+
+{% block header_title %}{{ subject }}{% endblock %}
+
+{% block body %}
+    <h2>{{ subject }}</h2>
+    <p>{{ body }}</p>
+    <p>Thank you for being a part of the PrimeTech community.</p>
+    <p><a href="{{ site_url }}" class="btn">Visit PrimeTech</a></p>
+{% endblock %}

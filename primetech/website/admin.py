@@ -13,8 +13,9 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.urls import path
 
-from .models import CourseCategory, Course, Testimonial, Statistic, CourseApplication, Enrollment
+from .models import CourseCategory, Course, Testimonial, Statistic, CourseApplication, Enrollment, NewsletterSubscriber
 from .models import PartnershipApplication
+from .forms import NewsletterSendForm
 
 User = get_user_model()
 
@@ -202,8 +203,7 @@ class EnrollmentAdmin(admin.ModelAdmin):
                     email = row.get('email', '').strip().lower()
                     phone = row.get('phone_number', '').strip()
                     course_id = row.get('course_id', '').strip()
-                    nationality = row.get('nationality', '').strip()
-                    gender = row.get('gender', '').strip().lower()
+
 
                     if not full_name or not email or not course_id:
                         errors.append(f"Row {i}: missing required fields (full_name, email, course_id).")
@@ -226,8 +226,6 @@ class EnrollmentAdmin(admin.ModelAdmin):
                             'last_name': ' '.join(name_parts[1:]) or '-',
                             'role': 'student',
                             'phone_number': phone,
-                            'nationality': nationality,
-                            'gender': gender if gender in ('male', 'female') else '',
                             'must_change_password': True,
                             'is_active': True,
                         }
@@ -263,6 +261,80 @@ class EnrollmentAdmin(admin.ModelAdmin):
             'opts': self.model._meta,
         }
         return render(request, 'admin/csv_import.html', context)
+
+
+@admin.register(NewsletterSubscriber)
+class NewsletterSubscriberAdmin(admin.ModelAdmin):
+    list_display = ('email', 'full_name', 'user', 'is_active', 'subscribed_at')
+    list_filter = ('is_active', 'subscribed_at')
+    search_fields = ('email', 'first_name', 'last_name')
+    change_list_template = 'admin/website/newslettersubscriber/change_list.html'
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('send-newsletter/', self.admin_site.admin_view(self.send_newsletter_view), name='website_newslettersubscriber_send_newsletter'),
+        ]
+        return custom_urls + urls
+
+    def send_newsletter_view(self, request):
+        if request.method == 'POST':
+            form = NewsletterSendForm(request.POST)
+            if form.is_valid():
+                subject = form.cleaned_data['subject']
+                body = form.cleaned_data['body']
+                target = form.cleaned_data['target']
+                create_notifications = form.cleaned_data['create_notifications']
+
+                if target == 'subscribers':
+                    subscriber_emails = NewsletterSubscriber.objects.filter(is_active=True).values_list('email', flat=True)
+                    recipient_users = NewsletterSubscriber.objects.filter(is_active=True).exclude(user__isnull=True).values_list('user', flat=True)
+                elif target == 'enrolled':
+                    subscriber_emails = Enrollment.objects.select_related('student').filter(student__is_active=True).values_list('student__email', flat=True)
+                    recipient_users = Enrollment.objects.select_related('student').filter(student__is_active=True).values_list('student', flat=True)
+                elif target == 'all_users':
+                    subscriber_emails = User.objects.filter(is_active=True).values_list('email', flat=True)
+                    recipient_users = User.objects.filter(is_active=True).values_list('pk', flat=True)
+                else:  # subscribers_and_enrolled
+                    subscriber_emails = NewsletterSubscriber.objects.filter(is_active=True).values_list('email', flat=True)
+                    enrolled_emails = Enrollment.objects.select_related('student').filter(student__is_active=True).values_list('student__email', flat=True)
+                    subscriber_emails = list(set(list(subscriber_emails) + list(enrolled_emails)))
+                    recipient_users = NewsletterSubscriber.objects.filter(is_active=True).exclude(user__isnull=True).values_list('user', flat=True)
+                    enrolled_users = Enrollment.objects.filter(student__is_active=True).values_list('student', flat=True)
+                    recipient_users = list(set(list(recipient_users) + list(enrolled_users)))
+
+                recipient_emails = [email for email in set(subscriber_emails) if email]
+                for email in recipient_emails:
+                    from notifications.tasks import send_newsletter_email
+                    send_newsletter_email.delay(email, subject, body)
+
+                if create_notifications:
+                    from notifications.utils import create_notification
+                    for user_id in set(recipient_users):
+                        try:
+                            user = User.objects.get(pk=user_id)
+                            create_notification(
+                                recipient=user,
+                                notification_type='system',
+                                title=subject,
+                                message=body,
+                                send_email=False,
+                            )
+                        except User.DoesNotExist:
+                            continue
+
+                self.message_user(request, f'Newsletter queued for {len(recipient_emails)} recipient(s).', messages.SUCCESS)
+                return HttpResponseRedirect('../')
+        else:
+            form = NewsletterSendForm()
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Send Newsletter',
+            'opts': self.model._meta,
+            'form': form,
+        }
+        return render(request, 'admin/website/newslettersubscriber/send_newsletter.html', context)
 
 
 @admin.register(PartnershipApplication)

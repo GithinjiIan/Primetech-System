@@ -1,6 +1,7 @@
 """
 Staff views: course content management, sessions, assignments, grading, notifications.
 """
+import json
 import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -9,9 +10,10 @@ from django.db.models import Count, Q
 from website.models import Course, Enrollment
 from accounts.decorators import staff_required
 from notifications.models import Notification
-from courses.models import CourseMaterial, ClassSession, Assignment, Submission, Grade
+from django.core.serializers.json import DjangoJSONEncoder
+from courses.models import CourseMaterial, CourseSyllabus, ClassSession, Assignment, Submission, Grade
 from courses.forms import (
-    CourseMaterialForm, ClassSessionForm, AssignmentForm,
+    CourseMaterialForm, CourseSyllabusForm, ClassSessionForm, AssignmentForm,
     GradeForm, StaffNotificationForm
 )
 
@@ -30,7 +32,6 @@ def staff_dashboard(request):
         recipient=request.user
     ).order_by('-created_at')[:10]
 
-    # Pending submissions count
     pending_submissions = Submission.objects.filter(
         assignment__course__assigned_instructor=request.user,
         grade__isnull=True,
@@ -70,48 +71,115 @@ def students_rollcall(request):
     return render(request, 'staff/students_rollcall.html', {'allocated_courses': allocated_courses})
 
 
-# ── Course Content (Materials) ────────────────────────────────────
+# ── Course Content (Materials + Syllabus) ─────────────────────────
 @staff_required
 def courses_setup(request):
-    """List and manage materials for a selected course."""
+    """
+    List and manage materials and syllabus for a selected course.
+
+    POST actions recognised:
+      add_material    – create a new CourseMaterial
+      delete_material – delete an existing CourseMaterial
+      save_syllabus   – create or update the CourseSyllabus
+    """
     allocated_courses = Course.objects.filter(assigned_instructor=request.user, is_active=True)
     selected_course = None
     materials = []
-    form = None
+    material_form = CourseMaterialForm()
+    syllabus_form = CourseSyllabusForm()
+    syllabus = None
+    active_tab = 'materials'   # default tab shown after any redirect
 
     course_id = request.GET.get('course_id') or request.POST.get('course_id')
     if course_id:
         selected_course = get_object_or_404(Course, pk=course_id, assigned_instructor=request.user)
         materials = CourseMaterial.objects.filter(course=selected_course).order_by('order')
+        materials_json = json.dumps([
+            {
+                'id': mat.pk,
+                'title': mat.title,
+                'description': mat.description,
+                'material_type': mat.material_type,
+                'content': mat.content,
+                'url': mat.url,
+                'order': mat.order,
+                'is_published': mat.is_published,
+                'file_url': mat.file.url if mat.file else '',
+            }
+            for mat in materials
+        ], cls=DjangoJSONEncoder)
+
+        # Try to load existing syllabus (may not exist yet)
+        try:
+            syllabus = selected_course.syllabus
+        except CourseSyllabus.DoesNotExist:
+            syllabus = None
+
+        syllabus_form = CourseSyllabusForm(instance=syllabus)
 
         if request.method == 'POST':
             action = request.POST.get('action')
 
+            # ── Add material ─────────────────────────────────────
             if action == 'add_material':
-                form = CourseMaterialForm(request.POST, request.FILES)
-                if form.is_valid():
-                    material = form.save(commit=False)
-                    material.course = selected_course
-                    material.created_by = request.user
-                    material.save()
-                    messages.success(request, f'Material "{material.title}" added successfully.')
-                    return redirect(f'{request.path}?course_id={selected_course.pk}')
+                material_form = CourseMaterialForm(request.POST, request.FILES)
+                if material_form.is_valid():
+                    mat = material_form.save(commit=False)
+                    mat.course = selected_course
+                    mat.created_by = request.user
+                    mat.save()
+                    messages.success(request, f'Material "{mat.title}" added successfully.')
+                    return redirect(f'{request.path}?course_id={selected_course.pk}&tab=materials')
+                else:
+                    active_tab = 'materials'
 
+            # ── Delete material ──────────────────────────────────
             elif action == 'delete_material':
                 mat_id = request.POST.get('material_id')
                 mat = get_object_or_404(CourseMaterial, pk=mat_id, course=selected_course)
                 mat.delete()
                 messages.success(request, 'Material deleted.')
-                return redirect(f'{request.path}?course_id={selected_course.pk}')
+                return redirect(f'{request.path}?course_id={selected_course.pk}&tab=materials')
 
-    if form is None:
-        form = CourseMaterialForm()
+            # ── Edit material ────────────────────────────────────
+            elif action == 'edit_material':
+                mat_id = request.POST.get('material_id')
+                mat = get_object_or_404(CourseMaterial, pk=mat_id, course=selected_course)
+                material_form = CourseMaterialForm(request.POST, request.FILES, instance=mat)
+                if material_form.is_valid():
+                    mat = material_form.save(commit=False)
+                    mat.course = selected_course
+                    mat.save()
+                    messages.success(request, f'Material "{mat.title}" updated successfully.')
+                    return redirect(f'{request.path}?course_id={selected_course.pk}&tab=materials')
+                else:
+                    active_tab = 'materials'
+
+            # ── Save syllabus ────────────────────────────────────
+            elif action == 'save_syllabus':
+                syllabus_form = CourseSyllabusForm(request.POST, instance=syllabus)
+                if syllabus_form.is_valid():
+                    syl = syllabus_form.save(commit=False)
+                    syl.course = selected_course
+                    syl.updated_by = request.user
+                    syl.save()
+                    messages.success(request, 'Course syllabus saved successfully.')
+                    return redirect(f'{request.path}?course_id={selected_course.pk}&tab=syllabus')
+                else:
+                    active_tab = 'syllabus'
+
+    # Preserve which tab was active (via GET param after redirect)
+    if request.GET.get('tab') == 'syllabus':
+        active_tab = 'syllabus'
 
     return render(request, 'staff/courses_setup.html', {
         'allocated_courses': allocated_courses,
         'selected_course': selected_course,
         'materials': materials,
-        'form': form,
+        'form': material_form,           # kept as 'form' so existing template refs still work
+        'syllabus_form': syllabus_form,
+        'syllabus': syllabus,
+        'active_tab': active_tab,
     })
 
 
@@ -139,7 +207,6 @@ def class_sessions(request):
                     session.course = selected_course
                     session.created_by = request.user
                     session.save()
-                    # Notify all enrolled students
                     _notify_course_students(
                         course=selected_course,
                         title=f'New Session: {session.title}',
@@ -262,7 +329,6 @@ def grade_submission(request, submission_id):
             submission.status = 'graded'
             submission.save(update_fields=['status'])
 
-            # Notify student
             from notifications.utils import create_notification
             create_notification(
                 recipient=submission.student,
@@ -290,7 +356,6 @@ def send_notification(request):
     """Send a notification to students in instructor's courses."""
     allocated_courses = Course.objects.filter(assigned_instructor=request.user)
 
-    # Build audience choices dynamically
     audience_choices = [('all', 'All my students')]
     for c in allocated_courses:
         audience_choices.append((str(c.pk), f'Students of {c.title}'))
@@ -303,13 +368,10 @@ def send_notification(request):
         form.fields['audience'].choices = audience_choices
         if form.is_valid():
             title = form.cleaned_data['title']
-            message = form.cleaned_data['message']
+            message_text = form.cleaned_data['message']
             audience = form.cleaned_data['audience']
 
-            if audience == 'all':
-                courses_to_notify = allocated_courses
-            else:
-                courses_to_notify = allocated_courses.filter(pk=audience)
+            courses_to_notify = allocated_courses if audience == 'all' else allocated_courses.filter(pk=audience)
 
             student_ids = set()
             for course in courses_to_notify:
@@ -324,7 +386,7 @@ def send_notification(request):
                     recipient=student,
                     notification_type='course',
                     title=title,
-                    message=message,
+                    message=message_text,
                 )
 
             messages.success(request, f'Notification sent to {students.count()} student(s).')
@@ -338,7 +400,7 @@ def send_notification(request):
 
 # ── Internal helper ───────────────────────────────────────────────
 def _notify_course_students(course, title, message):
-    """Create in-app + email notifications for all active students in a course."""
+    """Create in-app notifications for all active students in a course."""
     from notifications.utils import create_notification
     enrollments = course.enrollments.filter(status='active').select_related('student')
     for enrollment in enrollments:

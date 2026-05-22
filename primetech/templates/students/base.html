@@ -11,8 +11,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/student.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
@@ -58,7 +59,7 @@
                         <a class="nav-link {% if request.resolver_match.url_name == 'my_courses' %}active{% endif %}"
                            href="{% url 'students:my_courses' %}">
                             <span class="nav-icon"><i class="fas fa-book-bookmark"></i></span>
-                            <span class="nav-label">My Learning</span>
+                            <span class="nav-label">My Courses</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -72,7 +73,7 @@
                         <a class="nav-link {% if request.resolver_match.url_name == 'submissions' %}active{% endif %}"
                            href="{% url 'students:submissions' %}">
                             <span class="nav-icon"><i class="fas fa-file-arrow-up"></i></span>
-                            <span class="nav-label">Submissions</span>
+                            <span class="nav-label">My Assignments</span>
                         </a>
                     </li>
                 </ul>
@@ -87,6 +88,16 @@
                             <span class="nav-label">Profile Settings</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}"
+                           href="{% url 'students:notifications' %}">
+                            <span class="nav-icon"><i class="fas fa-bell"></i></span>
+                            <span class="nav-label">Notifications</span>
+                        </a>
+                    </li>
+
+
+                            
                 </ul>
             </nav>
 
@@ -95,7 +106,8 @@
                 <form action="{% url 'accounts:logout' %}" method="post">
                     {% csrf_token %}
                     <button type="submit" class="btn-logout">
-                        <i class="fas fa-power-off"></i> Logout
+                        <i class="fas fa-power-off"></i>
+                        <span class="btn-text">Logout</span>
                     </button>
                 </form>
             </div>
@@ -112,6 +124,11 @@
 
             <!-- Left: toggle + page title -->
             <div class="d-flex align-items-center gap-2 gap-sm-3">
+                <button class="btn btn-link menu-toggle d-none d-lg-flex text-dark p-0"
+                        id="desktopSidebarToggle"
+                        aria-label="Collapse sidebar">
+                    <i class="fas fa-angle-left"></i>
+                </button>
                 <button class="btn btn-link menu-toggle d-lg-none text-dark p-0"
                         data-bs-toggle="offcanvas" data-bs-target="#sidebar"
                         aria-label="Toggle Navigation">
@@ -132,8 +149,40 @@
                 </div>
 
                 <!-- Notifications -->
-                <div class="notification-icon" role="button" tabindex="0" aria-label="Notifications">
-                    <i class="fas fa-bell"></i>
+                <div class="dropdown">
+                    <button class="btn btn-link dropdown-toggle notification-icon position-relative text-dark p-0 shadow-none border-0"
+                            id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+                        <i class="fas fa-bell"></i>
+                        {% if unread_notifications_count|default:0 > 0 %}
+                        <span class="notification-count badge bg-danger rounded-circle">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </button>
+
+                    <div class="dropdown-menu dropdown-menu-end mt-2 p-0" aria-labelledby="notifDropdown" style="min-width:320px;max-width:90vw;">
+                        <div class="card border-0 rounded-0 mb-0">
+                            <div class="card-header bg-transparent border-0 py-2 px-3">
+                                <strong>Notifications</strong>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="list-group list-group-flush">
+                                    {% for note in notifications|slice:":5" %}
+                                    <a href="{% url 'students:notification_detail' note.pk %}" class="list-group-item list-group-item-action px-3 py-2 d-flex justify-content-between align-items-start">
+                                        <div class="me-2">
+                                            <div class="fw-bold small mb-1">{{ note.title }}</div>
+                                            <div class="small text-muted">{{ note.message|truncatewords:4 }}</div>
+                                        </div>
+                                        <small class="text-muted ms-auto">{{ note.created_at|timesince }} ago</small>
+                                    </a>
+                                    {% empty %}
+                                    <div class="text-center py-3 text-muted small">No recent notifications.</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="card-footer bg-success rounded-bottom border-0 py-2 text-center">
+                                <a href="{% url 'students:notifications' %}" class="small text-white text-decoration-none">View all notifications</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- User dropdown -->
@@ -141,8 +190,12 @@
                     <button class="btn btn-link dropdown-toggle d-flex align-items-center gap-2 text-decoration-none p-0 shadow-none border-0"
                             type="button" id="userDropdown"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="user-avatar shadow-sm">
-                            {{ request.user.username|slice:":1"|upper|default:"U" }}
+                        <div class="user-avatar d-flex align-items-center">
+                            {% if request.user.profile_picture %}
+                                <img src="{{ request.user.profile_picture.url }}" alt="Profile" class="rounded-circle border" style="width:40px;height:40px;object-fit:cover;">
+                            {% else %}
+                                <span class="d-inline-flex align-items-center justify-content-center bg-secondary text-white rounded-circle" style="width:40px;height:40px;font-weight:600;">{{ request.user.first_name|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}</span>
+                            {% endif %}
                         </div>
                         <div class="text-start d-none d-lg-block">
                             <div class="fw-bold text-dark" style="font-size:0.85rem; line-height:1.1;">
@@ -194,15 +247,53 @@
     </main>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 
 <script>
-    // Add .scrolled class to header on scroll for shadow
     const header = document.getElementById('topHeader');
     if (header) {
         window.addEventListener('scroll', () => {
             header.classList.toggle('scrolled', window.scrollY > 8);
         }, { passive: true });
+    }
+
+    const desktopToggle = document.getElementById('desktopSidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const bodyEl = document.body;
+
+    function updateDesktopToggleIcon() {
+        if (!desktopToggle || !sidebar) return;
+        const icon = desktopToggle.querySelector('i');
+        const collapsed = sidebar.classList.contains('collapsed');
+        if (collapsed) {
+            icon.classList.remove('fa-angle-left');
+            icon.classList.add('fa-angle-right');
+            desktopToggle.setAttribute('aria-label', 'Expand sidebar');
+        } else {
+            icon.classList.remove('fa-angle-right');
+            icon.classList.add('fa-angle-left');
+            desktopToggle.setAttribute('aria-label', 'Collapse sidebar');
+        }
+    }
+
+    if (desktopToggle && sidebar) {
+        desktopToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            bodyEl.classList.toggle('sidebar-collapsed');
+            updateDesktopToggleIcon();
+        });
+        updateDesktopToggleIcon();
+    }
+
+    if (sidebar && typeof bootstrap !== 'undefined') {
+        const bsSidebar = bootstrap.Offcanvas.getOrCreateInstance(sidebar);
+        sidebar.querySelectorAll('.nav-link').forEach((link) => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 992 && bsSidebar) {
+                    bsSidebar.hide();
+                }
+            });
+        });
     }
 </script>
 

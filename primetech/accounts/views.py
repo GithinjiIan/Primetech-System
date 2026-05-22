@@ -41,7 +41,7 @@ def login_view(request):
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            # Set session expiry: 0 = browser close, otherwise 2 weeks
+            # Set session expiry: 0 = browser close, otherwise 1p weeks
             if not form.cleaned_data.get('remember_me'):
                 request.session.set_expiry(0)
             else:

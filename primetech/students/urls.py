@@ -13,4 +13,6 @@ urlpatterns = [
     path('submissions/<int:assignment_id>/submit/', views.submit_assignment, name='submit_assignment'),
     path('profile/', views.student_profile, name='student_profile'),
     path('enroll/', views.course_enroll, name='enroll'),
+    path('notifications/', views.student_notifications, name='notifications'),
+    path('notifications/<int:pk>/', views.student_notification_detail, name='notification_detail'),
 ]

@@ -251,7 +251,7 @@ h1, h2, h3, h4, h5, h6 {
 .btn-hamburger:hover { background: rgba(255,255,255,.25); }
 
 /* ---------- Main container ---------- */
-.staff-page { padding: 24px 20px; max-width: 1400px; }
+.staff-page { padding: 16px 16px; max-width: 1400px; }
 
 /* ---------- Cards ---------- */
 .card {
@@ -273,7 +273,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ---------- Stats Cards ---------- */
 .stats-card {
-    background: #fff;
+    background: var(--brand-light);
     border-radius: var(--radius-card) !important;
     border: 1px solid rgba(0,0,0,.05) !important;
     box-shadow: var(--shadow-card) !important;

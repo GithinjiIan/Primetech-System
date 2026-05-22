@@ -5,14 +5,21 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django import forms as django_forms
+from django.core.paginator import Paginator
 
 from website.models import Enrollment, Course
 from accounts.decorators import student_required
 from notifications.models import Notification
-from courses.models import CourseMaterial, ClassSession, Assignment, Submission, Grade, MaterialProgress
+from courses.models import (
+    CourseMaterial, CourseSyllabus, ClassSession,
+    Assignment, Submission, Grade, MaterialProgress,
+)
 from courses.forms import SubmissionForm
 
 User = get_user_model()
+
+# Materials shown per page on the course_materials view
+MATERIALS_PER_PAGE = 9
 
 
 # ── Dashboard ────────────────────────────────────────────────────
@@ -24,10 +31,10 @@ def student_dashboard(request):
     ).select_related('course', 'course__category')
 
     notifications = Notification.objects.filter(
-        recipient=request.user
+        recipient=request.user,
+        is_archived=False,
     ).order_by('-created_at')[:10]
 
-    # Pending assignments count
     enrolled_course_ids = enrollments.values_list('course_id', flat=True)
     pending_assignments = Assignment.objects.filter(
         course_id__in=enrolled_course_ids,
@@ -41,6 +48,34 @@ def student_dashboard(request):
     })
 
 
+@student_required
+def student_notifications(request):
+    """Student notification center page for current user's active notifications."""
+    notifications = Notification.objects.filter(
+        recipient=request.user,
+        is_archived=False,
+    ).order_by('-created_at')
+    return render(request, 'students/notifications.html', {
+        'notifications': notifications,
+    })
+
+
+@student_required
+def student_notification_detail(request, pk):
+    """Show a single notification detail and mark it as read."""
+    notification = get_object_or_404(
+        Notification,
+        pk=pk,
+        recipient=request.user,
+        is_archived=False,
+    )
+    if not notification.is_read:
+        notification.mark_as_read()
+    return render(request, 'students/notification_detail.html', {
+        'notification': notification,
+    })
+
+
 # ── My Courses (enrolled only) ────────────────────────────────────
 @student_required
 def my_courses(request):
@@ -49,7 +84,6 @@ def my_courses(request):
         student=request.user, status='active'
     ).select_related('course', 'course__category', 'course__assigned_instructor')
 
-    # Attach material + progress data per course
     for enrollment in enrollments:
         total = CourseMaterial.objects.filter(course=enrollment.course, is_published=True).count()
         completed = MaterialProgress.objects.filter(
@@ -67,23 +101,16 @@ def my_courses(request):
 # ── Course Material Viewer ────────────────────────────────────────
 @student_required
 def course_materials(request, course_id):
-    """View all published materials for an enrolled course."""
+    """
+    View all published materials for an enrolled course, with:
+      - Course syllabus shown as a collapsible section above the material cards
+      - Materials paginated (MATERIALS_PER_PAGE per page)
+      - Mark-as-complete POST action
+    """
     course = get_object_or_404(Course, pk=course_id, is_active=True)
-
-    # Verify enrollment
     enrollment = get_object_or_404(Enrollment, student=request.user, course=course, status='active')
-    materials = CourseMaterial.objects.filter(course=course, is_published=True).order_by('order')
 
-    # Fetch completed material IDs for this student
-    completed_ids = set(
-        MaterialProgress.objects.filter(
-            student=request.user,
-            material__course=course,
-            completed=True,
-        ).values_list('material_id', flat=True)
-    )
-
-    # Handle mark-as-complete toggle
+    # ── Handle mark-as-complete POST ────────────────────────────
     if request.method == 'POST':
         mat_id = request.POST.get('material_id')
         if mat_id:
@@ -96,11 +123,43 @@ def course_materials(request, course_id):
             messages.success(request, f'"{material.title}" marked as complete.')
         return redirect('students:course_materials', course_id=course_id)
 
+    # ── Fetch materials + completed set ─────────────────────────
+    all_materials = CourseMaterial.objects.filter(course=course, is_published=True).order_by('order')
+
+    completed_ids = set(
+        MaterialProgress.objects.filter(
+            student=request.user,
+            material__course=course,
+            completed=True,
+        ).values_list('material_id', flat=True)
+    )
+
+    # ── Pagination ───────────────────────────────────────────────
+    paginator = Paginator(all_materials, MATERIALS_PER_PAGE)
+    page_number = request.GET.get('page', 1)
+    materials_page = paginator.get_page(page_number)
+
+    # ── Syllabus (may not exist yet) ─────────────────────────────
+    try:
+        syllabus = course.syllabus
+    except CourseSyllabus.DoesNotExist:
+        syllabus = None
+
+    # ── Overall progress stats ───────────────────────────────────
+    total_count = all_materials.count()
+    completed_count = len(completed_ids)
+    progress_pct = int((completed_count / total_count) * 100) if total_count else 0
+
     return render(request, 'students/course_materials.html', {
         'course': course,
-        'materials': materials,
+        'materials': materials_page,          # paginated
         'completed_ids': completed_ids,
         'enrollment': enrollment,
+        'syllabus': syllabus,
+        'total_count': total_count,
+        'completed_count': completed_count,
+        'progress_pct': progress_pct,
+        'paginator': paginator,
     })
 
 
@@ -114,15 +173,30 @@ def material_detail(request, course_id, material_id):
 
     progress, _ = MaterialProgress.objects.get_or_create(student=request.user, material=material)
 
+    # ── Previous / Next navigation ───────────────────────────────
+    all_materials = list(
+        CourseMaterial.objects.filter(course=course, is_published=True).order_by('order').values_list('pk', flat=True)
+    )
+    current_index = all_materials.index(material.pk) if material.pk in all_materials else -1
+    prev_material_id = all_materials[current_index - 1] if current_index > 0 else None
+    next_material_id = all_materials[current_index + 1] if current_index < len(all_materials) - 1 else None
+
     if request.method == 'POST':
         progress.mark_complete()
         messages.success(request, f'"{material.title}" marked as complete!')
+        # Go to next material if available, else back to list
+        if next_material_id:
+            return redirect('students:material_detail', course_id=course_id, material_id=next_material_id)
         return redirect('students:course_materials', course_id=course_id)
 
     return render(request, 'students/material_detail.html', {
         'course': course,
         'material': material,
         'progress': progress,
+        'prev_material_id': prev_material_id,
+        'next_material_id': next_material_id,
+        'total_in_course': len(all_materials),
+        'current_position': current_index + 1,
     })
 
 
@@ -154,7 +228,6 @@ def student_submissions(request):
         is_published=True,
     ).select_related('course').order_by('due_date')
 
-    # Map assignment_id -> submission
     my_submissions = {
         sub.assignment_id: sub
         for sub in Submission.objects.filter(student=request.user).select_related('grade')

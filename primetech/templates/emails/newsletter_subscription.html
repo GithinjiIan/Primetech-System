@@ -1,0 +1,11 @@
+{% extends "emails/base_email.html" %}
+
+{% block header_title %}Subscription Confirmed{% endblock %}
+
+{% block body %}
+    <h2>You're now subscribed!</h2>
+    <p>Hi {{ subscriber.full_name }},</p>
+    <p>Thank you for subscribing to PrimeTech LMS newsletter updates. We'll send you the latest course news, event announcements, and important updates right to your inbox.</p>
+    <p>If you ever want to stop receiving updates, you can unsubscribe at any time.</p>
+    <p><a href="{{ site_url }}" class="btn">Visit PrimeTech</a></p>
+{% endblock %}

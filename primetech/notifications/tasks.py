@@ -161,3 +161,84 @@ def send_notification_email(self, notification_id):
     except Exception as exc:
         logger.warning('send_notification_email failed for notification %s: %s', notification_id, exc)
         raise self.retry(exc=exc, countdown=60)
+
+
+@shared_task(bind=True, max_retries=3)
+def send_newsletter_subscription_email(self, subscriber_id):
+    """Send a confirmation email to a new newsletter subscriber."""
+    from website.models import NewsletterSubscriber
+
+    try:
+        subscriber = NewsletterSubscriber.objects.get(pk=subscriber_id)
+    except NewsletterSubscriber.DoesNotExist:
+        logger.error('send_newsletter_subscription_email: Subscriber %s not found.', subscriber_id)
+        return
+
+    try:
+        subject = 'Thanks for subscribing to PrimeTech LMS updates'
+        html_message = render_to_string('emails/newsletter_subscription.html', {
+            'subscriber': subscriber,
+            'site_url': settings.SITE_URL,
+        })
+        plain_message = strip_tags(html_message)
+
+        send_mail(
+            subject=subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[subscriber.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        logger.info('Newsletter confirmation email sent to %s', subscriber.email)
+    except Exception as exc:
+        logger.warning('send_newsletter_subscription_email failed for %s: %s', subscriber_id, exc)
+        raise self.retry(exc=exc, countdown=60)
+
+
+@shared_task(bind=True, max_retries=3)
+def send_newsletter_email(self, email, subject, body):
+    """Send a newsletter email to a single recipient."""
+    try:
+        html_message = render_to_string('emails/newsletter.html', {
+            'subject': subject,
+            'body': body,
+            'site_url': settings.SITE_URL,
+        })
+        plain_message = strip_tags(html_message)
+
+        send_mail(
+            subject=subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        logger.info('Newsletter email sent to %s', email)
+    except Exception as exc:
+        logger.warning('send_newsletter_email failed for %s: %s', email, exc)
+        raise self.retry(exc=exc, countdown=60)
+
+
+@shared_task(bind=True, max_retries=3)
+def archive_old_notifications(self, days=30):
+    """Archive notifications older than the given number of days."""
+    from notifications.models import Notification
+    from django.utils import timezone
+    from datetime import timedelta
+
+    try:
+        cutoff = timezone.now() - timedelta(days=days)
+        archived_count = Notification.objects.filter(
+            is_archived=False,
+            created_at__lt=cutoff,
+        ).update(
+            is_archived=True,
+            archived_at=timezone.now(),
+        )
+        logger.info('Archived %s old notifications older than %s days.', archived_count, days)
+        return {'archived_count': archived_count}
+    except Exception as exc:
+        logger.warning('archive_old_notifications failed: %s', exc)
+        raise self.retry(exc=exc, countdown=60)

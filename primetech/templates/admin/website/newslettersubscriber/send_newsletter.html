@@ -1,0 +1,39 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+  <div class="app-newsletter form-group">
+    <h1>{{ title }}</h1>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-row">
+        <div class="field-box">
+          {{ form.target.errors }}
+          <div>{{ form.target.label_tag }}</div>
+          <div>{{ form.target }}</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field-box">
+          {{ form.subject.errors }}
+          <div>{{ form.subject.label_tag }}</div>
+          <div>{{ form.subject }}</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field-box">
+          {{ form.body.errors }}
+          <div>{{ form.body.label_tag }}</div>
+          <div>{{ form.body }}</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field-box">
+          {{ form.create_notifications }} {{ form.create_notifications.label_tag }}
+        </div>
+      </div>
+      <div class="form-row submit-row">
+        <button type="submit" class="default">Send newsletter</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

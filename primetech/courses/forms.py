@@ -2,24 +2,140 @@
 Forms for LMS course content management (staff) and student submissions.
 """
 from django import forms
-from .models import CourseMaterial, ClassSession, Assignment, Submission, Grade
+from .models import CourseMaterial, CourseSyllabus, ClassSession, Assignment, Submission, Grade
+
+
+# ── CKEditor widget helper ────────────────────────────────────────
+# We attach the CKEditor class + a unique id so that the JS initialiser
+# in the template can target each field individually via ClassicEditor.create().
+class CKEditorWidget(forms.Textarea):
+    """Textarea that gets styled as a full CKEditor 5 instance in the template."""
+    def __init__(self, editor_id, *args, **kwargs):
+        kwargs.setdefault('attrs', {})
+        kwargs['attrs'].update({
+            'class': 'ckeditor-field form-control',
+            'id': editor_id,
+        })
+        super().__init__(*args, **kwargs)
 
 
 class CourseMaterialForm(forms.ModelForm):
-    """Staff form to add/edit course materials."""
+    """
+    Staff form to add/edit course materials.
+    The 'content' field uses a full CKEditor instance that supports:
+      - Headings, bold, italic, underline, strikethrough
+      - Bullet & numbered lists
+      - Image upload (via CKFinder / simple upload adapter wired in the template)
+      - YouTube / Vimeo embed via Media Embed plugin
+      - Table insertion
+      - Code blocks
+      - Link insertion
+      - PDF / file uploads are handled as a separate model field (file)
+    """
 
     class Meta:
         model = CourseMaterial
         fields = ['title', 'material_type', 'description', 'content', 'file', 'url', 'order', 'is_published']
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Material title'}),
-            'material_type': forms.Select(attrs={'class': 'form-select', 'id': 'materialTypeSelect'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Brief description visible to students'}),
-            'content': forms.Textarea(attrs={'class': 'form-control django-ckeditor', 'rows': 8, 'id': 'materialContent'}),
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Material title',
+            }),
+            'material_type': forms.Select(attrs={
+                'class': 'form-select',
+                'id': 'materialTypeSelect',
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Brief description visible to students',
+            }),
+            # Content replaced by CKEditor in template — kept as textarea fallback
+            'content': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 10,
+                'id': 'materialContentEditor',
+                'placeholder': 'Write your notes here…',
+            }),
             'file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
-            'url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://...'}),
+            'url': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://www.youtube.com/watch?v=… or https://…',
+            }),
             'order': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
             'is_published': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
+class CourseSyllabusForm(forms.ModelForm):
+    """
+    Staff form to create/update the structured syllabus for a course.
+    Every rich-text section uses CKEditor (wired in the template).
+    """
+
+    class Meta:
+        model = CourseSyllabus
+        fields = [
+            'instructor_intro',
+            'learning_outcomes',
+            'course_relevance',
+            'course_activities',
+            'modules_overview',
+            'final_project',
+            'certification_info',
+        ]
+        widgets = {
+            'instructor_intro': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 6,
+                'id': 'syllabusInstructorIntro',
+                'placeholder': 'Introduce yourself and welcome students…',
+            }),
+            'learning_outcomes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 6,
+                'id': 'syllabusLearningOutcomes',
+                'placeholder': 'By the end of this course, students will be able to…',
+            }),
+            'course_relevance': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 6,
+                'id': 'syllabusCourseRelevance',
+                'placeholder': 'Why is this course important? Industry trends, career impact…',
+            }),
+            'course_activities': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 6,
+                'id': 'syllabusCourseActivities',
+                'placeholder': 'Readings, quizzes, group projects, live sessions…',
+            }),
+            'modules_overview': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 10,
+                'id': 'syllabusModulesOverview',
+                'placeholder': 'Module 1: Introduction…\nModule 2: …',
+            }),
+            'final_project': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 6,
+                'id': 'syllabusFinalProject',
+                'placeholder': 'Describe the capstone project, deliverables, and grading criteria…',
+            }),
+            'certification_info': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 6,
+                'id': 'syllabusCertification',
+                'placeholder': 'Certificate name, issuing body, requirements to earn it…',
+            }),
+        }
+        labels = {
+            'instructor_intro': 'Instructor Introduction',
+            'learning_outcomes': 'Learning Outcomes',
+            'course_relevance': 'Course Relevance',
+            'course_activities': 'Course Activities',
+            'modules_overview': 'Overview of Course Modules',
+            'final_project': 'Final Project',
+            'certification_info': 'Certification',
         }
 
 

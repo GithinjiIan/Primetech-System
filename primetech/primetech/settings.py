@@ -113,7 +113,7 @@ DATABASES = {
     }
 }
 
-# Password validation
+#=========Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -132,7 +132,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
+#===============Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
@@ -144,7 +144,7 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
+#================ Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
@@ -168,19 +168,18 @@ MEDIA_ROOT = BASE_DIR / 'media'
    # }
 #}   
 
-# Caching — local memory for development, Redis for production
+#=================== Caching — local memory for development, Redis for production
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
-# Single SESSION_ENGINE definition (db for dev; switch to cache for prod)
+#=================== Single SESSION_ENGINE definition (To switch in production)
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 
 # ── Email configuration ─────────────────────────────────────────
 # Console backend for development (prints emails to terminal)
-#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'PrimeTech Foundation <noreply@primetechfoundation.org>'
 
 # ----------------------Gmail SMTP settings

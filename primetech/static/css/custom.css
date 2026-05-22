@@ -29,6 +29,16 @@ body {
     overflow-x: hidden;
 }
 
+main {
+    padding-top: 2rem;
+}
+
+@media (max-width: 992px) {
+    main {
+        padding-top: 2rem;
+    }
+}
+
 h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
     font-family: 'Merriweather', serif;
     font-weight: 700;
@@ -56,11 +66,11 @@ h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display
   }
   
   .hero-section {
-    margin-top: 60px;         /* smaller navbar on mobile? */
+    margin-top: 60px;         
   }
 }
 
-/* Smooth fade transition (optional, already in carousel-fade) */
+/* Smooth fade transition */
 .carousel-fade .carousel-item {
   transition: opacity 0.8s ease-in-out;
 }
@@ -94,7 +104,7 @@ h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display
     color: #fff !important;
     font-weight: 600;
     transition: all var(--transition-speed);
-    animation: btnPulse 2s infinite;
+    
 }
 .btn-prime:hover {
     background-color: var(--brand-orange);
@@ -102,7 +112,7 @@ h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display
     color: #fff;
 }
 .btn-orange {
-    background-color: var(--brand-orange);
+    background-color: var(--brand-accent);
     color: #fff;
     font-weight: 600;
     border: none;

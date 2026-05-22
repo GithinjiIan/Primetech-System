@@ -1,16 +1,37 @@
 from django.shortcuts import render, redirect, get_object_or_404
 import json
-from .models import Course, CourseCategory, Testimonial, Statistic, CourseApplication
-from .forms import CourseApplicationForm
+from .models import Course, CourseCategory, Testimonial, Statistic, CourseApplication, NewsletterSubscriber
+from .forms import CourseApplicationForm, NewsletterSignupForm
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 
 
 def newsletter_signup(request):
     if request.method == 'POST':
-        email = request.POST.get('email', '')
-        # Save to database or integrate mailchimp later
-        messages.success(request, "Thank you for subscribing!")
+        form = NewsletterSignupForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email'].lower()
+            subscriber, created = NewsletterSubscriber.objects.get_or_create(
+                email=email,
+                defaults={
+                    'user': request.user if request.user.is_authenticated else None,
+                    'first_name': request.user.first_name if request.user.is_authenticated else '',
+                    'last_name': request.user.last_name if request.user.is_authenticated else '',
+                    'is_active': True,
+                }
+            )
+            if not created and not subscriber.is_active:
+                subscriber.is_active = True
+                subscriber.save(update_fields=['is_active'])
+                messages.success(request, 'Welcome back! Your newsletter subscription is reactivated.')
+            elif created:
+                messages.success(request, 'Thank you for subscribing! You will receive our newsletter updates via email.')
+                from notifications.tasks import send_newsletter_subscription_email
+                send_newsletter_subscription_email.delay(subscriber.id)
+            else:
+                messages.info(request, 'You are already subscribed to the newsletter.')
+        else:
+            messages.error(request, 'Please enter a valid email address to subscribe.')
     return redirect('home')
 
 
@@ -18,9 +39,11 @@ def home_view(request):
     """Render the homepage with static content."""
     statistics = Statistic.objects.all()
     testimonials = Testimonial.objects.filter(is_active=True)
+    latest_courses = Course.objects.filter(is_active=True).order_by('-created_at')[:3]
     context = {
         'statistics': statistics,
         'testimonials': testimonials,
+        'latest_courses': latest_courses,
     }
     return render(request, 'website/home.html', context)
 
@@ -37,12 +60,7 @@ def partnership(request):
     return render(request, 'website/partnership.html')
 
 
-# views.py — Django view for the courses page
-
-def courses(request):
-    """Display courses filtered by optional category query parameter."""
-    category_slug = request.GET.get('category', None)
-
+def _build_courses_context(category_slug=None, application_form=None, selected_course_id=None, selected_course_title=None):
     courses = Course.objects.filter(is_active=True).select_related('category')
     if category_slug:
         courses = courses.filter(category__slug=category_slug)
@@ -53,6 +71,8 @@ def courses(request):
     # Serialize course data to JSON for JavaScript detail population
     courses_dict = {}
     for course in courses:
+        requirements = [item.strip() for item in course.requirements.splitlines() if item.strip()]
+        outcomes = [item.strip() for item in course.outcomes.splitlines() if item.strip()]
         courses_dict[str(course.id)] = {
             'title': course.title,
             'description': course.description,
@@ -60,20 +80,31 @@ def courses(request):
             'schedule': course.schedule,
             'instructor': course.instructor,
             'price': course.price,
-            'requirements': course.requirements,
-            'outcomes': course.outcomes,
+            'level': course.get_level_display(),
+            'requirements': requirements,
+            'outcomes': outcomes,
         }
 
-    # Application form
-    application_form = CourseApplicationForm()
+    if application_form is None:
+        application_form = CourseApplicationForm()
 
-    context = {
+    return {
         'courses': courses,
         'categories': categories,
         'testimonials': testimonials,
         'courses_json': json.dumps(courses_dict),
         'application_form': application_form,
+        'selected_course_id': selected_course_id,
+        'selected_course_title': selected_course_title,
     }
+
+
+#  views for the courses page
+
+def courses(request):
+    """Display courses filtered by optional category query parameter."""
+    category_slug = request.GET.get('category', None)
+    context = _build_courses_context(category_slug=category_slug)
     return render(request, 'website/courses.html', context)
 
 
@@ -107,7 +138,14 @@ def apply_for_course(request, course_id):
             'Your application has been submitted successfully! '
             'We will review it and get back to you soon.'
         )
-    else:
-        messages.error(request, 'Please correct the errors below.')
+        return redirect('courses')
 
-    return redirect('courses')
+    messages.error(request, 'Please correct the errors below.')
+    category_slug = request.GET.get('category', None)
+    context = _build_courses_context(
+        category_slug=category_slug,
+        application_form=form,
+        selected_course_id=course.id,
+        selected_course_title=course.title,
+    )
+    return render(request, 'website/courses.html', context)

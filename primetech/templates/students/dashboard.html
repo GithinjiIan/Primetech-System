@@ -1,128 +1,162 @@
-{% extends "students/base.html" %}
-{% load static %}
+{% extends "students/base.html" %} 
+{% load static %} 
 
-{% block title %}Dashboard - PrimeTech LMS{% endblock %}
+{% block title %}Dashboard- PrimeTech LMS{% endblock %} 
 {% block page_title %}Overview{% endblock %}
 
 {% block content %}
-<div class="container-fluid p-3 p-md-4">
-    <div class="row g-4">
+
+<div class="container-fluid p-2 p-md-4">
+  <div class="row g-4">
     <!-- Messages -->
     {% if messages %}
     <div class="col-12">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endfor %}
+      {% for message in messages %}
+      <div
+        class="alert alert-{{ message.tags }} alert-dismissible fade show"
+        role="alert"
+      >
+        {{ message }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
+      </div>
+      {% endfor %}
     </div>
     {% endif %}
 
     <!-- Welcome Banner -->
-    <div class="col-12">
-        <div class="welcome-banner text-white p-4 p-md-5 rounded-4 " style="background: linear-gradient(135deg, #1e3a8a, #020617);">
-            <div class="position-relative z-1">
-                <h2 class="display-6 fw-bold mb-2 text-white">Welcome back, {{ request.user.first_name }}!</h2>
-                <p class="lead mb-0 opacity-75 fs-6">Ready to continue your learning journey with PrimeTech?</p>
-                <div class="mt-4">
-                    <a href="{% url 'students:my_courses' %}" class="btn btn-light text-primary fw-bold px-4 py-2 shadow-sm">My Courses</a>
-                </div>
-            </div>
+    <div class="col">
+      <div
+        class="welcome-banner text-white p-4 p-md-5 rounded-4 hover-lift"
+        style="background: linear-gradient(135deg, #1e3a8a, #020617)"
+      >
+        <div class="position-relative z-1">
+          <h2 class="display-6 fw-bold mb-2 text-white">
+            Welcome back, {{ request.user.first_name }}!
+          </h2>
+          <p class="lead mb-0 opacity-75 fs-6">
+            Ready to continue your learning journey with PrimeTech?
+          </p>
+          <div class="mt-4">
+            <a
+              href="{% url 'students:my_courses' %}"
+              class="btn btn-light text-primary fw-bold px-4 py-2 shadow-sm"
+              >My Courses</a
+            >
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Stats -->
     <div class="col-xx-12">
-        <div class="row g-3">
-            <div class="col-sm-6 col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift p-4 d-flex align-items-center flex-row gap-3">
-                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:60px;height:60px;font-size:1.5rem;">
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <div>
-                        <h3 class="fw-bold mb-0">{{ enrollments.count|default:0 }}</h3>
-                        <div class="text-muted small fw-medium text-uppercase">Enrolled Courses</div>
-                    </div>
-                </div>
+      <div class="row g-3 ">
+        <div class="col-sm-6 col-lg-4">
+          <div
+            class="card border-0 rounded-4 h-100 p-4 d-flex flex-column flex-sm-row align-items-center gap-3"
+          >
+            <div
+              class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+              style="width: 60px; height: 60px; font-size: 1.5rem"
+            >
+              <i class="fas fa-book"></i>
             </div>
-            <div class="col-sm-6 col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift p-4 d-flex align-items-center flex-row gap-3">
-                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:60px;height:60px;font-size:1.5rem;">
-                        <i class="fas fa-file-pen"></i>
-                    </div>
-                    <div>
-                        <h3 class="fw-bold mb-0">{{ pending_assignments|default:0 }}</h3>
-                        <div class="text-muted small fw-medium text-uppercase">Pending Assignments</div>
-                    </div>
-                </div>
+            <div>
+              <h3 class="fw-bold mb-0">{{ enrollments.count|default:0 }}</h3>
+              <div class="text-muted small fw-medium text-uppercase">
+               Your Enrolled Courses
+              </div>
             </div>
-            <div class="col-sm-12 col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift p-4 d-flex align-items-center flex-row gap-3">
-                    <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:60px;height:60px;font-size:1.5rem;">
-                        <i class="fas fa-bell"></i>
-                    </div>
-                    <div>
-                        <h3 class="fw-bold mb-0">{{ notifications.count|default:0 }}</h3>
-                        <div class="text-muted small fw-medium text-uppercase">Recent Notifications</div>
-                    </div>
-                </div>
-            </div>
+          </div>
         </div>
+
+        <div class="col-sm-6 col-lg-4">
+          <div
+            class="card border-0 rounded-4 h-100 p-4 d-flex flex-column flex-sm-row align-items-center gap-3"
+          >
+            <div
+              class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+              style="width: 60px; height: 60px; font-size: 1.5rem"
+            >
+              <i class="fas fa-file-pen"></i>
+            </div>
+            <div>
+              <h3 class="fw-bold mb-0">{{ pending_assignments|default:0 }}</h3>
+              <div class="text-muted small fw-medium text-uppercase">
+                Your Pending Assignments
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-4">
+          <div
+            class="card border-0 rounded-4 h-100 p-4 d-flex flex-column flex-sm-row align-items-center gap-3"
+          >
+            <div
+              class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+              style="width: 60px; height: 60px; font-size: 1.5rem"
+            >
+              <i class="fas fa-bell"></i>
+            </div>
+            <div>
+              <h3 class="fw-bold mb-0">{{ notifications.count|default:0 }}</h3>
+              <div class="text-muted small fw-medium text-uppercase">
+                Recent Notifications
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Main Content Row -->
-    <div class="col-lg-8 d-flex flex-column gap-2">
-        <!-- Quick Access: Courses -->
-        <div class="card border-0 shadow-sm rounded-4 flex-grow-1">
-            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-4 px-4">
-                <h5 class="fw-bold mb-0"><i class="fas fa-graduation-cap text-brand-orange me-2"></i> Enrolled Courses</h5>
-                <a href="{% url 'students:my_courses' %}" class="btn btn-link btn-sm text-decoration-none fw-bold p-0">View All</a>
-            </div>
-            <div class="card-body p-4">
-                {% for enrollment in enrollments|slice:":3" %}
-                <div class="d-flex align-items-center justify-content-between p-3 border rounded-3 mb-3 bg-light hover-lift">
-                    <div>
-                        <h6 class="fw-bold mb-1 text-dark">{{ enrollment.course.title }}</h6>
-                        <span class="badge bg-white text-dark border"><i class="fas fa-tag text-muted me-1"></i> {{ enrollment.course.category }}</span>
-                    </div>
-                    <a href="{% url 'students:course_materials' enrollment.course.pk %}" class="btn btn-brand btn-sm px-3 fw-bold shadow-sm">Enter <i class="fas fa-arrow-right ms-1"></i></a>
-                </div>
-                {% empty %}
-                <div class="text-center py-4">
-                    <i class="fas fa-book-open fs-1 text-muted opacity-50 mb-3 d-block"></i>
-                    <p class="text-muted fw-medium">You are not enrolled in any courses yet.</p>
-                </div>
-                {% endfor %}
-            </div>
+    <div class="col-lg-12 d-flex flex-column gap-2">
+      <!-- Quick Access: Courses -->
+      <div class="card border-0 shadow-sm rounded-4 flex-grow-1">
+        <!-- Card Title-->
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-4 px-4">
+          <h5 class="fw-bold mb-0">
+            <i class="fas fa-graduation-cap text-brand-orange me-2"></i>
+            You are Enrolled to the following courses
+          </h5>
+          <a
+            href="{% url 'students:my_courses' %}"
+            class="btn btn-link btn-sm text-decoration-none fw-bold p-0"
+            >Continue Learning</a>
         </div>
+
+        <div class="card-body p-4 rounded-4">
+          {% for enrollment in enrollments|slice:":3" %}
+          <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between p-3 border rounded-3 mb-3 bg-light hover-lift">
+
+            <div>
+              <h6 class="fw-bold mb-1 text-dark">
+                {{ enrollment.course.title }}
+              </h6>
+              <span class="badge bg-white text-dark border">
+                <i class="fas fa-tag text-muted me-1"></i> {{ enrollment.course.category }}</span></div>
+            <a href="{% url 'students:course_materials' enrollment.course.pk %}"
+              class="btn btn-success btn-sm px-3 fw-bold shadow-sm">
+               Continue learning <i class="fas fa-arrow-right ms-1"></i
+            ></a>
+          </div>
+          {% empty %}
+          <div class="text-center py-4">
+            <i class="fas fa-book-open fs-1 text-muted opacity-50 mb-3 d-block"></i>
+            <p class="text-muted fw-medium">
+              You are not enrolled in any courses yet. please contact admin
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
 
-    <div class="col-lg-4 d-flex flex-column gap-2">
-        <!-- Notifications Box -->
-        <div class="card border-0 shadow-sm rounded-4 flex-grow-1">
-            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                <h5 class="fw-bold mb-0"><i class="fas fa-bell text-warning me-2"></i> Notifications</h5>
-            </div>
-            <div class="card-body p-4">
-                <div class="list-group list-group-flush">
-                    {% for note in notifications|slice:":5" %}
-                    <div class="list-group-item px-0 py-3 border-bottom border-light">
-                        <div class="d-flex w-100 justify-content-between mb-1">
-                            <h6 class="mb-0 fw-bold fs-6">{{ note.title }}</h6>
-                            <small class="text-muted">{{ note.created_at|timesince }} ago</small>
-                        </div>
-                        <p class="mb-0 small text-muted">{{ note.message|truncatewords:15 }}</p>
-                    </div>
-                    {% empty %}
-                    <div class="text-center py-4 text-muted small">
-                        No recent notifications.
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-    </div>
+  </div>
 </div>
 {% endblock %}

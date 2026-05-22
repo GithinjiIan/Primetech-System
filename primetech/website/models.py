@@ -38,8 +38,6 @@ class Course(models.Model):
         null=True,
         related_name='courses'
     )
-    short_description = models.CharField(max_length=255, blank=True,
-                                         help_text="Brief teaser shown on course cards")
     description = models.TextField(help_text="Full course description")
     duration = models.CharField(max_length=100, help_text="e.g., '8 Weeks (Part-time)'")
     schedule = models.CharField(max_length=200, help_text="e.g., 'Once per week, 2 hours per session'")
@@ -133,10 +131,37 @@ class CourseApplication(models.Model):
     email = models.EmailField()
     phone_number = models.CharField(max_length=20)
     nationality = models.CharField(max_length=100, blank=True)
+    EDUCATION_LEVEL_CHOICES = [
+        ('high-school', 'High School'),
+        ('diploma', 'Diploma'),
+        ('bachelor', "Bachelor's Degree"),
+        ('master', "Master's Degree"),
+        ('phd', 'PhD'),
+        ('other', 'Other'),
+    ]
+    education_level = models.CharField(
+        max_length=30,
+        choices=EDUCATION_LEVEL_CHOICES,
+        blank=True,
+        help_text="Highest education level attained",
+    )
     gender = models.CharField(
         max_length=10,
         choices=[('male', 'Male'), ('female', 'Female')],
         blank=True,
+    )
+    EMPLOYMENT_STATUS_CHOICES = [
+        ('employed', 'Employed'),
+        ('self_employed', 'Self-employed'),
+        ('student', 'Student'),
+        ('unemployed', 'Unemployed'),
+        ('other', 'Other'),
+    ]
+    employment_status = models.CharField(
+        max_length=20,
+        choices=EMPLOYMENT_STATUS_CHOICES,
+        blank=True,
+        help_text="Applicant employment status",
     )
     course = models.ForeignKey(
         Course, on_delete=models.CASCADE, related_name='applications'
@@ -200,9 +225,43 @@ class Enrollment(models.Model):
 
     def __str__(self):
         return f"{self.student.get_full_name()} — {self.course.title}"
-    
-    
-    #Patnership Applicatoin Form─────────────────────────────────────────────────
+
+
+class NewsletterSubscriber(models.Model):
+    """Subscriber record for the website newsletter."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='newsletter_subscriptions',
+    )
+    email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
+    is_active = models.BooleanField(default=True)
+    subscribed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-subscribed_at']
+        verbose_name = 'Newsletter Subscriber'
+        verbose_name_plural = 'Newsletter Subscribers'
+
+    def __str__(self):
+        return self.email
+
+    @property
+    def full_name(self):
+        if self.first_name or self.last_name:
+            return f"{self.first_name} {self.last_name}".strip()
+        return self.email
+
+    def save(self, *args, **kwargs):
+        self.email = self.email.lower()
+        super().save(*args, **kwargs)
+
+
+# Partnership Application Form─────────────────────────────────────────────────
 class PartnershipApplication(models.Model):
     """Application from a prospective partner organization."""
 

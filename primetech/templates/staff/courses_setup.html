@@ -5,9 +5,68 @@
 
 {% block extra_css %}
 <style>
-#contentField-wrapper { display:none; }
-#fileField-wrapper    { display:none; }
-#urlField-wrapper     { display:none; }
+/* ── Tab nav ────────────────────────────────────────────── */
+.setup-tabs .nav-link {
+  color: var(--text-muted, #6c757d);
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  padding: .6rem 1.2rem;
+  font-weight: 600;
+  font-size: .875rem;
+  transition: color .2s, border-color .2s;
+}
+.setup-tabs .nav-link.active {
+  color: var(--brand-accent, #6366f1);
+  border-bottom-color: var(--brand-accent, #6366f1);
+  background: none;
+}
+.setup-tabs .nav-link:hover:not(.active) {
+  color: var(--brand-accent, #6366f1);
+  border-bottom-color: rgba(99,102,241,.3);
+}
+
+/* ── CKEditor wrapper ───────────────────────────────────── */
+.ck-editor-wrapper .ck-editor__editable {
+  min-height: 260px;
+  border-radius: 0 0 .5rem .5rem !important;
+}
+.ck-editor-wrapper + small {
+  margin-top: .3rem;
+  display: block;
+}
+
+/* ── Syllabus section cards ─────────────────────────────── */
+.syllabus-section {
+  border-left: 4px solid var(--brand-accent, #6366f1);
+  background: #fff;
+  border-radius: .5rem;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.syllabus-section .section-label {
+  font-weight: 700;
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--brand-accent, #6366f1);
+  margin-bottom: .5rem;
+}
+
+/* ── Material type field toggles ────────────────────────── */
+#contentField-wrapper,
+#fileField-wrapper,
+#urlField-wrapper { display: none; }
+
+/* ── Material cards in list ─────────────────────────────── */
+.mat-card {
+  background: #fff;
+  border-radius: .5rem;
+  border: 1px solid #e9ecef;
+  padding: 1rem 1.25rem;
+  transition: box-shadow .15s;
+}
+.mat-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,.08); }
 </style>
 {% endblock %}
 
@@ -55,122 +114,280 @@
     </div>
   </div>
 
-  <!-- Materials panel -->
+  <!-- Main content panel -->
   <div class="col-lg-9">
     {% if selected_course %}
-    <div class="page-header">
-      <h5>{{ selected_course.title }} — Materials</h5>
-      <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
-        <i class="fas fa-plus me-1"></i> Add Material
-      </button>
+
+    <!-- Tab navigation -->
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <h5 class="mb-0 fw-bold">{{ selected_course.title }}</h5>
     </div>
 
-    {% if materials %}
-    <div class="d-flex flex-column gap-3">
-      {% for mat in materials %}
-      <div class="item-card">
-        <div class="d-flex align-items-start gap-3">
-          <!-- Type icon -->
-          <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-xl"
-               style="width:42px;height:42px;background:var(--brand-accent-soft);">
-            {% if mat.material_type == 'video' %}<i class="fas fa-play-circle text-accent"></i>
-            {% elif mat.material_type == 'pdf' %}<i class="fas fa-file-pdf" style="color:#991b1b;"></i>
-            {% elif mat.material_type == 'file' %}<i class="fas fa-file-arrow-down" style="color:#065f46;"></i>
-            {% elif mat.material_type == 'link' %}<i class="fas fa-link" style="color:#5b21b6;"></i>
-            {% else %}<i class="fas fa-file-lines" style="color:#1d4ed8;"></i>{% endif %}
-          </div>
-          <!-- Info -->
-          <div class="flex-grow-1 min-width-0">
-            <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-              <span class="fw-bold" style="font-size:.9rem;">{{ mat.title }}</span>
-              <span class="type-badge-{{ mat.material_type }}">{{ mat.get_material_type_display }}</span>
-              {% if not mat.is_published %}<span class="badge bg-warning text-dark">Draft</span>{% endif %}
-              <span class="badge bg-light text-muted border">#{{ mat.order }}</span>
+    <ul class="nav setup-tabs border-bottom mb-4" id="setupTabs">
+      <li class="nav-item">
+        <button class="nav-link {% if active_tab == 'materials' %}active{% endif %}"
+                data-tab="materials" type="button">
+          <i class="fas fa-layer-group me-1"></i> Materials
+          <span class="badge bg-secondary ms-1">{{ materials|length }}</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link {% if active_tab == 'syllabus' %}active{% endif %}"
+                data-tab="syllabus" type="button">
+          <i class="fas fa-scroll me-1"></i> Syllabus
+          {% if syllabus %}<span class="badge bg-success ms-1">Saved</span>{% else %}<span class="badge bg-warning text-dark ms-1">Draft</span>{% endif %}
+        </button>
+      </li>
+    </ul>
+
+    <!-- ═══════════════════ MATERIALS TAB ═══════════════════ -->
+    <div id="tab-materials" class="tab-pane {% if active_tab != 'syllabus' %}d-block{% else %}d-none{% endif %}">
+      <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
+          <i class="fas fa-plus me-1"></i> Add Material
+        </button>
+      </div>
+
+      {% if materials %}
+      <div class="d-flex flex-column gap-3">
+        {% for mat in materials %}
+        <div class="mat-card">
+          <div class="d-flex align-items-start gap-3">
+            <!-- Icon -->
+            <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-xl"
+                 style="width:42px;height:42px;background:var(--brand-accent-soft, #ede9fe);">
+              {% if mat.material_type == 'video' %}<i class="fas fa-play-circle text-accent"></i>
+              {% elif mat.material_type == 'pdf' %}<i class="fas fa-file-pdf" style="color:#991b1b;"></i>
+              {% elif mat.material_type == 'file' %}<i class="fas fa-file-arrow-down" style="color:#065f46;"></i>
+              {% elif mat.material_type == 'link' %}<i class="fas fa-link" style="color:#5b21b6;"></i>
+              {% else %}<i class="fas fa-file-lines" style="color:#1d4ed8;"></i>{% endif %}
             </div>
-            {% if mat.description %}
-            <p class="text-muted mb-0" style="font-size:.8rem;">{{ mat.description }}</p>
-            {% endif %}
-          </div>
-          <!-- Delete -->
-          <div class="flex-shrink-0">
-            <form method="post" onsubmit="return confirm('Delete this material?')">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="delete_material">
-              <input type="hidden" name="material_id" value="{{ mat.pk }}">
-              <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
-              <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
-            </form>
+            <!-- Info -->
+            <div class="flex-grow-1 min-width-0">
+              <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                <span class="fw-bold" style="font-size:.9rem;">{{ mat.title }}</span>
+                <span class="badge bg-light text-dark border">{{ mat.get_material_type_display }}</span>
+                {% if not mat.is_published %}<span class="badge bg-warning text-dark">Draft</span>{% endif %}
+                <span class="badge bg-light text-muted border">#{{ mat.order }}</span>
+              </div>
+              {% if mat.description %}
+              <p class="text-muted mb-0" style="font-size:.8rem;">{{ mat.description }}</p>
+              {% endif %}
+            </div>
+            <div class="flex-shrink-0 d-flex gap-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary edit-material-btn"
+                      data-material-id="{{ mat.pk }}">
+                <i class="fas fa-edit"></i>
+              </button>
+              <form method="post" onsubmit="return confirm('Delete this material?')">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_material">
+                <input type="hidden" name="material_id" value="{{ mat.pk }}">
+                <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </div>
           </div>
         </div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
-    {% else %}
-    <div class="empty-state">
-      <i class="fas fa-inbox"></i>
-      <p>No materials yet. Add your first one!</p>
-    </div>
-    {% endif %}
+      {% else %}
+      <div class="empty-state text-center py-5">
+        <i class="fas fa-inbox fs-1 text-muted opacity-50 mb-3 d-block"></i>
+        <p class="text-muted">No materials yet. Add your first one!</p>
+      </div>
+      {% endif %}
+    </div><!-- /tab-materials -->
+
+    <!-- ═══════════════════ SYLLABUS TAB ════════════════════ -->
+    <div id="tab-syllabus" class="tab-pane {% if active_tab == 'syllabus' %}d-block{% else %}d-none{% endif %}">
+      <form method="post" enctype="multipart/form-data" id="syllabusForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_syllabus">
+        <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
+
+        <div class="d-flex flex-column gap-4">
+
+          <!-- 1. Instructor Introduction -->
+          <div class="syllabus-section">
+            <div class="section-label"><i class="fas fa-user-tie me-1"></i> Instructor Introduction</div>
+            <p class="text-muted small mb-2">A personal welcome and brief bio from you.</p>
+            <div class="ck-editor-wrapper">
+              {{ syllabus_form.instructor_intro }}
+            </div>
+          </div>
+
+          <!-- 2. Learning Outcomes -->
+          <div class="syllabus-section">
+            <div class="section-label"><i class="fas fa-bullseye me-1"></i> Learning Outcomes</div>
+            <p class="text-muted small mb-2">What students will know and be able to do after completing this course.</p>
+            <div class="ck-editor-wrapper">
+              {{ syllabus_form.learning_outcomes }}
+            </div>
+          </div>
+
+          <!-- 3. Course Relevance -->
+          <div class="syllabus-section">
+            <div class="section-label"><i class="fas fa-globe me-1"></i> Course Relevance</div>
+            <p class="text-muted small mb-2">Why this course matters — industry context, career paths, and real-world applications.</p>
+            <div class="ck-editor-wrapper">
+              {{ syllabus_form.course_relevance }}
+            </div>
+          </div>
+
+          <!-- 4. Course Activities -->
+          <div class="syllabus-section">
+            <div class="section-label"><i class="fas fa-tasks me-1"></i> Course Activities</div>
+            <p class="text-muted small mb-2">Types of activities students can expect: readings, quizzes, group projects, live sessions, etc.</p>
+            <div class="ck-editor-wrapper">
+              {{ syllabus_form.course_activities }}
+            </div>
+          </div>
+
+          <!-- 5. Overview of Course Modules -->
+          <div class="syllabus-section">
+            <div class="section-label"><i class="fas fa-list-ol me-1"></i> Overview of Course Modules</div>
+            <p class="text-muted small mb-2">Week-by-week or module-by-module breakdown of the course content.</p>
+            <div class="ck-editor-wrapper">
+              {{ syllabus_form.modules_overview }}
+            </div>
+          </div>
+
+          <!-- 6. Final Project -->
+          <div class="syllabus-section">
+            <div class="section-label"><i class="fas fa-trophy me-1"></i> Final Project</div>
+            <p class="text-muted small mb-2">Description of the capstone project, deliverables, and grading criteria.</p>
+            <div class="ck-editor-wrapper">
+              {{ syllabus_form.final_project }}
+            </div>
+          </div>
+
+          <!-- 7. Certification -->
+          <div class="syllabus-section">
+            <div class="section-label"><i class="fas fa-certificate me-1"></i> Certification</div>
+            <p class="text-muted small mb-2">What certificate/credential students earn and the requirements to obtain it.</p>
+            <div class="ck-editor-wrapper">
+              {{ syllabus_form.certification_info }}
+            </div>
+          </div>
+
+        </div><!-- /gap-4 -->
+
+        <div class="d-flex gap-2 mt-4 pb-2">
+          <button type="submit" class="btn btn-brand px-4">
+            <i class="fas fa-save me-1"></i> Save Syllabus
+          </button>
+          {% if syllabus %}
+          <span class="text-muted small align-self-center">
+            Last updated {{ syllabus.updated_at|date:"M d, Y · H:i" }}
+          </span>
+          {% endif %}
+        </div>
+      </form>
+    </div><!-- /tab-syllabus -->
 
     {% else %}
-    <div class="empty-state">
-      <i class="fas fa-hand-pointer"></i>
-      <p>Select a course to manage its content.</p>
+    <div class="empty-state text-center py-5">
+      <i class="fas fa-hand-pointer fs-1 text-muted opacity-50 mb-3 d-block"></i>
+      <p class="text-muted">Select a course to manage its content.</p>
     </div>
     {% endif %}
-  </div>
-</div>
+  </div><!-- /col-lg-9 -->
+</div><!-- /row -->
 
-<!-- Add Material Modal -->
+
+<!-- ═══════════════ ADD MATERIAL MODAL ═══════════════════════════ -->
 {% if selected_course %}
 <div class="modal fade" id="addMaterialModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-plus-circle text-accent me-2"></i>Add Course Material</h5>
+        <h5 class="modal-title" id="materialModalTitle">
+          <i class="fas fa-plus-circle text-accent me-2"></i>Add Course Material
+        </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <form method="post" enctype="multipart/form-data" id="materialForm">
           {% csrf_token %}
-          <input type="hidden" name="action" value="add_material">
+          <input type="hidden" id="materialAction" name="action" value="add_material">
+          <input type="hidden" id="materialId" name="material_id" value="">
           <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
+
           <div class="row g-3">
+            <!-- Title + Type -->
             <div class="col-md-8">
-              <label class="form-label">Title <span class="text-danger">*</span></label>
+              <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
               {{ form.title }}
             </div>
             <div class="col-md-4">
-              <label class="form-label">Type <span class="text-danger">*</span></label>
+              <label class="form-label fw-semibold">Type <span class="text-danger">*</span></label>
               {{ form.material_type }}
             </div>
+
+            <!-- Description -->
             <div class="col-12">
-              <label class="form-label">Description</label>
+              <label class="form-label fw-semibold">Description
+                <small class="text-muted fw-normal">(shown on the material card)</small>
+              </label>
               {{ form.description }}
             </div>
+
+            <!-- Rich text notes (text type) -->
             <div class="col-12" id="contentField-wrapper">
-              <label class="form-label">Rich Text Content</label>
-              {{ form.content }}
+              <label class="form-label fw-semibold">
+                <i class="fas fa-pen-nib me-1 text-primary"></i> Notes / Content
+              </label>
+              <div class="ck-editor-wrapper border rounded-3 overflow-hidden">
+                {{ form.content }}
+              </div>
+              <small class="text-muted">
+                Supports headings, bold/italic, bullet lists, tables, images, and YouTube embeds.
+              </small>
             </div>
+
+            <!-- File upload (pdf / file types) -->
             <div class="col-12" id="fileField-wrapper">
-              <label class="form-label">Upload File</label>
+              <label class="form-label fw-semibold">
+                <i class="fas fa-upload me-1 text-danger"></i> Upload File
+              </label>
               {{ form.file }}
+              <small class="text-muted">PDF, DOC, XLSX, ZIP, etc. — max size set by your server.</small>
+              <div id="currentFileNote" class="form-text text-muted" style="display:none; margin-top:.4rem;"></div>
             </div>
+
+            <!-- URL (video / link types) -->
             <div class="col-12" id="urlField-wrapper">
-              <label class="form-label">URL</label>
+              <label class="form-label fw-semibold">
+                <i class="fas fa-link me-1 text-purple"></i> URL
+              </label>
               {{ form.url }}
+              <small class="text-muted">
+                For videos: paste the full YouTube or Vimeo URL —
+                e.g. <code>https://www.youtube.com/watch?v=dQw4w9WgXcQ</code>.
+                The player will be embedded automatically for students.
+              </small>
             </div>
+
+            <!-- Order + Published -->
             <div class="col-md-4">
-              <label class="form-label">Display Order</label>
+              <label class="form-label fw-semibold">Display Order</label>
               {{ form.order }}
             </div>
             <div class="col-md-8 d-flex align-items-end gap-2 pb-1">
               {{ form.is_published }}
-              <label class="form-check-label" style="font-size:.875rem;">Publish immediately</label>
+              <label class="form-check-label" style="font-size:.875rem;">
+                Publish immediately (visible to students)
+              </label>
             </div>
-          </div>
+          </div><!-- /row -->
+
           <div class="d-flex gap-2 mt-4">
-            <button type="submit" class="btn btn-brand"><i class="fas fa-save me-1"></i> Save</button>
+            <button type="submit" class="btn btn-brand">
+              <i class="fas fa-save me-1"></i> Save Material
+            </button>
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
           </div>
         </form>
@@ -181,8 +398,100 @@
 {% endif %}
 {% endblock %}
 
+
 {% block extra_js %}
+
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+
 <script>
+// ── Shared CKEditor config ────────────────────────────────────────
+const CK_CONFIG = {
+  toolbar: {
+    items: [
+      'heading', '|',
+      'bold', 'italic', 'underline', 'strikethrough', '|',
+      'bulletedList', 'numberedList', 'indent', 'outdent', '|',
+      'link', 'insertTable', '|',
+      'uploadImage', 'mediaEmbed', '|',
+      'blockQuote', 'code', 'codeBlock', '|',
+      'alignment', '|',
+      'undo', 'redo'
+    ],
+    shouldNotGroupWhenFull: true
+  },
+  image: {
+    toolbar: ['imageStyle:inline', 'imageStyle:block', 'imageStyle:side', '|', 'toggleImageCaption', 'imageTextAlternative'],
+    upload: {
+      // CKFinder / SimpleUploadAdapter endpoint (django-ckeditor default)
+      types: ['jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'svg+xml']
+    }
+  },
+  simpleUpload: {
+    // Adjust this URL to your project's image upload endpoint.
+    // django-ckeditor provides: /django-ckeditor/upload/
+    uploadUrl: '/django-ckeditor/upload/',
+    withCredentials: true,
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken')
+    }
+  },
+  mediaEmbed: {
+    // Allow plain YouTube watch URLs, not just embed URLs
+    extraProviders: [
+      {
+        name: 'youtube-watch',
+        url: /^(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([\w-]+)/,
+        html: match => {
+          const id = match[1];
+          return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
+            <iframe src="https://www.youtube.com/embed/${id}"
+              style="position:absolute;top:0;left:0;width:100%;height:100%;"
+              frameborder="0" allowfullscreen></iframe></div>`;
+        }
+      }
+    ]
+  },
+  heading: {
+    options: [
+      { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+      { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+      { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+      { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
+    ]
+  }
+};
+
+function getCookie(name) {
+  const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+  return v ? v[2] : null;
+}
+
+// ── Initialise all CKEditor instances ────────────────────────────
+// Material content editor (inside modal)
+let materialEditor = null;
+ClassicEditor
+  .create(document.querySelector('#materialContentEditor'), CK_CONFIG)
+  .then(editor => { materialEditor = editor; })
+  .catch(console.error);
+
+// Syllabus section editors (only when a course is selected)
+const syllabusFields = [
+  'syllabusInstructorIntro',
+  'syllabusLearningOutcomes',
+  'syllabusCourseRelevance',
+  'syllabusCourseActivities',
+  'syllabusModulesOverview',
+  'syllabusFinalProject',
+  'syllabusCertification',
+];
+syllabusFields.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) {
+    ClassicEditor.create(el, CK_CONFIG).catch(console.error);
+  }
+});
+
+// ── Material type field toggle ────────────────────────────────────
 const typeSelect = document.getElementById('materialTypeSelect');
 const contentWrapper = document.getElementById('contentField-wrapper');
 const fileWrapper    = document.getElementById('fileField-wrapper');
@@ -190,13 +499,26 @@ const urlWrapper     = document.getElementById('urlField-wrapper');
 
 function updateFields() {
   const val = typeSelect ? typeSelect.value : '';
-  contentWrapper.style.display = val === 'text' ? 'block' : 'none';
+  contentWrapper.style.display = val === 'text'                    ? 'block' : 'none';
   fileWrapper.style.display    = (val === 'pdf' || val === 'file') ? 'block' : 'none';
-  urlWrapper.style.display     = (val === 'video' || val === 'link') ? 'block' : 'none';
+  urlWrapper.style.display     = (val === 'video' || val === 'link')? 'block' : 'none';
 }
 if (typeSelect) {
   typeSelect.addEventListener('change', updateFields);
   updateFields();
 }
+
+// ── Tab switching ─────────────────────────────────────────────────
+document.querySelectorAll('[data-tab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const target = btn.dataset.tab;
+    document.getElementById('tab-materials').classList.toggle('d-none', target !== 'materials');
+    document.getElementById('tab-materials').classList.toggle('d-block', target === 'materials');
+    document.getElementById('tab-syllabus').classList.toggle('d-none', target !== 'syllabus');
+    document.getElementById('tab-syllabus').classList.toggle('d-block', target === 'syllabus');
+  });
+});
 </script>
 {% endblock %}

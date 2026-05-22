@@ -4,14 +4,31 @@ Uses caching to avoid a DB query on every single request.
 """
 from django.core.cache import cache
 
+from .models import Notification
+
 
 def notification_count(request):
-    """Add unread_notifications_count to template context."""
+    """Add unread_notifications_count and recent notifications to template context."""
     if request.user.is_authenticated:
         cache_key = f'unread_notif_count_{request.user.pk}'
         count = cache.get(cache_key)
         if count is None:
-            count = request.user.notifications.filter(is_read=False).count()
+            count = Notification.objects.filter(
+                recipient=request.user,
+                is_read=False,
+                is_archived=False,
+            ).count()
             cache.set(cache_key, count, 60)  # Cache for 60 seconds
-        return {'unread_notifications_count': count}
-    return {'unread_notifications_count': 0}
+
+        notifications = Notification.objects.filter(
+            recipient=request.user,
+            is_archived=False,
+        ).order_by('-created_at')[:5]
+        return {
+            'unread_notifications_count': count,
+            'notifications': notifications,
+        }
+    return {
+        'unread_notifications_count': 0,
+        'notifications': [],
+    }

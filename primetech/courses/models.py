@@ -1,10 +1,80 @@
 """
-LMS Core Models: CourseMaterial, Assignment, Submission, Grade, ClassSession.
+LMS Core Models: CourseMaterial, Assignment, Submission, Grade, ClassSession, CourseSyllabus.
 These power the learning experience for students and content management for staff.
 """
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+
+
+class CourseSyllabus(models.Model):
+    """
+    A rich structured syllabus attached one-to-one with a Course.
+    Instructors fill this in via the staff courses_setup page.
+    All HTML fields accept CKEditor rich text (images, embeds, tables, etc.).
+    """
+    course = models.OneToOneField(
+        'website.Course',
+        on_delete=models.CASCADE,
+        related_name='syllabus',
+    )
+
+    # ── Section 1: Instructor introduction ──────────────────────────
+    instructor_intro = models.TextField(
+        blank=True,
+        help_text="HTML. A personal welcome / bio from the instructor.",
+    )
+
+    # ── Section 2: Learning outcomes ────────────────────────────────
+    learning_outcomes = models.TextField(
+        blank=True,
+        help_text="HTML. What students will be able to do after completing this course.",
+    )
+
+    # ── Section 3: Course relevance ─────────────────────────────────
+    course_relevance = models.TextField(
+        blank=True,
+        help_text="HTML. Why this course matters — industry context, career paths, etc.",
+    )
+
+    # ── Section 4: Course activities ────────────────────────────────
+    course_activities = models.TextField(
+        blank=True,
+        help_text="HTML. Types of activities: readings, quizzes, projects, live sessions, etc.",
+    )
+
+    # ── Section 5: Overview of course modules ───────────────────────
+    modules_overview = models.TextField(
+        blank=True,
+        help_text="HTML. Week-by-week or module-by-module breakdown.",
+    )
+
+    # ── Section 6: Final project ────────────────────────────────────
+    final_project = models.TextField(
+        blank=True,
+        help_text="HTML. Description of the capstone / final project requirements.",
+    )
+
+    # ── Section 7: Certification ────────────────────────────────────
+    certification_info = models.TextField(
+        blank=True,
+        help_text="HTML. What certificate/credential students earn and how.",
+    )
+
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='updated_syllabi',
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Course Syllabus'
+        verbose_name_plural = 'Course Syllabi'
+
+    def __str__(self):
+        return f"Syllabus — {self.course.title}"
 
 
 class CourseMaterial(models.Model):
@@ -27,10 +97,10 @@ class CourseMaterial(models.Model):
     material_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='text')
     description = models.TextField(blank=True, help_text="Short description visible on the material list")
 
-    # Rich text content (for text-type materials)
+    # Rich text content (for text-type materials — supports images, embeds, tables)
     content = models.TextField(
         blank=True,
-        help_text="Rich HTML content. Used when material_type is 'text'."
+        help_text="Rich HTML content (CKEditor). Used when material_type is 'text'."
     )
 
     # File upload (for PDF/file types)
@@ -43,7 +113,7 @@ class CourseMaterial(models.Model):
     # URL (for video embed or external link)
     url = models.URLField(
         blank=True,
-        help_text="Video embed URL or external resource link."
+        help_text="YouTube / Vimeo embed URL or external resource link."
     )
 
     order = models.PositiveSmallIntegerField(default=0, help_text="Display order within the course")
