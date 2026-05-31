@@ -59,7 +59,7 @@ def send_welcome_email(self, user_id, temp_password):
 def send_password_reset_email(self, user_id):
     """Send password reset email with a secure token link."""
     from django.contrib.auth import get_user_model
-    from accounts.tokens import email_verification_token
+    from accounts.tokens import password_reset_token
     User = get_user_model()
 
     try:
@@ -70,7 +70,7 @@ def send_password_reset_email(self, user_id):
 
     try:
         uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = email_verification_token.make_token(user)
+        token = password_reset_token.make_token(user)
         reset_url = f"{settings.SITE_URL}/accounts/password/reset/{uid}/{token}/"
 
         subject = 'PrimeTech LMS — Password Reset'

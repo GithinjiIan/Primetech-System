@@ -6,12 +6,21 @@
 
 {% block extra_css %}
 <style>
+  :root {
+    --brand-dark: #020617;        /* Deeper Navy */
+    --brand-navy: #0f172a;        /* Primary Navy */
+    --brand-accent: #0ea5e9;      /* Sky Blue Accent */
+    --brand-light: #f8fafc;       
+    --brand-gray: #cbd5e1;        
+    --transition-speed: 0.3s;
+    
+  }
 /* ── Material cards ──────────────────────────────────────── */
 .material-link { text-decoration:none; color:inherit; display:block; }
 .material-card { transition: transform 0.2s, box-shadow 0.2s; border-left: 4px solid transparent; }
 .material-card:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08)!important; }
 .material-card.completed { border-left-color: #10b981; }
-.material-card.pending   { border-left-color: #6366f1; }
+.material-card.pending   { border-left-color: #f59e0b; }
 .type-icon { width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:12px; font-size:1.5rem; }
 .type-video { background:#fce7f3; color:#be185d; }
 .type-pdf   { background:#fee2e2; color:#991b1b; }
@@ -278,7 +287,7 @@
             <div class="syl-section-icon" style="background:#fee2e2;color:#991b1b;">
               <i class="fas fa-trophy"></i>
             </div>
-            <div class="syl-section-title">Final Project</div>
+            <div class="syl-section-title">Final Project and submission</div>
           </div>
           <div class="syl-section-body ck-content">{{ syllabus.final_project|safe }}</div>
         </div>

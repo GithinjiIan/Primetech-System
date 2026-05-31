@@ -47,7 +47,6 @@ class UserAdmin(BaseUserAdmin):
     )
 
     def save_model(self, request, obj, form, change):
-        """Auto-set is_staff=True for staff and superadmin roles."""
-        if obj.role in ('staff', 'superadmin'):
-            obj.is_staff = True
+        """Keep is_staff in sync with the user's current role."""
+        obj.is_staff = obj.role in ('staff', 'superadmin')
         super().save_model(request, obj, form, change)

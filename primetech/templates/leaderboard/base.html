@@ -1,0 +1,51 @@
+{% extends "students/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+  /* Map to existing brand variables from static/css/custom.css */
+  :root{
+    /* Leaderboard-scoped tokens — do not override global --primary used by site sidebar */
+    --lb-accent: var(--brand-accent);
+    --lb-primary: var(--brand-navy);
+    --lb-primary-dark: var(--brand-dark);
+    --lb-bg: var(--brand-light);
+    --lb-muted: var(--brand-gray);
+    --lb-radius: 12px;
+    --lb-transition-speed: var(--transition-speed, 0.3s);
+  }
+
+  /* Minimal, focused styles — rely on Bootstrap for layout & most UI */
+  .your-stats{ background: linear-gradient(135deg,var(--lb-primary-dark),var(--lb-accent)); color:#fff; border-radius:var(--lb-radius); padding:.75rem; display:flex; gap:1rem; align-items:center }
+  .your-stats .stat-val{ font-weight:800; font-size:1.25rem }
+
+  .podium-wrap{ display:flex; gap:1rem; align-items:flex-end; justify-content:center; margin-bottom:1.25rem }
+  .podium-avatar{ width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--lb-bg); display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700 }
+
+  .lb-row{ padding:.75rem; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.04); border:1px solid rgba(0,0,0,0.03); background:var(--lb-bg); }
+  .lb-row.is-me{ border-color:var(--lb-accent); background:rgba(14,165,233,0.06) }
+
+  .lb-avatar{ width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700 }
+
+  .lb-xp-bar{ height:6px; background:rgba(15,23,42,0.06); border-radius:6px; overflow:hidden }
+  .lb-xp-fill{ height:100%; background:linear-gradient(90deg,var(--lb-accent),var(--lb-primary-dark)); width:0; transition:width .6s ease }
+
+  .lb-empty{ text-align:center; padding:2.5rem 1rem; color:var(--lb-muted) }
+
+  /* Small responsive tweaks */
+  @media (max-width:576px){ .podium-avatar{ width:60px;height:60px } .lb-xp-wrap{ min-width:86px } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-12">
+      {% block leaderboard_content %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}{% endblock %}

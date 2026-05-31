@@ -6,7 +6,7 @@
 
 {% block content %}
 
-<div class="container-fluid p-2 p-md-4">
+<div class="container-fluid px-0">
   <div class="row g-4">
     <!-- Messages -->
     {% if messages %}
@@ -53,12 +53,10 @@
     </div>
 
     <!-- Stats -->
-    <div class="col-xx-12">
+    <div class="col-12">
       <div class="row g-3 ">
         <div class="col-sm-6 col-lg-4">
-          <div
-            class="card border-0 rounded-4 h-100 p-4 d-flex flex-column flex-sm-row align-items-center gap-3"
-          >
+          <div class="stats-card h-100 d-flex flex-column flex-sm-row align-items-center gap-3">
             <div
               class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
               style="width: 60px; height: 60px; font-size: 1.5rem"
@@ -75,9 +73,7 @@
         </div>
 
         <div class="col-sm-6 col-lg-4">
-          <div
-            class="card border-0 rounded-4 h-100 p-4 d-flex flex-column flex-sm-row align-items-center gap-3"
-          >
+          <div class="stats-card h-100 d-flex flex-column flex-sm-row align-items-center gap-3">
             <div
               class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
               style="width: 60px; height: 60px; font-size: 1.5rem"
@@ -94,9 +90,7 @@
         </div>
 
         <div class="col-sm-6 col-lg-4">
-          <div
-            class="card border-0 rounded-4 h-100 p-4 d-flex flex-column flex-sm-row align-items-center gap-3"
-          >
+          <div class="stats-card h-100 d-flex flex-column flex-sm-row align-items-center gap-3">
             <div
               class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
               style="width: 60px; height: 60px; font-size: 1.5rem"

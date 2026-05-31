@@ -44,8 +44,8 @@ class CourseAdmin(admin.ModelAdmin):
             'fields': ('title', 'slug', 'category', 'level', 'price', 'image', 'is_active')
         }),
         ('Description', {
-            'fields': ('short_description', 'description'),
-            'description': 'Use clear, readable prose. No JSON required.',
+            'fields': ('description',),
+            'description': 'Use clear, readable prose.',
         }),
         ('Details', {
             'fields': ('duration', 'schedule', 'requirements', 'outcomes'),

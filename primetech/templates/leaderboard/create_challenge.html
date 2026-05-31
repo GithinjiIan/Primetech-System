@@ -1,0 +1,104 @@
+{% extends "leaderboard/base.html" %}
+{% load static %}
+{% load django_bootstrap5 %}
+
+{% block title %}Create Challenge — PrimeTech LMS{% endblock %}
+{% block page_title %}<i class="fas fa-plus"></i> Create Daily Challenge{% endblock %}
+
+{% comment %} Minimal page-specific styles — most theme styles are in leaderboard/base.html {% endcomment %}
+{% block extra_css %}
+{{ block.super }}
+<style>
+  .create-challenge-page{ max-width:680px; margin:0 auto; padding:1.5rem 1rem 3rem }
+  .back-btn { display:inline-block; margin-bottom:1.25rem; font-weight:600; }
+  .card-form { border: none; border-radius:1rem; overflow:hidden; box-shadow:0 1rem 2rem rgba(15,23,42,.08); }
+  .card-header-custom { background: #0f172a; padding:1.5rem; border-bottom:1px solid rgba(255,255,255,.08); }
+</style>
+{% endblock %}
+
+{% block leaderboard_content %}
+
+<div class="create-challenge-page">
+
+  <a href="{% url 'leaderboard:challenges' %}" class="back-btn">
+    ← Back to Challenges
+  </a>
+
+  <div class="card card-form">
+    <div class="card-header-custom">
+      <h4 class="fw-bold mb-1">🎯 Add Instructor Daily Challenge</h4>
+      <p class="mb-0 small text-white-50">Create a special, timed quest for all students on the platform.</p>
+    </div>
+    
+    <div class="card-body p-4 p-md-5">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        
+        <div class="row g-3">
+          <!-- Date & Title -->
+          <div class="col-md-6">
+            {% bootstrap_field form.date %}
+          </div>
+          <div class="col-md-6">
+            {% bootstrap_field form.title %}
+          </div>
+          
+          <!-- Description -->
+          <div class="col-12">
+            {% bootstrap_field form.description %}
+          </div>
+
+          <!-- Type & Target -->
+          <div class="col-md-6">
+            {% bootstrap_field form.challenge_type %}
+          </div>
+          <div class="col-md-6">
+            {% bootstrap_field form.target_count %}
+          </div>
+
+          <!-- Reward & Reward Type -->
+          <div class="col-md-6">
+            {% bootstrap_field form.reward_type %}
+          </div>
+          <div class="col-md-6">
+            {% bootstrap_field form.xp_reward %}
+          </div>
+
+          <!-- Badge Reward -->
+          <div class="col-12" id="badge-reward-container">
+            {% bootstrap_field form.badge_reward %}
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+          <a href="{% url 'leaderboard:challenges' %}" class="btn btn-outline-secondary px-4 fw-bold">Cancel</a>
+          <button type="submit" class="btn btn-primary shadow-sm px-4 fw-bold">Create Challenge</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const rewardTypeSelect = document.querySelector('select[name="reward_type"]');
+    const badgeContainer   = document.getElementById('badge-reward-container');
+
+    function toggleBadgeField() {
+      if (rewardTypeSelect.value === 'badge') {
+        badgeContainer.style.display = 'block';
+      } else {
+        badgeContainer.style.display = 'none';
+      }
+    }
+
+    if (rewardTypeSelect && badgeContainer) {
+      rewardTypeSelect.addEventListener('change', toggleBadgeField);
+      toggleBadgeField(); // Initial call
+    }
+  });
+</script>
+{% endblock %}

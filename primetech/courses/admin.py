@@ -81,7 +81,10 @@ class SubmissionAdmin(admin.ModelAdmin):
     inlines = [GradeInline]
 
     def has_grade(self, obj):
-        has = hasattr(obj, 'grade')
+        try:
+            has = obj.grade is not None
+        except Grade.DoesNotExist:
+            has = False
         return format_html('<span style="color:{};">●</span> {}', 'green' if has else 'red', 'Graded' if has else 'Pending')
     has_grade.short_description = 'Grade Status'
 

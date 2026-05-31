@@ -1,0 +1,113 @@
+{% extends "leaderboard/base.html" %}
+{% load static %}
+
+{% block title %}Daily Challenges — PrimeTech LMS{% endblock %}
+{% block page_title %}<i class="fas fa-fire text-danger"></i> Daily Challenges{% endblock %}
+
+
+
+{% block leaderboard_content %}
+
+<div class="challenges-page">
+
+  <!-- Hero widget -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="mb-1">Daily Quests</h2>
+          <p class="mb-0 text-muted">Complete your daily targets to earn high XP rewards and maintain your fire! <i class="fas fa-fire text-danger"></i></p>
+        </div>
+        <div class="col-auto d-flex gap-3">
+          <div class="text-center">
+            <div class="h5 mb-0"><i class="fas fa-fire text-warning me-1"></i>{{ profile.current_streak }}</div>
+            <small class="text-muted">Streak</small>
+          </div>
+          <div class="text-center">
+            <div class="h5 mb-0"><i class="fas fa-bolt text-warning"></i> {{ profile.total_xp }}</div>
+            <small class="text-muted">XP</small>
+          </div>
+          <div class="text-center">
+            <div class="h5 mb-0"><i class="fas fa-snowflake text-info"></i> {{ profile.freeze_count }}</div>
+            <small class="text-muted">Freezes</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h3 class="fw-extrabold text-dark m-0" style="font-size:1.25rem;">
+      <i class="fas fa-calendar-day text-primary me-2"></i> Today's Goals ({{ today|date:"M d, Y" }})
+    </h3>
+    {% if request.user.role == 'staff' or request.user.role == 'superadmin' %}
+    <a href="{% url 'leaderboard:create_challenge' %}" class="btn btn-primary btn-sm fw-bold rounded-3">
+      <i class="fas fa-plus me-1"></i> Add Challenge
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Challenges list -->
+  <div class="challenges-list">
+    {% for ch in challenges %}
+    <div class="card mb-3 {% if ch.is_done %}border-success{% endif %}">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="flex-shrink-0 text-center" style="width:56px;">
+          {% if ch.is_done %}
+            <i class="fas fa-check-circle fa-2x text-success"></i>
+          {% else %}
+            {% if ch.challenge_type == 'complete_materials' %}
+              <i class="fas fa-book-open fa-2x text-primary"></i>
+            {% elif ch.challenge_type == 'submit_assignments' %}
+              <i class="fas fa-file-upload fa-2x text-primary"></i>
+            {% elif ch.challenge_type == 'active_minutes' %}
+              <i class="fas fa-hourglass-half fa-2x text-primary"></i>
+            {% elif ch.challenge_type == 'earn_xp' %}
+              <i class="fas fa-bolt fa-2x text-warning"></i>
+            {% else %}
+              <i class="fas fa-star fa-2x text-primary"></i>
+            {% endif %}
+          {% endif %}
+        </div>
+
+        <div class="flex-grow-1">
+          <h5 class="mb-1">{{ ch.title }} {% if not ch.is_auto_generated %}<span class="badge bg-light text-primary ms-2">Instructor</span>{% endif %}</h5>
+          <p class="mb-2 text-muted small">{{ ch.description }}</p>
+          <div class="d-flex align-items-center gap-2">
+            <div class="progress flex-grow-1" style="height:8px;">
+              <div class="progress-bar bg-primary progress-bar-striped" role="progressbar" style="width: {{ ch.progress_pct }}%" aria-valuenow="{{ ch.progress_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="small text-muted">{{ ch.progress_pct }}%</div>
+          </div>
+        </div>
+
+        <div class="text-end flex-shrink-0" style="width:140px;">
+          {% if ch.is_done %}
+            <div class="fw-bold text-success"><i class="fas fa-trophy me-1"></i>Completed</div>
+          {% else %}
+            <div class="fw-bold">
+              {% if ch.reward_type == 'xp' %}
+                <i class="fas fa-bolt text-warning me-1"></i>+{{ ch.xp_reward }} XP
+              {% elif ch.reward_type == 'freeze' %}
+                <i class="fas fa-snowflake text-info me-1"></i>+1 Freeze
+              {% elif ch.reward_type == 'xp_freeze' %}
+                <i class="fas fa-gift text-warning me-1"></i>+{{ ch.xp_reward }} XP + 1 Freeze
+              {% elif ch.reward_type == 'badge' %}
+                <i class="fas fa-award text-warning me-1"></i>{{ ch.badge_reward.name|default:"Special" }}
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+    {% empty %}
+    <div class="challenges-empty text-center">
+      <div class="empty-icon"><i class="fas fa-star fa-2x text-muted"></i></div>
+      <h4 class="fw-bold text-dark">No Challenges Today</h4>
+      <p class="mb-0">Check back later or complete standard course modules to earn regular XP!</p>
+    </div>
+    {% endfor %}
+  </div>
+
+{% endblock %}

@@ -84,7 +84,7 @@ h1, h2, h3, h4, h5, h6 {
     min-height: 100vh;
     background: linear-gradient(175deg, #111827 0%, var(--primary) 60%);
     border-right: none;
-    z-index: 1050;
+    z-index: 1045;
     position: sticky;
     top: 0;
 
@@ -92,9 +92,10 @@ h1, h2, h3, h4, h5, h6 {
     flex-direction: column;
 }
 
-/* Ensure the sidebar behaves as an offcanvas overlay on small screens
-   (Bootstrap's .offcanvas class expects position: fixed; override sticky). */
-.sidebar.offcanvas {
+/* Ensure the sidebar behaves as an offcanvas overlay on small screens.
+   Bootstrap applies .offcanvas-lg (not .offcanvas) below 992px, so target
+   that class here without a media query to correctly override sticky. */
+.sidebar.offcanvas-lg {
     position: fixed;
     top: 0;
     bottom: 0;
@@ -104,7 +105,7 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateX(-100%);
     visibility: hidden;
 }
-.sidebar.offcanvas.show {
+.sidebar.offcanvas-lg.show {
     transform: none;
     visibility: visible;
 }
@@ -163,6 +164,19 @@ h1, h2, h3, h4, h5, h6 {
     }
     .sidebar.collapsed .sidebar-footer .btn-logout {
         justify-content: center;
+    }
+
+    .sidebar.collapsed .offcanvas-header {
+        display: none !important;
+    }
+
+    .sidebar.collapsed .offcanvas-body {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    .sidebar.collapsed .sidebar-menu {
+        margin-top: 1rem;
     }
 }
 
@@ -339,7 +353,7 @@ h1, h2, h3, h4, h5, h6 {
     height: var(--header-height);
     position: sticky;
     top: 0;
-    z-index: 1030;
+    z-index: 1035;
     border-bottom: 1px solid var(--gray-200);
     padding: 0 1.5rem;
     transition: box-shadow var(--transition);
@@ -721,6 +735,3 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ─── Offcanvas Backdrop ──────────────────────────────── */
 .offcanvas-backdrop.show { opacity: 0.45; }
-
-
-

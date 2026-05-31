@@ -1,0 +1,116 @@
+{% extends "leaderboard/base.html" %}
+{% load static %}
+
+{% block title %}{{ profile_user.get_full_name }} — Profile{% endblock %}
+{% block page_title %}<i class="fas fa-award text-warning"></i> Student Profile{% endblock %}
+
+
+
+{% block leaderboard_content %}
+
+<div class="pub-profile-wrap">
+
+  <a href="{% url 'leaderboard:leaderboard' %}" class="btn btn-link p-0 mb-3">
+    <i class="fas fa-arrow-left me-1"></i> Back to Leaderboard
+  </a>
+
+  <!-- Hero -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row g-3 align-items-center">
+        <div class="col-auto">
+          {% if profile_user.profile_picture %}
+            <img src="{{ profile_user.profile_picture.url }}" class="rounded-circle" style="width:96px;height:96px;object-fit:cover;" alt="{{ profile_user.get_full_name }}">
+          {% else %}
+            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white" style="width:96px;height:96px;font-weight:700;">{{ profile_user.first_name|slice:":1"|upper }}{{ profile_user.last_name|slice:":1"|upper }}</div>
+          {% endif %}
+        </div>
+        <div class="col">
+          <h2 class="mb-1">{{ profile_user.get_full_name }}</h2>
+          <div class="text-muted mb-2">Student · Rank #{{ user_rank|default:"Unranked" }}</div>
+          <div class="mb-2">
+            <span class="badge bg-light text-primary" style="border:1px solid {{ profile.rank_color }}; color:{{ profile.rank_color }};">{{ profile.rank_display }}</span>
+          </div>
+          <div class="d-flex gap-4 flex-wrap">
+            <div class="text-center">
+              <div class="h5 mb-0">{{ profile.total_xp }}</div>
+              <small class="text-muted">Total XP</small>
+            </div>
+            <div class="text-center">
+              <div class="h5 mb-0"><i class="fas fa-fire text-warning me-1"></i>{{ profile.current_streak }}</div>
+              <small class="text-muted">Day Streak</small>
+            </div>
+            <div class="text-center">
+              <div class="h5 mb-0">{{ profile.longest_streak }}</div>
+              <small class="text-muted">Best Streak</small>
+            </div>
+            <div class="text-center">
+              <div class="h5 mb-0">{{ badges|length }}</div>
+              <small class="text-muted">Badges</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Badges -->
+  <div class="section-card">
+    <div class="section-title"><i class="fas fa-award me-1 text-warning"></i> Badges Earned</div>
+    {% if badges %}
+    <div class="badges-grid">
+      {% for ub in badges %}
+      <div class="badge-item" title="{{ ub.badge.description }}">
+        <div class="badge-icon" style="background: {{ ub.badge.icon_color|default:'#fd7e14' }}20; border: 2px solid {{ ub.badge.icon_color|default:'#fd7e14' }}40;">
+          <i class="{{ ub.badge.icon|default:'fas fa-award' }}" style="color: {{ ub.badge.icon_color|default:'#fd7e14' }};"></i>
+        </div>
+        <div class="badge-name">{{ ub.badge.name }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="no-badges">No badges earned yet — keep going!</p>
+    {% endif %}
+  </div>
+
+  <!-- Recent XP activity -->
+  <div class="section-card">
+    <div class="section-title"><i class="fas fa-bolt text-warning me-1"></i> Recent XP Activity</div>
+    {% if recent_xp %}
+    <div class="xp-timeline">
+      {% for tx in recent_xp %}
+      <div class="xp-row">
+        <div class="xp-dot" style="background: {% if tx.xp_amount >= 0 %}#10b981{% else %}#ef4444{% endif %};"></div>
+        <div class="xp-amt" style="color: {% if tx.xp_amount >= 0 %}#10b981{% else %}#ef4444{% endif %};">
+          {% if tx.xp_amount >= 0 %}+{% endif %}{{ tx.xp_amount }} XP
+        </div>
+        <div class="xp-desc">{{ tx.get_reason_display }}{% if tx.description %} — {{ tx.description }}{% endif %}</div>
+        <div class="xp-time">{{ tx.created_at|timesince }} ago</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="no-badges">No XP activity recorded yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Completed modules -->
+  <div class="section-card">
+    <div class="section-title"><i class="fas fa-book me-1"></i> Completed Modules</div>
+    {% if completed_materials %}
+    <div class="modules-list">
+      {% for mp in completed_materials %}
+      <div class="module-row d-flex align-items-center">
+        <div class="module-check text-success"><i class="fas fa-check-circle"></i></div>
+        <div class="module-name">{{ mp.material.title }}</div>
+        <div class="module-course">{{ mp.material.course.title }}</div>
+        <div class="module-date">{{ mp.completed_at|date:"M d" }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="no-badges">No modules completed yet.</p>
+    {% endif %}
+  </div>
+
+{% endblock %}

@@ -11,7 +11,7 @@
   font-size: .78rem;
   font-weight: 600;
   color: #0ea5e9;
-  background: #f8fafc;
+  background: #a2d1ff;
   border-radius: 999px;
   padding: .25rem .75rem;
   display: inline-block;
@@ -91,8 +91,8 @@
 
   <!-- ── Top navigation row ────────────────────────────────────── -->
   <div class="d-flex align-items-center justify-content-between gap-3 mb-4 flex-wrap">
-    <a href="{% url 'students:course_materials' course.pk %}" class="text-decoration-none text-muted small fw-semibold">
-      <i class="fas fa-arrow-left me-1"></i> Back to {{ course.title }}
+    <a href="{% url 'students:course_materials' course.pk %}" class="text-decoration-none text-success small fw-semibold">
+      <i class="fas fa-arrow-left me-1 "></i> Back to {{ course.title }}
     </a>
     {% if total_in_course %}
     <span class="material-position">{{ current_position }} / {{ total_in_course }}</span>
@@ -103,13 +103,13 @@
   <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
 
     <!-- Header -->
-    <div class="card-header bg-white border-bottom p-4">
+    <div class="card-header bg-success border-bottom p-4 ">
       <div class="d-flex justify-content-between align-items-start gap-3">
         <div>
-          <span class="badge bg-secondary mb-2">{{ material.get_material_type_display }}</span>
+          <span class="badge bg-white mb-2">{{ material.get_material_type_display }}</span>
           <h2 class="h3 fw-bold mb-1">{{ material.title }}</h2>
           {% if material.description %}
-          <p class="text-muted mb-0">{{ material.description }}</p>
+          <p class="text-white mb-0">{{ material.description }}</p>
           {% endif %}
         </div>
         {% if progress.completed %}
@@ -122,16 +122,42 @@
     </div>
 
     <!-- Body -->
+<!-- ============IF MATERIAL=TEXT -->
     <div class="card-body p-4 p-md-5">
 
       {% if material.material_type == 'text' %}
         <div class="ck-content">
-          {{ material.content|safe }}
+          {% if page_content %}
+            {{ page_content|safe }}
+          {% else %}
+            {{ material.content|safe }}
+          {% endif %}
         </div>
 
+        {% if total_pages and total_pages > 1 %}
+        <div class="d-flex justify-content-between align-items-center mt-4">
+          <div>
+            {% if current_page|default:1 > 1 %}
+            <a href="?page={{ current_page|add:"-1" }}" class="btn btn-sm btn-outline-secondary">Previous Page</a>
+            {% else %}
+            <span class="btn btn-sm btn-outline-secondary disabled">Previous Page</span>
+            {% endif %}
+          </div>
+          <div class="small text-muted">Page {{ current_page }} of {{ total_pages }}</div>
+          <div>
+            {% if current_page < total_pages %}
+            <a href="?page={{ current_page|add:"1" }}" class="btn btn-sm btn-outline-secondary">Next Page</a>
+            {% else %}
+            <span class="btn btn-sm btn-outline-secondary disabled">Next Page</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+<!-- ============#IF MATERIAL TYPE IS VIDEO (YOUTUBE) -->
       {% elif material.material_type == 'video' %}
         {% if material.url %}
-        {% with embed_url=material.url %}
+        {% with embed_url=embed_url|default:material.url %}
         <div class="video-embed-wrapper shadow-sm mb-3">
           {# Convert standard YouTube watch URLs to embed URLs on the fly #}
           {% if "youtube.com/watch?v=" in embed_url %}
@@ -157,6 +183,7 @@
         <div class="alert alert-warning">No video URL provided.</div>
         {% endif %}
 
+<!-- ============#IF MATERIAL TYPE IS A FILE IE PDF -->
       {% elif material.material_type == 'pdf' or material.material_type == 'file' %}
         <div class="text-center py-5 bg-light rounded-4 border">
           <i class="fas {% if material.material_type == 'pdf' %}fa-file-pdf text-danger{% else %}fa-file-arrow-down text-success{% endif %} fs-1 mb-3"></i>
@@ -170,7 +197,8 @@
           <span class="text-danger">File is missing.</span>
           {% endif %}
         </div>
-
+        
+<!-- ============#IF MATERIAL TYPE IS A LINK -->
       {% elif material.material_type == 'link' %}
         <div class="text-center py-5 bg-light rounded-4 border">
           <i class="fas fa-external-link-alt text-primary fs-1 mb-3"></i>
@@ -189,6 +217,7 @@
 
     </div><!-- /card-body -->
 
+ 
     <!-- Footer: mark complete + prev/next -->
     <div class="card-footer bg-light border-top p-4">
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">

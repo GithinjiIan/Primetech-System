@@ -2,3 +2,5 @@ myenv
 env
 .env
 .myenv
+GEMINI.md
+.vscode

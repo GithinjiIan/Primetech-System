@@ -124,7 +124,7 @@ h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display
     transform: translateY(-2px);
 }
 .btn-outline-orange {
-    border: 0px solid var(--brand-orange);
+    border: 1px solid var(--brand-orange);
     color: var(--brand-orange);
     background: transparent;
     font-weight: 600;
@@ -170,10 +170,10 @@ h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display
 .courses-hero {
     background: linear-gradient(
         90deg,
-        rgba(25, 18, 36, 0.95) 0%,
-        rgba(25, 18, 36, 0.75) 35%,
-        rgba(25, 18, 36, 0.3) 70%,
-        rgba(25, 18, 36, 0) 100%
+        rgba(2, 6, 23, 0.95) 0%,
+        rgba(2, 6, 23, 0.75) 35%,
+        rgba(2, 6, 23, 0.3) 70%,
+        rgba(2, 6, 23, 0) 100%
         ),
     url('../img/img 5.png') center right / cover no-repeat;
     min-height: 75vh;

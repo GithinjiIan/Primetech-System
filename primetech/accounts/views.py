@@ -12,7 +12,7 @@ from django.views.decorators.cache import never_cache
 
 from .forms import LoginForm, ForcePasswordChangeForm, ForgotPasswordForm
 from .decorators import student_required, staff_required
-from .tokens import email_verification_token
+from .tokens import email_verification_token, password_reset_token
 
 User = get_user_model()
 
@@ -132,7 +132,7 @@ def password_reset_confirm_view(request, uidb64, token):
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
 
-    if user is not None and email_verification_token.check_token(user, token):
+    if user is not None and password_reset_token.check_token(user, token):
         if request.method == 'POST':
             form = ForcePasswordChangeForm(user, request.POST)
             if form.is_valid():

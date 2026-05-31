@@ -1,6 +1,7 @@
 """
 Forms for LMS course content management (staff) and student submissions.
 """
+import re
 from django import forms
 from .models import CourseMaterial, CourseSyllabus, ClassSession, Assignment, Submission, Grade
 
@@ -65,6 +66,44 @@ class CourseMaterialForm(forms.ModelForm):
             'order': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
             'is_published': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        material_type = cleaned_data.get('material_type')
+        content = cleaned_data.get('content')
+        file_field = cleaned_data.get('file')
+        url = cleaned_data.get('url')
+
+        if material_type == 'text':
+            if not content or not content.strip():
+                self.add_error('content', 'Please enter content for text materials.')
+            cleaned_data['url'] = ''
+            cleaned_data['file'] = None
+
+        elif material_type in ('video', 'link'):
+            if not url:
+                self.add_error('url', 'Please provide a URL for this material type.')
+            else:
+                if material_type == 'video':
+                    video_pattern = re.compile(
+                        r'(?:https?:\/\/)?(?:www\.)?(?:'
+                        r'youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|'
+                        r'youtu\.be\/|'
+                        r'vimeo\.com\/(?:video\/)?)([\w-]+)',
+                        re.I
+                    )
+                    if not video_pattern.search(url):
+                        self.add_error('url', 'Enter a valid YouTube or Vimeo URL (including Shorts).')
+            cleaned_data['content'] = ''
+            cleaned_data['file'] = None
+
+        elif material_type in ('pdf', 'file'):
+            if not file_field:
+                self.add_error('file', 'Please upload a file for this material type.')
+            cleaned_data['content'] = ''
+            cleaned_data['url'] = ''
+
+        return cleaned_data
 
 
 class CourseSyllabusForm(forms.ModelForm):

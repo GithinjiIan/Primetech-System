@@ -85,11 +85,15 @@ def courses_setup(request):
     allocated_courses = Course.objects.filter(assigned_instructor=request.user, is_active=True)
     selected_course = None
     materials = []
+    materials_json = '[]'
     material_form = CourseMaterialForm()
     syllabus_form = CourseSyllabusForm()
     syllabus = None
     active_tab = 'materials'   # default tab shown after any redirect
 
+    material_action = 'add_material'
+    material_id = ''
+    current_file_url = ''
     course_id = request.GET.get('course_id') or request.POST.get('course_id')
     if course_id:
         selected_course = get_object_or_404(Course, pk=course_id, assigned_instructor=request.user)
@@ -143,10 +147,15 @@ def courses_setup(request):
 
             # ── Edit material ────────────────────────────────────
             elif action == 'edit_material':
-                mat_id = request.POST.get('material_id')
+                material_action = 'edit_material'
+                material_id = request.POST.get('material_id', '')
+                mat_id = material_id
                 mat = get_object_or_404(CourseMaterial, pk=mat_id, course=selected_course)
+                current_file_url = mat.file.url if mat.file else ''
                 material_form = CourseMaterialForm(request.POST, request.FILES, instance=mat)
                 if material_form.is_valid():
+                    if request.FILES.get('file') and mat.file:
+                        mat.file.delete(save=False)
                     mat = material_form.save(commit=False)
                     mat.course = selected_course
                     mat.save()
@@ -180,6 +189,10 @@ def courses_setup(request):
         'syllabus_form': syllabus_form,
         'syllabus': syllabus,
         'active_tab': active_tab,
+        'materials_json': materials_json,
+        'material_action': material_action,
+        'material_id': material_id,
+        'current_file_url': current_file_url,
     })
 
 

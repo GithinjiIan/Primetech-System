@@ -26,14 +26,74 @@
   border-bottom-color: rgba(99,102,241,.3);
 }
 
-/* ── CKEditor wrapper ───────────────────────────────────── */
-.ck-editor-wrapper .ck-editor__editable {
-  min-height: 260px;
-  border-radius: 0 0 .5rem .5rem !important;
+/* ── CKEditor premium styling ───────────────────────────── */
+.ck-editor-wrapper {
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  background-color: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.ck-editor-wrapper + small {
-  margin-top: .3rem;
+.ck-editor-wrapper:focus-within {
+  border-color: var(--brand-accent, #6366f1) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+.ck.ck-editor__editable_inline {
+  padding: 1.2rem 1.5rem !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #1f2937;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  min-height: 280px;
+}
+.ck.ck-editor__editable_inline h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-top: 1.4rem;
+  margin-bottom: 0.75rem;
+  color: #111827;
+  border-bottom: 1px solid #f3f4f6;
+  padding-bottom: 0.3rem;
+}
+.ck.ck-editor__editable_inline h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: #1f2937;
+}
+.ck.ck-editor__editable_inline p {
+  margin-bottom: 1rem;
+}
+.ck.ck-toolbar {
+  border-top-left-radius: 0.5rem !important;
+  border-top-right-radius: 0.5rem !important;
+  background-color: #f9fafb !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+.ck.ck-editor__main>.ck-editor__editable {
+  border-bottom-left-radius: 0.5rem !important;
+  border-bottom-right-radius: 0.5rem !important;
+  border-top: none !important;
+}
+.ck.ck-editor__editable_inline pre, 
+.ck.ck-editor__editable_inline code {
+  background-color: #f3f4f6 !important;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9em;
+}
+.ck.ck-editor__editable_inline pre {
+  padding: 1rem !important;
   display: block;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+/* ── Validation Error Highlight ──────────────────────────── */
+.is-invalid-custom {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15) !important;
 }
 
 /* ── Syllabus section cards ─────────────────────────────── */
@@ -98,7 +158,7 @@
   <div class="col-lg-3 sidebar-course-panel">
     <div class="card">
       <div class="card-header d-flex align-items-center gap-2">
-        <i class="fas fa-book-open text-accent"></i> My Courses
+        <i class="fas fa-book-open text-accent"></i> My Enrolled Courses
       </div>
       <div class="list-group list-group-flush px-2 pb-3 pt-2">
         {% for course in allocated_courses %}
@@ -143,7 +203,7 @@
     <!-- ═══════════════════ MATERIALS TAB ═══════════════════ -->
     <div id="tab-materials" class="tab-pane {% if active_tab != 'syllabus' %}d-block{% else %}d-none{% endif %}">
       <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
+        <button id="addMaterialBtn" class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
           <i class="fas fa-plus me-1"></i> Add Material
         </button>
       </div>
@@ -312,11 +372,32 @@
       <div class="modal-body">
         <form method="post" enctype="multipart/form-data" id="materialForm">
           {% csrf_token %}
-          <input type="hidden" id="materialAction" name="action" value="add_material">
-          <input type="hidden" id="materialId" name="material_id" value="">
-          <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
-
+          <input type="hidden" id="materialAction" name="action" value="{{ material_action|default:'add_material' }}">
+          <input type="hidden" id="materialId" name="material_id" value="{{ material_id|default:'' }}">
           <div class="row g-3">
+            <div class="col-12">
+              {% if form.errors %}
+              <div id="materialFormErrors" class="alert alert-danger rounded-3 shadow-sm mb-3">
+                <div class="d-flex align-items-start gap-2 mb-2">
+                  <span class="badge bg-danger text-white">Error</span>
+                  <div>
+                    <strong>We couldn’t save the material.</strong>
+                    <div class="text-muted small">Please fix the following fields and try again.</div>
+                  </div>
+                </div>
+                <ul class="mb-0 ps-3">
+                  {% for field in form %}
+                    {% for err in field.errors %}
+                      <li><strong>{{ field.label }}:</strong> {{ err }}</li>
+                    {% endfor %}
+                  {% endfor %}
+                  {% for err in form.non_field_errors %}
+                    <li>{{ err }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
+            </div>
             <!-- Title + Type -->
             <div class="col-md-8">
               <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
@@ -346,6 +427,9 @@
               <small class="text-muted">
                 Supports headings, bold/italic, bullet lists, tables, images, and YouTube embeds.
               </small>
+              <small class="text-muted d-block mt-1">
+                Insert <code>&lt;!--page--&gt;</code> in text content to force a student-facing page break.
+              </small>
             </div>
 
             <!-- File upload (pdf / file types) -->
@@ -355,7 +439,11 @@
               </label>
               {{ form.file }}
               <small class="text-muted">PDF, DOC, XLSX, ZIP, etc. — max size set by your server.</small>
-              <div id="currentFileNote" class="form-text text-muted" style="display:none; margin-top:.4rem;"></div>
+              <div id="currentFileNote" class="form-text text-muted" style="display: {{ current_file_url|yesno:'block,none' }}; margin-top:.4rem;">
+                {% if current_file_url %}
+                  Current file: <a href="{{ current_file_url }}" target="_blank" rel="noopener noreferrer">Download</a>
+                {% endif %}
+              </div>
             </div>
 
             <!-- URL (video / link types) -->
@@ -369,6 +457,10 @@
                 e.g. <code>https://www.youtube.com/watch?v=dQw4w9WgXcQ</code>.
                 The player will be embedded automatically for students.
               </small>
+              <div id="videoUrlFeedback" class="form-text text-danger" style="display:none; margin-top:.4rem;"></div>
+              <div id="videoPreviewWrapper" class="ratio ratio-16x9 mt-3" style="display:none;">
+                <iframe id="videoPreviewIframe" src="about:blank" allowfullscreen title="Video preview"></iframe>
+              </div>
             </div>
 
             <!-- Order + Published -->
@@ -401,7 +493,7 @@
 
 {% block extra_js %}
 
-<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super/build/ckeditor.js"></script>
 
 <script>
 // ── Shared CKEditor config ────────────────────────────────────────
@@ -409,12 +501,14 @@ const CK_CONFIG = {
   toolbar: {
     items: [
       'heading', '|',
-      'bold', 'italic', 'underline', 'strikethrough', '|',
-      'bulletedList', 'numberedList', 'indent', 'outdent', '|',
-      'link', 'insertTable', '|',
-      'uploadImage', 'mediaEmbed', '|',
-      'blockQuote', 'code', 'codeBlock', '|',
+      'bold', 'italic', 'underline', 'strikethrough', 'removeFormat', '|',
+      'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+      'bulletedList', 'numberedList', 'outdent', 'indent', '|',
       'alignment', '|',
+      'link', 'insertTable', '|',
+      'uploadImage', 'mediaEmbed', 'blockQuote', '|',
+      'code', 'codeBlock', 'horizontalLine', '|',
+      'findAndReplace', 'sourceEditing', '|',
       'undo', 'redo'
     ],
     shouldNotGroupWhenFull: true
@@ -428,19 +522,28 @@ const CK_CONFIG = {
   },
   simpleUpload: {
     // Adjust this URL to your project's image upload endpoint.
-    // django-ckeditor provides: /django-ckeditor/upload/
-    uploadUrl: '/django-ckeditor/upload/',
+    uploadUrl: '/ckeditor5/image_upload/',
     withCredentials: true,
     headers: {
       'X-CSRFToken': getCookie('csrftoken')
     }
   },
   mediaEmbed: {
-    // Allow plain YouTube watch URLs, not just embed URLs
     extraProviders: [
       {
         name: 'youtube-watch',
         url: /^(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([\w-]+)/,
+        html: match => {
+          const id = match[1];
+          return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
+            <iframe src="https://www.youtube.com/embed/${id}"
+              style="position:absolute;top:0;left:0;width:100%;height:100%;"
+              frameborder="0" allowfullscreen></iframe></div>`;
+        }
+      },
+      {
+        name: 'youtube-shorts',
+        url: /^(?:https?:\/\/)?(?:www\.)?youtube\.com\/shorts\/([\w-]+)/,
         html: match => {
           const id = match[1];
           return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
@@ -497,15 +600,93 @@ const contentWrapper = document.getElementById('contentField-wrapper');
 const fileWrapper    = document.getElementById('fileField-wrapper');
 const urlWrapper     = document.getElementById('urlField-wrapper');
 
+function buildVideoEmbedUrl(url) {
+  if (!url) return null;
+  const normalized = url.trim();
+  const ytMatch = normalized.match(/(?:v=|\/v\/|youtu\.be\/|shorts\/)([\w-]{6,})/i);
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  const ytEmbedMatch = normalized.match(/youtube\.com\/embed\/([\w-]{6,})/i);
+  if (ytEmbedMatch) return normalized;
+  const vimeoMatch = normalized.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  const vimeoEmbedMatch = normalized.match(/player\.vimeo\.com\/video\/(\d+)/i);
+  if (vimeoEmbedMatch) return normalized;
+  return null;
+}
+
 function updateFields() {
   const val = typeSelect ? typeSelect.value : '';
   contentWrapper.style.display = val === 'text'                    ? 'block' : 'none';
   fileWrapper.style.display    = (val === 'pdf' || val === 'file') ? 'block' : 'none';
   urlWrapper.style.display     = (val === 'video' || val === 'link')? 'block' : 'none';
+  updateVideoPreview();
 }
 if (typeSelect) {
   typeSelect.addEventListener('change', updateFields);
   updateFields();
+}
+
+const urlInput = document.getElementById('id_url');
+const videoFeedback = document.getElementById('videoUrlFeedback');
+const videoPreviewWrapper = document.getElementById('videoPreviewWrapper');
+const videoPreviewIframe = document.getElementById('videoPreviewIframe');
+const materialForm = document.getElementById('materialForm');
+
+function showVideoFeedback(message) {
+  if (!videoFeedback) return;
+  if (message) {
+    videoFeedback.style.display = 'block';
+    videoFeedback.textContent = message;
+  } else {
+    videoFeedback.style.display = 'none';
+    videoFeedback.textContent = '';
+  }
+}
+
+function updateVideoPreview() {
+  if (!urlInput || !videoPreviewWrapper || !videoPreviewIframe) return;
+  const type = typeSelect ? typeSelect.value : '';
+  if (type !== 'video') {
+    videoPreviewWrapper.style.display = 'none';
+    showVideoFeedback('');
+    return;
+  }
+  const embedUrl = buildVideoEmbedUrl(urlInput.value);
+  if (embedUrl) {
+    videoPreviewWrapper.style.display = 'block';
+    videoPreviewIframe.src = embedUrl;
+    showVideoFeedback('');
+  } else if (urlInput.value.trim().length) {
+    videoPreviewWrapper.style.display = 'none';
+    showVideoFeedback('Enter a valid YouTube or Vimeo URL to preview the video.');
+  } else {
+    videoPreviewWrapper.style.display = 'none';
+    showVideoFeedback('');
+  }
+}
+
+if (urlInput) {
+  urlInput.addEventListener('input', updateVideoPreview);
+}
+
+if (materialForm) {
+  materialForm.addEventListener('submit', event => {
+    const type = typeSelect ? typeSelect.value : '';
+    if (type === 'video' || type === 'link') {
+      const urlValue = urlInput ? urlInput.value.trim() : '';
+      if (!urlValue) {
+        showVideoFeedback('Please enter a URL for this material type.');
+        event.preventDefault();
+        return;
+      }
+      if (type === 'video' && !buildVideoEmbedUrl(urlValue)) {
+        showVideoFeedback('Please enter a valid YouTube or Vimeo URL.');
+        event.preventDefault();
+        return;
+      }
+    }
+    showVideoFeedback('');
+  });
 }
 
 // ── Tab switching ─────────────────────────────────────────────────
@@ -520,5 +701,89 @@ document.querySelectorAll('[data-tab]').forEach(btn => {
     document.getElementById('tab-syllabus').classList.toggle('d-block', target === 'syllabus');
   });
 });
+
+// ── Client-side edit / populate for materials ─────────────────────
+{{ materials_json|json_script:"materials-data" }}
+const materialsData = JSON.parse(document.getElementById('materials-data').textContent || '[]');
+
+function clearMaterialErrors() {
+  const errorBox = document.getElementById('materialFormErrors');
+  if (errorBox) {
+    errorBox.style.display = 'none';
+  }
+  if (videoFeedback) {
+    videoFeedback.style.display = 'none';
+    videoFeedback.textContent = '';
+  }
+}
+
+function openEditMaterial(matId) {
+  const mat = materialsData.find(m => String(m.id) === String(matId));
+  if (!mat) return;
+  clearMaterialErrors();
+  document.getElementById('materialAction').value = 'edit_material';
+  document.getElementById('materialId').value = mat.id;
+  const form = document.getElementById('materialForm');
+  if (form.elements['title']) form.elements['title'].value = mat.title || '';
+  if (form.elements['description']) form.elements['description'].value = mat.description || '';
+  if (form.elements['material_type']) form.elements['material_type'].value = mat.material_type || '';
+  if (form.elements['url']) form.elements['url'].value = mat.url || '';
+  if (form.elements['order']) form.elements['order'].value = mat.order || 0;
+  if (form.elements['is_published']) form.elements['is_published'].checked = !!mat.is_published;
+  if (materialEditor) materialEditor.setData(mat.content || '');
+  updateFields();
+
+  const currentFileNote = document.getElementById('currentFileNote');
+  if (mat.file_url) {
+    currentFileNote.style.display = 'block';
+    currentFileNote.textContent = 'Current file: ';
+    const link = document.createElement('a');
+    link.href = mat.file_url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = 'Download';
+    currentFileNote.appendChild(link);
+  } else {
+    currentFileNote.style.display = 'none';
+  }
+
+  document.getElementById('materialModalTitle').innerText = 'Edit Course Material';
+  const modalEl = document.getElementById('addMaterialModal');
+  const modal = new bootstrap.Modal(modalEl);
+  modal.show();
+}
+
+document.querySelectorAll('.edit-material-btn').forEach(btn => {
+  btn.addEventListener('click', () => openEditMaterial(btn.dataset.materialId));
+});
+
+document.getElementById('addMaterialBtn')?.addEventListener('click', () => {
+  const form = document.getElementById('materialForm');
+  form.reset();
+  document.getElementById('materialAction').value = 'add_material';
+  document.getElementById('materialId').value = '';
+  clearMaterialErrors();
+  if (materialEditor) materialEditor.setData('');
+  const currentFileNote = document.getElementById('currentFileNote');
+  if (currentFileNote) currentFileNote.style.display = 'none';
+  document.getElementById('materialModalTitle').innerText = 'Add Course Material';
+  updateFields();
+});
+
+{% if form.errors and active_tab == 'materials' %}
+document.addEventListener('DOMContentLoaded', () => {
+  const modalEl = document.getElementById('addMaterialModal');
+  if (modalEl) {
+    const currentFileUrl = '{{ current_file_url|default:''|escapejs }}';
+    if (currentFileUrl) {
+      const currentFileNote = document.getElementById('currentFileNote');
+      currentFileNote.style.display = 'block';
+      currentFileNote.innerHTML = 'Current file: <a href="' + currentFileUrl + '" target="_blank" rel="noopener noreferrer">Download</a>';
+    }
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+  }
+});
+{% endif %}
 </script>
 {% endblock %}

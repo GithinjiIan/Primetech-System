@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django import forms as django_forms
 from django.core.paginator import Paginator
+from django.utils import timezone
 
 from website.models import Enrollment, Course
 from accounts.decorators import student_required
@@ -15,6 +16,7 @@ from courses.models import (
     Assignment, Submission, Grade, MaterialProgress,
 )
 from courses.forms import SubmissionForm
+import re
 
 User = get_user_model()
 
@@ -189,6 +191,75 @@ def material_detail(request, course_id, material_id):
             return redirect('students:material_detail', course_id=course_id, material_id=next_material_id)
         return redirect('students:course_materials', course_id=course_id)
 
+    # ── Server-side pagination for long text materials ─────────
+    page_content = None
+    total_pages = 1
+    try:
+        current_page = int(request.GET.get('page', 1))
+    except (TypeError, ValueError):
+        current_page = 1
+
+    if material.material_type == 'text' and material.content:
+        html = material.content
+
+        # Explicit page markers take precedence if the instructor inserts <!--page-->
+        marker_pages = [part.strip() for part in re.split(r'<!--\s*page\s*-->', html, flags=re.IGNORECASE) if part.strip()]
+        if len(marker_pages) > 1:
+            pages = marker_pages
+        else:
+            # Split HTML into tokens by block-level closing tags to preserve structure roughly
+            parts = re.split(r'(</(?:p|h[1-6]|ul|ol|li|blockquote|pre|table|figure|div)>)', html, flags=re.IGNORECASE)
+            # Recombine delimiters with their preceding part
+            tokens = []
+            i = 0
+            while i < len(parts):
+                part = parts[i]
+                if i + 1 < len(parts):
+                    part += parts[i+1]
+                    i += 2
+                else:
+                    i += 1
+                if part.strip():
+                    tokens.append(part)
+
+            # Accumulate tokens into pages by approximate character threshold
+            THRESHOLD = 2200
+            pages = []
+            cur = ''
+            for tok in tokens:
+                tok_text = re.sub('<[^<]+?>', '', tok).strip()
+                if len(re.sub('<[^<]+?>', '', cur)) + len(tok_text) > THRESHOLD and cur:
+                    pages.append(cur)
+                    cur = tok
+                else:
+                    cur += tok
+            if cur:
+                pages.append(cur)
+
+        if pages:
+            total_pages = len(pages)
+            if current_page < 1: current_page = 1
+            if current_page > total_pages: current_page = total_pages
+            page_content = pages[current_page - 1]
+
+    # ── Precompute embed URL for video materials (handles common YouTube/Vimeo forms)
+    embed_url = None
+    if material.material_type == 'video' and material.url:
+        url = material.url.strip()
+        # YouTube watch URLs
+        m = re.search(r'(?:v=|/v/|youtu\.be/)([\w-]{6,})', url)
+        if m:
+            vid = m.group(1)
+            embed_url = f'https://www.youtube.com/embed/{vid}'
+        else:
+            # Vimeo patterns
+            m2 = re.search(r'vimeo\.com/(?:video/)?(\d+)', url)
+            if m2:
+                vid = m2.group(1)
+                embed_url = f'https://player.vimeo.com/video/{vid}'
+            else:
+                embed_url = url
+
     return render(request, 'students/material_detail.html', {
         'course': course,
         'material': material,
@@ -197,6 +268,10 @@ def material_detail(request, course_id, material_id):
         'next_material_id': next_material_id,
         'total_in_course': len(all_materials),
         'current_position': current_index + 1,
+        'page_content': page_content,
+        'total_pages': total_pages,
+        'current_page': current_page,
+        'embed_url': embed_url,
     })
 
 
@@ -258,13 +333,27 @@ def submit_assignment(request, assignment_id):
     existing = Submission.objects.filter(assignment=assignment, student=request.user).first()
 
     if request.method == 'POST':
+        if assignment.is_past_due and not assignment.allow_late_submission:
+            messages.error(request, 'The deadline for this assignment has passed and late submissions are not allowed.')
+            return redirect('students:student_submissions')
+
         form = SubmissionForm(request.POST, request.FILES, instance=existing)
         if form.is_valid():
+            old_file = None
+            if existing and existing.file and 'file' in form.changed_data:
+                # Defer deletion until after successful save
+                old_file = existing.file
+
             sub = form.save(commit=False)
             sub.assignment = assignment
             sub.student = request.user
             sub.status = 'submitted'
             sub.save()
+            
+            # Delete old file only after successful DB commit
+            if old_file:
+                old_file.delete(save=False)
+            
             messages.success(request, f'Your submission for "{assignment.title}" was received!')
             return redirect('students:submissions')
     else:

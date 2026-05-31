@@ -81,7 +81,7 @@ class CourseMaterial(models.Model):
     """A unit of learning content (video, PDF, link, or rich-text) in a course."""
 
     TYPE_CHOICES = [
-        ('text', 'Rich Text / Article'),
+        ('text', 'Notes'),
         ('video', 'Video (Embed URL)'),
         ('pdf', 'PDF Document'),
         ('file', 'File Download'),
@@ -323,8 +323,12 @@ class Grade(models.Model):
     @property
     def letter_grade(self):
         pct = self.percentage
-        if pct >= 90: return 'A'
-        if pct >= 80: return 'B'
-        if pct >= 70: return 'C'
-        if pct >= 60: return 'D'
-        return 'F'
+        if pct >= 90:
+            return 'EE1'
+        if pct >= 80:
+            return 'EE2'
+        if pct >= 70:
+            return 'AE'
+        if pct >= 50:
+            return 'ME'
+        return 'BE'

@@ -3,31 +3,39 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>{% block title %}PrimeTech LMS{% endblock %}</title>
     <link rel="icon" type="image/png" href="{% static 'img/logo New.png' %}">
 
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Bootstrap 5 CSS (local) -->
     <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Student CSS -->
     <link rel="stylesheet" href="{% static 'css/student.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-<div class="d-flex wrapper">
 
-    <!-- ═══════════════════════════════════════════════
-         SIDEBAR
-    ════════════════════════════════════════════════ -->
-    <aside class="offcanvas-lg offcanvas-start sidebar flex-shrink-0" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
+<div class="wrapper d-flex">
 
-        <!-- Header: logo + close -->
-        <div class="offcanvas-header pb-0 border-0">
-            <div class="sidebar-header border-0 p-0 w-100 d-flex align-items-center justify-content-between">
+    <!-- ============================================================
+         SIDEBAR (Offcanvas on mobile, sticky on desktop)
+    ============================================================= -->
+    <aside class="offcanvas-lg offcanvas-start sidebar flex-shrink-0" 
+           tabindex="-1" 
+           id="sidebar" 
+           aria-labelledby="sidebarLabel"
+           aria-expanded="true">
+
+        <!-- Sidebar Header -->
+        <div class="offcanvas-header">
+            <div class="d-flex align-items-center justify-content-between w-100">
                 <div class="logo d-flex align-items-center gap-2">
                     <div class="logo-ring">
                         <img src="{% static 'img/logo New.png' %}" alt="Logo" width="26" height="26">
@@ -37,15 +45,15 @@
                         <span class="brand-sub d-block">LMS System</span>
                     </div>
                 </div>
-                <button type="button" class="btn-close btn-close-white d-lg-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white d-lg-none" 
+                        data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
         </div>
 
-        <!-- Nav body -->
-        <div class="offcanvas-body d-flex flex-column mt-3 px-0">
+        <!-- Sidebar Body (Navigation) -->
+        <div class="offcanvas-body d-flex flex-column px-0">
             <nav class="sidebar-menu flex-grow-1">
-
-                <!-- Main -->
+                <!-- Main Menu Section -->
                 <div class="nav-section-label">Main Menu</div>
                 <ul class="nav flex-column mb-3">
                     <li class="nav-item">
@@ -76,9 +84,26 @@
                             <span class="nav-label">My Assignments</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.namespaces.0 == 'leaderboard' and request.resolver_match.url_name == 'leaderboard' %}active{% endif %}"
+                           href="{% url 'leaderboard:leaderboard' %}">
+                            <span class="nav-icon"><i class="fas fa-trophy text-warning"></i></span>
+                            <span class="nav-label">Leaderboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.namespaces.0 == 'leaderboard' and request.resolver_match.url_name == 'challenges' %}active{% endif %}"
+                           href="{% url 'leaderboard:challenges' %}">
+                            <span class="nav-icon"><i class="fas fa-fire text-danger"></i></span>
+                            <span class="nav-label">Daily Challenges</span>
+                            {% if gamification_profile and gamification_profile.current_streak > 0 %}
+                            <span class="badge bg-danger ms-auto">{{ gamification_profile.current_streak }} 🔥</span>
+                            {% endif %}
+                        </a>
+                    </li>
                 </ul>
 
-                <!-- Account -->
+                <!-- Account Section -->
                 <div class="nav-section-label">Account</div>
                 <ul class="nav flex-column">
                     <li class="nav-item">
@@ -95,13 +120,10 @@
                             <span class="nav-label">Notifications</span>
                         </a>
                     </li>
-
-
-                            
                 </ul>
             </nav>
 
-            <!-- Logout -->
+            <!-- Sidebar Footer: Logout -->
             <div class="sidebar-footer mt-auto">
                 <form action="{% url 'accounts:logout' %}" method="post">
                     {% csrf_token %}
@@ -114,21 +136,23 @@
         </div>
     </aside>
 
-    <!-- ═══════════════════════════════════════════════
-         MAIN CONTENT
-    ════════════════════════════════════════════════ -->
+    <!-- ============================================================
+         MAIN CONTENT AREA
+    ============================================================= -->
     <main class="main-content w-100 flex-grow-1 d-flex flex-column">
 
-        <!-- Top Header -->
+        <!-- Top Header (Sticky) -->
         <header class="header d-flex align-items-center justify-content-between" id="topHeader">
 
-            <!-- Left: toggle + page title -->
+            <!-- Left: Toggle + Page Title -->
             <div class="d-flex align-items-center gap-2 gap-sm-3">
+                <!-- Desktop toggle (hidden on <992px) -->
                 <button class="btn btn-link menu-toggle d-none d-lg-flex text-dark p-0"
                         id="desktopSidebarToggle"
                         aria-label="Collapse sidebar">
                     <i class="fas fa-angle-left"></i>
                 </button>
+                <!-- Mobile toggle (visible only on <992px) -->
                 <button class="btn btn-link menu-toggle d-lg-none text-dark p-0"
                         data-bs-toggle="offcanvas" data-bs-target="#sidebar"
                         aria-label="Toggle Navigation">
@@ -137,28 +161,47 @@
                 <h1 class="page-title d-none d-sm-block">{% block page_title %}Dashboard{% endblock %}</h1>
             </div>
 
-            <!-- Right: search + bell + user -->
+            <!-- Right: Search, Notifications, User -->
             <div class="header-right d-flex align-items-center gap-2 gap-md-3">
 
-                <!-- Search (hidden on mobile) -->
-                <div class="search-bar d-none d-md-flex">
-                    <input type="text" class="form-control border-end-0 shadow-none" placeholder="Search courses…">
-                    <button class="btn-search shadow-none" type="button" aria-label="Search">
+                <!-- Gamification Widget (hidden on small screens) -->
+                {% if gamification_profile %}
+                <div class="d-flex align-items-center gap-3 me-2 border-end pe-3 d-none d-sm-flex">
+                    <div class="d-flex align-items-center gap-1" title="Current Streak">
+                        <span style="font-size: 1.1rem;">🔥</span>
+                        <span class="fw-bold text-dark small">{{ gamification_profile.current_streak }}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1" title="Total XP">
+                        <span style="font-size: 1.1rem;">⚡</span>
+                        <span class="fw-bold text-dark small">{{ gamification_profile.total_xp }} <span class="text-muted" style="font-size: 0.7rem;">XP</span></span>
+                    </div>
+                    <div class="badge" style="background-color: {{ gamification_profile.rank_color }}20; color: {{ gamification_profile.rank_color }}; font-weight: 700; font-size: 0.75rem;">
+                        {{ gamification_profile.rank_display }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Search Bar (hidden on mobile) -->
+                <form class="search-bar d-none d-md-flex" action="{% url 'students:my_courses' %}" method="get" role="search">
+                    <input type="text" name="q" class="form-control border-end-0 shadow-none" placeholder="Search courses…" aria-label="Search courses">
+                    <button class="btn-search shadow-none" type="submit" aria-label="Search">
                         <i class="fas fa-search"></i>
                     </button>
-                </div>
+                </form>
 
-                <!-- Notifications -->
+                <!-- Notifications Dropdown -->
                 <div class="dropdown">
-                    <button class="btn btn-link dropdown-toggle notification-icon position-relative text-dark p-0 shadow-none border-0"
-                            id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+                    <button class="btn btn-link notification-icon position-relative text-dark p-0 shadow-none border-0"
+                            id="notifDropdown" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false" 
+                            aria-label="Notifications">
                         <i class="fas fa-bell"></i>
                         {% if unread_notifications_count|default:0 > 0 %}
                         <span class="notification-count badge bg-danger rounded-circle">{{ unread_notifications_count }}</span>
                         {% endif %}
                     </button>
-
-                    <div class="dropdown-menu dropdown-menu-end mt-2 p-0" aria-labelledby="notifDropdown" style="min-width:320px;max-width:90vw;">
+                    <div class="dropdown-menu dropdown-menu-end mt-2 p-0" aria-labelledby="notifDropdown" style="min-width: 320px; max-width: 90vw;">
                         <div class="card border-0 rounded-0 mb-0">
                             <div class="card-header bg-transparent border-0 py-2 px-3">
                                 <strong>Notifications</strong>
@@ -169,7 +212,7 @@
                                     <a href="{% url 'students:notification_detail' note.pk %}" class="list-group-item list-group-item-action px-3 py-2 d-flex justify-content-between align-items-start">
                                         <div class="me-2">
                                             <div class="fw-bold small mb-1">{{ note.title }}</div>
-                                            <div class="small text-muted">{{ note.message|truncatewords:4 }}</div>
+                                            <div class="small text-muted">{{ note.message|truncatewords:10 }}</div>
                                         </div>
                                         <small class="text-muted ms-auto">{{ note.created_at|timesince }} ago</small>
                                     </a>
@@ -178,38 +221,38 @@
                                     {% endfor %}
                                 </div>
                             </div>
-                            <div class="card-footer bg-success rounded-bottom border-0 py-2 text-center">
+                            <div class="card-footer rounded-bottom border-0 py-2 text-center" style="background: var(--accent);">
                                 <a href="{% url 'students:notifications' %}" class="small text-white text-decoration-none">View all notifications</a>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- User dropdown -->
+                <!-- User Dropdown -->
                 <div class="dropdown">
                     <button class="btn btn-link dropdown-toggle d-flex align-items-center gap-2 text-decoration-none p-0 shadow-none border-0"
-                            type="button" id="userDropdown"
-                            data-bs-toggle="dropdown" aria-expanded="false">
+                            type="button" 
+                            id="userDropdown"
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false">
                         <div class="user-avatar d-flex align-items-center">
                             {% if request.user.profile_picture %}
-                                <img src="{{ request.user.profile_picture.url }}" alt="Profile" class="rounded-circle border" style="width:40px;height:40px;object-fit:cover;">
+                                <img src="{{ request.user.profile_picture.url }}" alt="Profile" class="rounded-circle border" style="width: 40px; height: 40px; object-fit: cover;">
                             {% else %}
-                                <span class="d-inline-flex align-items-center justify-content-center bg-secondary text-white rounded-circle" style="width:40px;height:40px;font-weight:600;">{{ request.user.first_name|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}</span>
+                                <span class="d-inline-flex align-items-center justify-content-center bg-secondary text-white rounded-circle" style="width: 40px; height: 40px; font-weight: 600;">{{ request.user.first_name|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}</span>
                             {% endif %}
                         </div>
                         <div class="text-start d-none d-lg-block">
-                            <div class="fw-bold text-dark" style="font-size:0.85rem; line-height:1.1;">
+                            <div class="fw-bold text-dark" style="font-size: 0.85rem; line-height: 1.1;">
                                 {{ request.user.get_full_name|default:request.user.username }}
                             </div>
-                            <div class="text-muted" style="font-size:0.72rem;">Student</div>
+                            <div class="text-muted" style="font-size: 0.72rem;">Student</div>
                         </div>
                     </button>
-
                     <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="userDropdown">
-                        <!-- Shown only on mobile where name is hidden -->
                         <li class="px-3 py-2 border-bottom d-lg-none">
                             <div class="fw-bold text-dark small">{{ request.user.get_full_name|default:request.user.username }}</div>
-                            <div class="text-muted" style="font-size:0.75rem;">Student</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Student</div>
                         </li>
                         <li>
                             <a class="dropdown-item" href="{% url 'students:student_profile' %}">
@@ -235,9 +278,11 @@
             </div>
         </header>
 
-        <!-- Page Content -->
+        <!-- Dynamic Page Content with Bootstrap Container -->
         <div class="content flex-grow-1">
-            {% block content %}{% endblock %}
+            <div class="container-fluid px-0">
+                {% block content %}{% endblock %}
+            </div>
         </div>
 
         <!-- Footer -->
@@ -247,55 +292,179 @@
     </main>
 </div>
 
+<!-- Bootstrap JS Bundle -->
 <script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 
+<!-- Custom JavaScript for Sidebar Toggle & Responsive Behavior -->
 <script>
-    const header = document.getElementById('topHeader');
-    if (header) {
-        window.addEventListener('scroll', () => {
-            header.classList.toggle('scrolled', window.scrollY > 8);
-        }, { passive: true });
-    }
+    (function() {
+        'use strict';
 
-    const desktopToggle = document.getElementById('desktopSidebarToggle');
-    const sidebar = document.getElementById('sidebar');
-    const bodyEl = document.body;
+        // DOM Elements
+        const header = document.getElementById('topHeader');
+        const desktopToggle = document.getElementById('desktopSidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const bodyEl = document.body;
 
-    function updateDesktopToggleIcon() {
-        if (!desktopToggle || !sidebar) return;
-        const icon = desktopToggle.querySelector('i');
-        const collapsed = sidebar.classList.contains('collapsed');
-        if (collapsed) {
-            icon.classList.remove('fa-angle-left');
-            icon.classList.add('fa-angle-right');
-            desktopToggle.setAttribute('aria-label', 'Expand sidebar');
-        } else {
-            icon.classList.remove('fa-angle-right');
-            icon.classList.add('fa-angle-left');
-            desktopToggle.setAttribute('aria-label', 'Collapse sidebar');
+        // Header scroll shadow
+        if (header) {
+            window.addEventListener('scroll', () => {
+                header.classList.toggle('scrolled', window.scrollY > 8);
+            }, { passive: true });
         }
-    }
 
-    if (desktopToggle && sidebar) {
-        desktopToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-            bodyEl.classList.toggle('sidebar-collapsed');
+        // Helper: Update toggle icon based on collapsed state
+        function updateDesktopToggleIcon() {
+            if (!desktopToggle || !sidebar) return;
+            const icon = desktopToggle.querySelector('i');
+            if (!icon) return;
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            if (isCollapsed) {
+                icon.classList.remove('fa-angle-left');
+                icon.classList.add('fa-angle-right');
+                desktopToggle.setAttribute('aria-label', 'Expand sidebar');
+            } else {
+                icon.classList.remove('fa-angle-right');
+                icon.classList.add('fa-angle-left');
+                desktopToggle.setAttribute('aria-label', 'Collapse sidebar');
+            }
+        }
+
+        // Helper: Set sidebar collapsed state and update ARIA
+        function setSidebarState(collapsed) {
+            if (!sidebar) return;
+            if (collapsed) {
+                sidebar.classList.add('collapsed');
+                bodyEl.classList.add('sidebar-collapsed');
+                sidebar.setAttribute('aria-expanded', 'false');
+            } else {
+                sidebar.classList.remove('collapsed');
+                bodyEl.classList.remove('sidebar-collapsed');
+                sidebar.setAttribute('aria-expanded', 'true');
+            }
             updateDesktopToggleIcon();
-        });
-        updateDesktopToggleIcon();
-    }
+        }
 
-    if (sidebar && typeof bootstrap !== 'undefined') {
-        const bsSidebar = bootstrap.Offcanvas.getOrCreateInstance(sidebar);
-        sidebar.querySelectorAll('.nav-link').forEach((link) => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth < 992 && bsSidebar) {
-                    bsSidebar.hide();
+        // Handle viewport changes (desktop vs mobile)
+        function handleViewportChange() {
+            if (!sidebar) return;
+            const isDesktop = window.innerWidth >= 992;
+
+            if (!isDesktop) {
+                // Mobile/tablet: ensure desktop toggle hidden, reset collapsed
+                if (desktopToggle) desktopToggle.style.display = 'none';
+                if (sidebar.classList.contains('collapsed')) {
+                    setSidebarState(false);
+                    localStorage.removeItem('sidebarCollapsed');
                 }
+            } else {
+                // Desktop: show toggle, restore saved state
+                if (desktopToggle) desktopToggle.style.display = 'flex';
+                const savedState = localStorage.getItem('sidebarCollapsed');
+                if (savedState === 'true' && !sidebar.classList.contains('collapsed')) {
+                    setSidebarState(true);
+                } else if (savedState === 'false' && sidebar.classList.contains('collapsed')) {
+                    setSidebarState(false);
+                }
+                updateDesktopToggleIcon();
+            }
+        }
+
+        // Initialize desktop toggle event
+        if (desktopToggle && sidebar) {
+            // Load saved preference on desktop
+            if (window.innerWidth >= 992) {
+                const saved = localStorage.getItem('sidebarCollapsed');
+                if (saved === 'true') setSidebarState(true);
+            }
+            updateDesktopToggleIcon();
+
+            desktopToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (window.innerWidth < 992) return;
+                if (desktopToggle.disabled) return;
+                desktopToggle.disabled = true;
+                const newState = !sidebar.classList.contains('collapsed');
+                setSidebarState(newState);
+                localStorage.setItem('sidebarCollapsed', newState);
+                setTimeout(() => { desktopToggle.disabled = false; }, 200);
             });
+        }
+
+        // Listen to resize events (debounced)
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                handleViewportChange();
+                if (window.innerWidth < 992) {
+                    attachSidebarCloseListeners();
+                }
+            }, 250);
         });
-    }
+
+        // Auto-close offcanvas on mobile when a nav link is clicked
+        const sidebarNavLinkHandler = () => {
+            if (window.innerWidth < 992 && typeof bootstrap !== 'undefined') {
+                bootstrap.Offcanvas.getOrCreateInstance(sidebar).hide();
+            }
+        };
+
+        function attachSidebarCloseListeners() {
+            if (!sidebar || typeof bootstrap === 'undefined') {
+                return;
+            }
+            bootstrap.Offcanvas.getOrCreateInstance(sidebar);
+            sidebar.querySelectorAll('.nav-link').forEach(link => {
+                link.removeEventListener('click', sidebarNavLinkHandler);
+                link.addEventListener('click', sidebarNavLinkHandler);
+            });
+        }
+
+        attachSidebarCloseListeners();
+        handleViewportChange();
+    })();
 </script>
+
+{% if request.user.is_authenticated and request.user.is_student %}
+<!-- Activity Heartbeat -->
+<script>
+    (function() {
+        function getCookie(name) {
+            let value = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        value = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return value;
+        }
+
+        function pingActivity() {
+            const csrftoken = getCookie('csrftoken');
+            fetch("{% url 'leaderboard:ping_activity' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => console.log('Activity heartbeat recorded:', data))
+            .catch(err => console.warn('Heartbeat failed:', err));
+        }
+
+        setTimeout(pingActivity, 10000);
+        setInterval(pingActivity, 300000);
+    })();
+</script>
+{% endif %}
 
 {% block extra_js %}{% endblock %}
 </body>

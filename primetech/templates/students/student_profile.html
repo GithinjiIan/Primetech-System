@@ -46,6 +46,64 @@
           <div class="mb-2"><span class="text-muted fw-bold d-inline-block" style="width:80px;">Enrolled:</span> {{ enrollments.count }} Course(s)</div>
         </div>
       </div>
+
+      <!-- Gamification Stats Card -->
+      {% if gamification_profile %}
+      <div class="card border-0 shadow-sm rounded-4 text-center p-4 mt-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h6 class="fw-bold mb-0"> LMS Stats </h6>
+          <span class="badge" style="background-color: {{ gamification_profile.rank_color }}20; color: {{ gamification_profile.rank_color }}; font-weight: 700; font-size: 0.72rem;">
+            {{ gamification_profile.rank_display }}
+          </span>
+        </div>
+        
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <div class="bg-light p-2 rounded-3 text-center">
+              <div class="text-muted small" style="font-size:0.7rem;">Total XP</div>
+              <div class="fw-extrabold text-primary" style="font-size:1.15rem; font-weight:800;">⚡ {{ gamification_profile.total_xp }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="bg-light p-2 rounded-3 text-center">
+              <div class="text-muted small" style="font-size:0.7rem;">Streak</div>
+              <div class="fw-extrabold text-danger" style="font-size:1.15rem; font-weight:800;">🔥 {{ gamification_profile.current_streak }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="bg-light p-2 rounded-3 text-center">
+              <div class="text-muted small" style="font-size:0.7rem;">Max Streak</div>
+              <div class="fw-bold text-dark" style="font-size:0.9rem;">{{ gamification_profile.longest_streak }}d</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="bg-light p-2 rounded-3 text-center">
+              <div class="text-muted small" style="font-size:0.7rem;">Freezes</div>
+              <div class="fw-bold text-info" style="font-size:0.9rem;">❄️ {{ gamification_profile.freeze_count }}</div>
+            </div>
+          </div>
+        </div>
+
+        {% if request.user.user_badges.exists %}
+        <hr>
+        <div class="text-start">
+          <div class="fw-bold small mb-2"><i class="fas fa-award text-warning"></i> Badges Showcase</div>
+          <div class="d-flex flex-wrap gap-2">
+            {% for ub in request.user.user_badges.all|slice:":4" %}
+            <span class="badge d-inline-flex align-items-center gap-1 border py-2 px-2" style="background: {{ ub.badge.icon_color }}10; color: {{ ub.badge.icon_color }}; border-color: {{ ub.badge.icon_color }}20 !important;" title="{{ ub.badge.description }}">
+              <i class="{{ ub.badge.icon }}"></i> {{ ub.badge.name }}
+            </span>
+            {% endfor %}
+          </div>
+          {% if request.user.user_badges.count > 4 %}
+          <div class="text-center mt-2">
+            <a href="{% url 'leaderboard:public_profile' request.user.pk %}" class="small text-decoration-none" style="font-size:0.75rem;">View all badges →</a>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
     </div>
     
     <!-- Right: Edit Form -->

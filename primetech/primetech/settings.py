@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'courses',
     'jazzmin',
     'notifications',
+    'leaderboard',
     'rest_framework',
     'django_bootstrap5',
     'django_ckeditor_5',
@@ -90,6 +91,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'notifications.context_processors.notification_count',
+                'leaderboard.context_processors.gamification_context',
             ],
         },
     },
@@ -157,30 +159,32 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# ── Redis cache configuration ─────────────────────────────────── (for production)
-#CACHES = {
-    #'default': {
-        #'BACKEND': 'django_redis.cache.RedisCache',
-        #'LOCATION': 'redis://127.0.0.1:6379/1',
-        #'OPTIONS': {
-            #'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-       # }
-   # }
-#}   
-
-#=================== Caching — local memory for development, Redis for production
+# ── Redis cache configuration ─────────────────────────────────── (when running redis server locally for development, switch to this in production)
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
     }
-}
+}   
+
+#=================== Caching — local memory for development, Redis is for production
+##'default': {
+        #'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    #}
+#}
+
 #=================== Single SESSION_ENGINE definition (To switch in production)
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 
 # ── Email configuration ─────────────────────────────────────────
 # Console backend for development (prints emails to terminal)
-DEFAULT_FROM_EMAIL = 'PrimeTech Foundation <noreply@primetechfoundation.org>'
+
+
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='')
 
 # ----------------------Gmail SMTP settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -201,6 +205,26 @@ CELERY_TIMEZONE = TIME_ZONE
 # Run Celery tasks synchronously in development (no broker needed)
 CELERY_TASK_ALWAYS_EAGER = config('CELERY_TASK_ALWAYS_EAGER', default=True, cast=bool)
 CELERY_TASK_EAGER_PROPAGATES = True
+
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    'reset_streaks_midnight': {
+        'task': 'leaderboard.reset_streaks_midnight',
+        'schedule': crontab(hour=0, minute=0),
+    },
+    'generate_daily_challenges': {
+        'task': 'leaderboard.generate_daily_challenges',
+        'schedule': crontab(hour=1, minute=0),
+    },
+    'award_top3_leaderboard_badges': {
+        'task': 'leaderboard.award_top3_leaderboard_badges',
+        'schedule': crontab(hour=2, minute=0),
+    },
+    'check_milestone_badges': {
+        'task': 'leaderboard.check_milestone_badges',
+        'schedule': crontab(hour=2, minute=30),
+    },
+}
 
 # ── Default primary key field type ──────────────────────────────
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
