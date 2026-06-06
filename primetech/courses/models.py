@@ -4,6 +4,7 @@ These power the learning experience for students and content management for staf
 """
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 
@@ -12,6 +13,7 @@ class CourseSyllabus(models.Model):
     A rich structured syllabus attached one-to-one with a Course.
     Instructors fill this in via the staff courses_setup page.
     All HTML fields accept CKEditor rich text (images, embeds, tables, etc.).
+    HTML content is sanitised on save via CourseSyllabusForm (server-side bleach/nh3).
     """
     course = models.OneToOneField(
         'website.Course',
@@ -97,7 +99,8 @@ class CourseMaterial(models.Model):
     material_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='text')
     description = models.TextField(blank=True, help_text="Short description visible on the material list")
 
-    # Rich text content (for text-type materials — supports images, embeds, tables)
+    # Rich text content (for text-type materials — supports images, embeds, tables).
+    # HTML is sanitised server-side in CourseMaterialForm before being stored.
     content = models.TextField(
         blank=True,
         help_text="Rich HTML content (CKEditor). Used when material_type is 'text'."
@@ -134,6 +137,12 @@ class CourseMaterial(models.Model):
 
     def __str__(self):
         return f"[{self.get_material_type_display()}] {self.title} — {self.course.title}"
+
+    def delete_file(self):
+        """Delete the associated file from storage if it exists."""
+        if self.file:
+            self.file.delete(save=False)
+            self.file = None
 
 
 class MaterialProgress(models.Model):
@@ -313,6 +322,20 @@ class Grade(models.Model):
 
     def __str__(self):
         return f"{self.submission} — {self.score}/{self.submission.assignment.max_score}"
+
+    def clean(self):
+        """
+        Ensure the score does not exceed the assignment's max_score.
+        Called automatically by full_clean() and by GradeForm.clean_score().
+        """
+        if self.score is not None and self.submission_id:
+            max_score = self.submission.assignment.max_score
+            if self.score < 0:
+                raise ValidationError({'score': 'Score cannot be negative.'})
+            if self.score > max_score:
+                raise ValidationError(
+                    {'score': f'Score ({self.score}) cannot exceed the maximum of {max_score}.'}
+                )
 
     @property
     def percentage(self):

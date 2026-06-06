@@ -36,7 +36,6 @@ def newsletter_signup(request):
 
 
 def home_view(request):
-    """Render the homepage with static content."""
     statistics = Statistic.objects.all()
     testimonials = Testimonial.objects.filter(is_active=True)
     latest_courses = Course.objects.filter(is_active=True).order_by('-created_at')[:3]
@@ -59,7 +58,7 @@ def partnership(request):
     """Render the courses page."""
     return render(request, 'website/partnership.html')
 
-
+"""COURSES PAGE VIEWS"""
 def _build_courses_context(category_slug=None, application_form=None, selected_course_id=None, selected_course_title=None):
     courses = Course.objects.filter(is_active=True).select_related('category')
     if category_slug:

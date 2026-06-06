@@ -18,11 +18,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Student CSS -->
     <link rel="stylesheet" href="{% static 'css/student.css' %}">
+    <!-- Shared theme CSS -->
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
 
-<div class="wrapper d-flex">
+<div class="wrapper d-flex"> 
 
     <!-- ============================================================
          SIDEBAR (Offcanvas on mobile, sticky on desktop)
@@ -208,11 +210,11 @@
                             </div>
                             <div class="card-body p-0">
                                 <div class="list-group list-group-flush">
-                                    {% for note in notifications|slice:":5" %}
+                                    {% for note in notifications|slice:":2" %}
                                     <a href="{% url 'students:notification_detail' note.pk %}" class="list-group-item list-group-item-action px-3 py-2 d-flex justify-content-between align-items-start">
                                         <div class="me-2">
                                             <div class="fw-bold small mb-1">{{ note.title }}</div>
-                                            <div class="small text-muted">{{ note.message|truncatewords:10 }}</div>
+                                            <div class="small text-muted">{{ note.message|truncatewords:5 }}</div>
                                         </div>
                                         <small class="text-muted ms-auto">{{ note.created_at|timesince }} ago</small>
                                     </a>

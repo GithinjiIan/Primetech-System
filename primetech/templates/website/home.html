@@ -307,8 +307,8 @@
         <div class="row g-4">
             <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="100">
                 <div class="text-center">
-                    <div class=" text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
-                         style="width:80px; height:80px;">
+                    <div class=" text-white bg-brand-orange rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width:80px; height:80px ;">
                         <i class="fas fa-search fa-2x"></i>
                     </div>
                     <h5 class="fw-bold">1. Browse Courses</h5>
@@ -364,6 +364,7 @@
         <h2 class="text-center text-brand-orange mb-5 display-6 fw-bold">
             What Our Students Say
         </h2>
+
         <div class="testimonials-slider-wrapper position-relative mx-auto" style="max-width:700px;">
             <div class="testimonials-track d-flex overflow-hidden" id="testimonialsTrack">
                 {% for testimonial in testimonials %}
@@ -394,18 +395,20 @@
                 </div>
                 {% endfor %}
             </div>
-            <button class="testimonial-arrow left position-absolute top-50 start-0 translate-middle-y
-            btn btn-orange rounded-circle d-flex align-items-center justify-content-center"
-            style="width:44px;height:44px;z-index:2;" aria-label="Previous">
-            ‹
-        </button>
-        <button class="testimonial-arrow right position-absolute top-50 end-0 translate-middle-y
-        btn btn-orange rounded-circle d-flex align-items-center justify-content-center"
-        style="width:44px;height:44px;z-index:2;" aria-label="Next">
-        ›
-    </button>
-</div>
-</div>
+                <button class="testimonial-arrow left position-absolute top-50 start-0 translate-middle-y
+                btn btn-orange rounded-circle d-flex align-items-center justify-content-center"
+                style="width:44px;height:44px;z-index:2;" aria-label="Previous"
+                >
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="testimonial-arrow right position-absolute top-50 end-0 translate-middle-y
+                btn btn-orange rounded-circle d-flex align-items-center justify-content-center"
+                style="width:44px;height:44px;z-index:2;" aria-label="Next"
+                >
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+        </div>
+    </div>
 </section>
 
 <!-- ========== NEW: Newsletter Signup ========== -->

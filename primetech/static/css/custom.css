@@ -1,32 +1,52 @@
 /* static/css/custom.css — Brand overrides for Bootstrap 5 */
 
-/* ========== CSS VARIABLES 
-:root {
-    --brand-dark: #191224;
-    --brand-orange: #F7941D;
-    --brand-light: #ffffff;
-    --brand-gray: #8892b0;
-    --transition-speed: 0.3s;
-}
-===========*/
 :root {
     --brand-dark: #020617;        /* Deeper Navy */
     --brand-navy: #0f172a;        /* Primary Navy */
     --brand-accent: #0ea5e9;      /* Sky Blue Accent */
+    --brand-orange: #f7941d;      /* Warm orange accent */
     --brand-light: #f8fafc;       
     --brand-gray: #cbd5e1;        
     --transition-speed: 0.3s;
-    
-    /* Legacy aliases to avoid breaking existing classes */
-    --brand-orange: var(--brand-accent); 
 }
 
 /* ========== GLOBAL ========== */
 body {
-    background-color: var(--brand-light);
+    background: radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 24%),
+                radial-gradient(circle at bottom right, rgba(247, 148, 29, 0.10), transparent 26%),
+                var(--brand-light);
     color: var(--brand-navy);
     font-family: 'Open Sans', sans-serif;
     overflow-x: hidden;
+}
+
+body, .staff-main, .main-content {
+    background-color: var(--brand-light);
+}
+
+.sidebar,
+.staff-sidebar {
+    background: linear-gradient(175deg, var(--brand-dark) 0%, rgba(15, 23, 42, 0.95) 55%, rgba(14, 165, 233, 0.1) 100%);
+}
+
+.top-navbar {
+    background: linear-gradient(135deg, var(--brand-accent), var(--brand-navy));
+}
+
+.auth-card,
+.form-card,
+.auth-container,
+.auth-wrapper {
+    box-shadow: 0 24px 60px rgba(2, 10, 27, 0.12);
+}
+
+.auth-card {
+    border-radius: 24px;
+}
+
+.hero-card,
+.card {
+    border-radius: 18px;
 }
 
 main {
@@ -57,6 +77,22 @@ h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display
   min-height: 80vh;           /* desktop height */
   background-size: cover;
   background-position: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero-slide::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(14, 165, 233, 0.18), transparent 22%),
+              radial-gradient(circle at 85% 25%, rgba(247, 148, 29, 0.14), transparent 18%),
+              linear-gradient(180deg, rgba(2, 6, 23, 0.65), rgba(2, 6, 23, 0.88));
+  pointer-events: none;
+  z-index: 1;
+}
+.hero-slide > .container {
+  position: relative;
+  z-index: 2;
 }
 
 /* Mobile adjustment */
@@ -140,21 +176,83 @@ h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display
 .bg-brand-dark {
     background-color: var(--brand-dark);
 }
-.footer-link {
+.footer-bg {
+    background: radial-gradient(circle at top left, rgba(14, 165, 233, 0.15), transparent 25%),
+                radial-gradient(circle at bottom right, rgba(247, 148, 29, 0.12), transparent 28%),
+                linear-gradient(180deg, rgba(6, 12, 34, 0.98) 0%, rgba(5, 12, 31, 0.95) 100%);
+}
+.footer-title {
+    font-size: 1rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #fff;
+    margin-bottom: 1rem;
+    position: relative;
+}
+.footer-title::after {
+    content: '';
+    display: block;
+    width: 45px;
+    height: 3px;
+    background: var(--brand-orange);
+    margin-top: 0.75rem;
+    border-radius: 2px;
+}
+.footer-link,
+.footer-link-text {
     color: #ccc;
     text-decoration: none;
-    transition: color var(--transition-speed);
+    transition: color var(--transition-speed), transform var(--transition-speed);
 }
-.footer-link:hover {
+.footer-link:hover,
+.footer-link-text:hover {
+    color: var(--brand-orange);
+    transform: translateX(2px);
+}
+.footer-feature-list li,
+.footer-link-list li {
+    margin-bottom: 0.75rem;
+    color: #d2d8e4;
+}
+.footer-feature-list li::before {
+    content: '\2022';
+    color: var(--brand-orange);
+    display: inline-block;
+    width: 1rem;
+    margin-right: 0.5rem;
+}
+.footer-links-grid li {
+    margin-bottom: 0.75rem;
+}
+.footer-newsletter-form .form-control {
+    min-height: 44px;
+    border-radius: 999px;
+    padding-right: 1rem;
+}
+.footer-newsletter-form .btn {
+    border-radius: 999px;
+    min-width: 90px;
+}
+.footer-contact a {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+.footer-bottom {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+.footer-meta a {
+    color: #9aa7c1;
+}
+.footer-meta a:hover {
     color: var(--brand-orange);
 }
 .social-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    background-color: var(--brand-dark);
+    width: 42px;
+    height: 42px;
+    background-color: rgba(255, 255, 255, 0.08);
     color: #fff;
     border-radius: 50%;
     text-decoration: none;
@@ -163,19 +261,21 @@ h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display
 .social-icon:hover {
     background-color: var(--brand-orange);
     color: #fff;
-    transform: scale(1.1);
+    transform: translateY(-2px) scale(1.05);
+}
+@media (max-width: 767px) {
+    .footer-bottom {
+        text-align: center;
+    }
+    .footer-meta {
+        justify-content: center;
+    }
 }
 
 /* ========== HERO SECTIONS ========== */
 .courses-hero {
-    background: linear-gradient(
-        90deg,
-        rgba(2, 6, 23, 0.95) 0%,
-        rgba(2, 6, 23, 0.75) 35%,
-        rgba(2, 6, 23, 0.3) 70%,
-        rgba(2, 6, 23, 0) 100%
-        ),
-    url('../img/img 5.png') center right / cover no-repeat;
+    background: linear-gradient(115deg, rgba(2, 6, 23, 0.95), rgba(0, 162, 255, 0.08)),
+                url('../img/img 5.png') center right / cover no-repeat;
     min-height: 75vh;
     padding: 180px 0 100px;
     position: relative;
@@ -184,11 +284,8 @@ h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(
-        circle at 30% 50%,
-        rgba(247, 148, 29, 0.08) 0%,
-        transparent 60%
-    );
+    background: radial-gradient(circle at 20% 30%, rgba(14, 165, 233, 0.16), transparent 24%),
+                radial-gradient(circle at 85% 40%, rgba(247, 148, 29, 0.12), transparent 22%);
     pointer-events: none;
 }
 .hero-heading-typewriter {
@@ -314,7 +411,7 @@ h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
-    .courses-hero {
+    .courses-hero  {
         min-height: 50vh;
         padding: 140px 0 60px;
         background-position: center;

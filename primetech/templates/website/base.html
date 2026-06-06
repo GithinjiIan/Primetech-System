@@ -36,11 +36,11 @@
 
 <style>
     .footer-bg {
-        background: radial-gradient(circle at 30% 40%, rgba(0, 162, 255, 0.82) 0%, transparent 50%),
+        background: radial-gradient(circle at 30% 40%, rgba(0, 162, 255, 0.82) 10%, transparent 50%),
                     var(--brand-dark);
     }
     .footer-bg2 {
-        background: radial-gradient(circle at 70% 60%, rgba(0, 162, 255, 0.82) 0%, transparent 50%),
+        background: radial-gradient(circle at 70% 60%, rgba(0, 162, 255, 0.82) 10%, transparent 50%),
                     var(--brand-dark);
     }
 </style>
@@ -110,48 +110,70 @@
 </main>
 
 <!-- ========== FOOTER ========== -->
-<footer class="bg-brand-dark footer-bg text-white pt-5 pb-0">
+<footer class="bg-brand-dark footer-bg text-white pt-5 pb-4">
     <div class="container py-5">
-        <div class="row g-4">
-            <div class="col-lg-4">
-                <h3 class="h5 text-white mb-3">About PrimeTech Foundation</h3>
-                <p class="text-white-50">
+        <div class="row gy-5 gx-4">
+            <div class="col-md-6 col-lg-3">
+                <h3 class="footer-title">About PrimeTech</h3>
+                <p class="text-white-50 mb-4">
                     {% block footer_about %}
-                    To empower youth in underserved areas with digital skills,
-                    fostering self-employment and reducing unemployment.
+                    Empowering underserved youth with free tech skills, practical projects,
+                    and career pathways that bridge learning to livelihood.
                     {% endblock %}
                 </p>
-            </div>
-            <div class="col-lg-4">
-                <h3 class="h5 text-white mb-3">Quick Links</h3>
-                <ul class="list-unstyled">
-                    <li><a href="{% url 'about' %}" class="footer-link">More About Us</a></li>
-                    <li><a href="{% url 'partnership' %}" class="footer-link">Partner With Us</a></li>
-                    <li><a href="{% url 'courses' %}" class="footer-link">Our Courses</a></li>
-                    <li><a href="#" class="footer-link">Join Us Today</a></li>
+                <ul class="footer-feature-list list-unstyled">
+                    <li>Free digital skills training</li>
+                    <li>Mentorship from industry professionals</li>
+                    <li>Project-based learning for employability</li>
                 </ul>
             </div>
-            <div class="col-lg-4">
-                <h3 class="h5 text-white mb-3">Contact Us Today</h3>
-                <p>
-                    <a href="mailto:info@primetechfoundation.org" class="footer-link">
-                        info@primetechfoundation.org
-                    </a>
-                </p>
-                <p>
-                    <a href="tel:+254794206054" class="footer-link">+254 794 206054</a>
-                </p>
+            <div class="col-md-6 col-lg-3">
+                <h3 class="footer-title">Platform Highlights</h3>
+                <ul class="footer-link-list list-unstyled">
+                    <li><span class="footer-link-text">Hands-on courses</span></li>
+                    <li><span class="footer-link-text">Career support</span></li>
+                    <li><span class="footer-link-text">Community learning</span></li>
+                    <li><span class="footer-link-text">Industry partnerships</span></li>
+                </ul>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <h3 class="footer-title">Quick Links</h3>
+                <ul class="list-unstyled footer-links-grid">
+                    <li><a href="{% url 'about' %}" class="footer-link">About Us</a></li>
+                    <li><a href="{% url 'courses' %}" class="footer-link">Courses</a></li>
+                    <li><a href="{% url 'partnership' %}" class="footer-link">Partnerships</a></li>
+                    <li><a href="{% url 'contact' %}" class="footer-link">Reach Out</a></li>
+                </ul>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <h3 class="footer-title">Stay Connected</h3>
+                <p class="text-white-50 mb-3">Subscribe for news on new courses, events, and impact stories.</p>
+                <form method="post" action="{% url 'newsletter_signup' %}" class="footer-newsletter-form">
+                    {% csrf_token %}
+                    <div class="input-group mb-3">
+                        <input type="email" name="email" class="form-control form-control-sm rounded-pill" placeholder="Email address" required>
+                        <button class="btn btn-orange rounded-pill px-3" type="submit">Join</button>
+                    </div>
+                </form>
+                <div class="footer-contact">
+                    <a href="mailto:info@primetechfoundation.org" class="footer-link d-block">info@primetechfoundation.org</a>
+                    <a href="tel:+254794206054" class="footer-link d-block">+254 794 206054</a>
+                </div>
                 <div class="social-icons d-flex gap-3 mt-3">
-                    <a href="#" class="social-icon" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="social-icon" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
                     <a href="#" class="social-icon" aria-label="X"><i class="fab fa-x-twitter"></i></a>
-                    <a href="#" class="social-icon" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    <a href="#" class="social-icon" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
                     <a href="#" class="social-icon" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="social-icon" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
                 </div>
             </div>
         </div>
-        <div class="border-top border-white-10 text-center py-3 mt-4">
+        <div class="footer-bottom border-top border-white-10 mt-5 pt-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
             <p class="text-white-50 small mb-0">©2026 PrimeTech Foundation. All rights reserved.</p>
+            <div class="footer-meta d-flex flex-wrap gap-3 small text-white-50">
+                <a href="#" class="footer-link">Privacy Policy</a>
+                <a href="#" class="footer-link">Terms of Use</a>
+                <a href="#" class="footer-link">Accessibility</a>
+            </div>
         </div>
     </div>
 </footer>

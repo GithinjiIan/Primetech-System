@@ -72,64 +72,51 @@ document.addEventListener('DOMContentLoaded', animateCounters);
 
 // ===== Testimonials Slider =====
 const track = document.getElementById('testimonialsTrack');
-const slides = track.querySelectorAll('.testimonial-slide');
-const leftArrow = document.querySelector('.testimonial-arrow.left');
-const rightArrow = document.querySelector('.testimonial-arrow.right');
-let currentSlide = 0;
-let autoSlideInterval;
-let isPaused = false;
+if (track) {
+    const slides = track.querySelectorAll('.testimonial-slide');
+    const testimonialsSection = track.closest('section');
+    const leftArrow = document.querySelector('.testimonial-arrow.left');
+    const rightArrow = document.querySelector('.testimonial-arrow.right');
+    let currentSlide = 0;
+    let autoSlideInterval;
+    let isPaused = false;
 
-function showSlide(index) {
-    if (slides.length === 0) return;
-    currentSlide = (index + slides.length) % slides.length;
-    track.style.transform = `translateX(-${currentSlide * 100}%)`;
-}
+    function showSlide(index) {
+        if (slides.length === 0) return;
+        currentSlide = (index + slides.length) % slides.length;
+        track.style.transform = `translateX(-${currentSlide * 100}%)`;
+    }
 
-function nextSlide() { showSlide(currentSlide + 1); }
-function prevSlide() { showSlide(currentSlide - 1); }
+    function nextSlide() { showSlide(currentSlide + 1); }
+    function prevSlide() { showSlide(currentSlide - 1); }
 
-if (leftArrow && rightArrow && slides.length > 1) {
-    rightArrow.addEventListener('click', nextSlide);
-    leftArrow.addEventListener('click', prevSlide);
+    // Check if there are actual testimonials (exclude empty state message)
+    const actualTestimonials = Array.from(slides).filter(slide => !slide.textContent.includes('Testimonials coming soon'));
 
-    track.addEventListener('mouseenter', () => { isPaused = true; });
-    track.addEventListener('mouseleave', () => { isPaused = false; });
+    if (actualTestimonials.length === 0) {
+        // Hide section if no testimonials
+        if (testimonialsSection) {
+            testimonialsSection.style.display = 'none';
+        }
+        if (leftArrow) leftArrow.style.display = 'none';
+        if (rightArrow) rightArrow.style.display = 'none';
+    } else if (actualTestimonials.length > 1 && leftArrow && rightArrow) {
+        // Only enable navigation if more than 1 testimonial
+        rightArrow.addEventListener('click', nextSlide);
+        leftArrow.addEventListener('click', prevSlide);
 
-    autoSlideInterval = setInterval(() => {
-        if (!isPaused) nextSlide();
-    }, 4000);
+        track.addEventListener('mouseenter', () => { isPaused = true; });
+        track.addEventListener('mouseleave', () => { isPaused = false; });
 
-    showSlide(0);
-}
+        autoSlideInterval = setInterval(() => {
+            if (!isPaused) nextSlide();
+        }, 4000);
 
-// ===== Testimonials Slider =====
-const track = document.getElementById('testimonialsTrack');
-const slides = track.querySelectorAll('.testimonial-slide');
-const leftArrow = document.querySelector('.testimonial-arrow.left');
-const rightArrow = document.querySelector('.testimonial-arrow.right');
-let currentSlide = 0;
-let autoSlideInterval;
-let isPaused = false;
-
-function showSlide(index) {
-    if (slides.length === 0) return;
-    currentSlide = (index + slides.length) % slides.length;
-    track.style.transform = `translateX(-${currentSlide * 100}%)`;
-}
-
-function nextSlide() { showSlide(currentSlide + 1); }
-function prevSlide() { showSlide(currentSlide - 1); }
-
-if (leftArrow && rightArrow && slides.length > 1) {
-    rightArrow.addEventListener('click', nextSlide);
-    leftArrow.addEventListener('click', prevSlide);
-
-    track.addEventListener('mouseenter', () => { isPaused = true; });
-    track.addEventListener('mouseleave', () => { isPaused = false; });
-
-    autoSlideInterval = setInterval(() => {
-        if (!isPaused) nextSlide();
-    }, 4000);
-
-    showSlide(0);
+        showSlide(0);
+    } else if (actualTestimonials.length === 1) {
+        // Hide buttons if only 1 testimonial
+        if (leftArrow) leftArrow.style.display = 'none';
+        if (rightArrow) rightArrow.style.display = 'none';
+        showSlide(0);
+    }
 }

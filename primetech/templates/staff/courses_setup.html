@@ -114,7 +114,6 @@
 }
 
 /* ── Material type field toggles ────────────────────────── */
-#contentField-wrapper,
 #fileField-wrapper,
 #urlField-wrapper { display: none; }
 
@@ -158,7 +157,7 @@
   <div class="col-lg-3 sidebar-course-panel">
     <div class="card">
       <div class="card-header d-flex align-items-center gap-2">
-        <i class="fas fa-book-open text-accent"></i> My Enrolled Courses
+        <i class="fas fa-book-open text-accent"></i> Assigned Courses
       </div>
       <div class="list-group list-group-flush px-2 pb-3 pt-2">
         {% for course in allocated_courses %}
@@ -213,15 +212,17 @@
         {% for mat in materials %}
         <div class="mat-card">
           <div class="d-flex align-items-start gap-3">
+
             <!-- Icon -->
             <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-xl"
-                 style="width:42px;height:42px;background:var(--brand-accent-soft, #ede9fe);">
+                 style="width:42px;height:42px;background:var(--brand-accent-soft, #dcd5f8);">
               {% if mat.material_type == 'video' %}<i class="fas fa-play-circle text-accent"></i>
               {% elif mat.material_type == 'pdf' %}<i class="fas fa-file-pdf" style="color:#991b1b;"></i>
               {% elif mat.material_type == 'file' %}<i class="fas fa-file-arrow-down" style="color:#065f46;"></i>
               {% elif mat.material_type == 'link' %}<i class="fas fa-link" style="color:#5b21b6;"></i>
               {% else %}<i class="fas fa-file-lines" style="color:#1d4ed8;"></i>{% endif %}
             </div>
+
             <!-- Info -->
             <div class="flex-grow-1 min-width-0">
               <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
@@ -234,11 +235,11 @@
               <p class="text-muted mb-0" style="font-size:.8rem;">{{ mat.description }}</p>
               {% endif %}
             </div>
+            
             <div class="flex-shrink-0 d-flex gap-2">
-              <button type="button" class="btn btn-sm btn-outline-secondary edit-material-btn"
-                      data-material-id="{{ mat.pk }}">
+              <a href="?course_id={{ selected_course.pk }}&edit_material_id={{ mat.pk }}&tab=materials" class="btn btn-sm btn-outline-secondary">
                 <i class="fas fa-edit"></i>
-              </button>
+              </a>
               <form method="post" onsubmit="return confirm('Delete this material?')">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete_material">
@@ -372,6 +373,7 @@
       <div class="modal-body">
         <form method="post" enctype="multipart/form-data" id="materialForm">
           {% csrf_token %}
+          <input type="hidden" id="courseId" name="course_id" value="{{ selected_course.pk }}">
           <input type="hidden" id="materialAction" name="action" value="{{ material_action|default:'add_material' }}">
           <input type="hidden" id="materialId" name="material_id" value="{{ material_id|default:'' }}">
           <div class="row g-3">
@@ -415,7 +417,6 @@
               </label>
               {{ form.description }}
             </div>
-
             <!-- Rich text notes (text type) -->
             <div class="col-12" id="contentField-wrapper">
               <label class="form-label fw-semibold">
@@ -516,12 +517,10 @@ const CK_CONFIG = {
   image: {
     toolbar: ['imageStyle:inline', 'imageStyle:block', 'imageStyle:side', '|', 'toggleImageCaption', 'imageTextAlternative'],
     upload: {
-      // CKFinder / SimpleUploadAdapter endpoint (django-ckeditor default)
       types: ['jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'svg+xml']
     }
   },
   simpleUpload: {
-    // Adjust this URL to your project's image upload endpoint.
     uploadUrl: '/ckeditor5/image_upload/',
     withCredentials: true,
     headers: {
@@ -569,16 +568,8 @@ function getCookie(name) {
   return v ? v[2] : null;
 }
 
-// ── Initialise all CKEditor instances ────────────────────────────
-// Material content editor (inside modal)
-let materialEditor = null;
-ClassicEditor
-  .create(document.querySelector('#materialContentEditor'), CK_CONFIG)
-  .then(editor => { materialEditor = editor; })
-  .catch(console.error);
-
-// Syllabus section editors (only when a course is selected)
-const syllabusFields = [
+const CK_EDITOR_IDS = [
+  'materialContentEditor',
   'syllabusInstructorIntro',
   'syllabusLearningOutcomes',
   'syllabusCourseRelevance',
@@ -587,18 +578,43 @@ const syllabusFields = [
   'syllabusFinalProject',
   'syllabusCertification',
 ];
-syllabusFields.forEach(id => {
-  const el = document.getElementById(id);
-  if (el) {
-    ClassicEditor.create(el, CK_CONFIG).catch(console.error);
-  }
-});
+const editorInstances = {};
 
-// ── Material type field toggle ────────────────────────────────────
+function initCKEditor(editorId) {
+  const element = document.getElementById(editorId);
+  if (!element) return;
+  ClassicEditor
+    .create(element, CK_CONFIG)
+    .then(editor => { editorInstances[editorId] = editor; })
+    .catch(error => { console.error(`CKEditor init failed for ${editorId}`, error); });
+}
+
+function getEditorData(editorId) {
+  return editorInstances[editorId]?.getData?.() ?? '';
+}
+
+function setEditorData(editorId, data) {
+  if (editorInstances[editorId]?.setData) {
+    editorInstances[editorId].setData(data);
+  }
+}
+
+CK_EDITOR_IDS.forEach(initCKEditor);
+
 const typeSelect = document.getElementById('materialTypeSelect');
 const contentWrapper = document.getElementById('contentField-wrapper');
-const fileWrapper    = document.getElementById('fileField-wrapper');
-const urlWrapper     = document.getElementById('urlField-wrapper');
+const fileWrapper = document.getElementById('fileField-wrapper');
+const urlWrapper = document.getElementById('urlField-wrapper');
+const urlInput = document.getElementById('id_url');
+const videoFeedback = document.getElementById('videoUrlFeedback');
+const videoPreviewWrapper = document.getElementById('videoPreviewWrapper');
+const videoPreviewIframe = document.getElementById('videoPreviewIframe');
+const materialForm = document.getElementById('materialForm');
+
+function setVisible(element, visible) {
+  if (!element) return;
+  element.style.display = visible ? 'block' : 'none';
+}
 
 function buildVideoEmbedUrl(url) {
   if (!url) return null;
@@ -614,79 +630,95 @@ function buildVideoEmbedUrl(url) {
   return null;
 }
 
-function updateFields() {
-  const val = typeSelect ? typeSelect.value : '';
-  contentWrapper.style.display = val === 'text'                    ? 'block' : 'none';
-  fileWrapper.style.display    = (val === 'pdf' || val === 'file') ? 'block' : 'none';
-  urlWrapper.style.display     = (val === 'video' || val === 'link')? 'block' : 'none';
-  updateVideoPreview();
+function showMaterialFeedback(message) {
+  if (!videoFeedback) return;
+  videoFeedback.style.display = message ? 'block' : 'none';
+  videoFeedback.textContent = message || '';
 }
+
+function updateFields() {
+  const val = typeSelect?.value || '';
+  setVisible(contentWrapper, val === 'text');
+  setVisible(fileWrapper, val === 'pdf' || val === 'file');
+  setVisible(urlWrapper, val === 'video' || val === 'link');
+  if (val !== 'video') {
+    videoPreviewWrapper.style.display = 'none';
+  }
+  showMaterialFeedback('');
+}
+
 if (typeSelect) {
   typeSelect.addEventListener('change', updateFields);
   updateFields();
 }
 
-const urlInput = document.getElementById('id_url');
-const videoFeedback = document.getElementById('videoUrlFeedback');
-const videoPreviewWrapper = document.getElementById('videoPreviewWrapper');
-const videoPreviewIframe = document.getElementById('videoPreviewIframe');
-const materialForm = document.getElementById('materialForm');
-
-function showVideoFeedback(message) {
-  if (!videoFeedback) return;
-  if (message) {
-    videoFeedback.style.display = 'block';
-    videoFeedback.textContent = message;
-  } else {
-    videoFeedback.style.display = 'none';
-    videoFeedback.textContent = '';
+function validateMaterialForm(event) {
+  const type = typeSelect?.value || '';
+  if (type === 'text') {
+    const content = getEditorData('materialContentEditor').trim();
+    if (!content) {
+      showMaterialFeedback('Please enter content for course notes.');
+      event.preventDefault();
+      return false;
+    }
   }
+
+  if (type === 'video' || type === 'link') {
+    const urlValue = urlInput?.value.trim() || '';
+    if (!urlValue) {
+      showMaterialFeedback('Please enter a URL for this material type.');
+      urlInput?.classList.add('is-invalid-custom');
+      event.preventDefault();
+      return false;
+    }
+    if (type === 'video' && !buildVideoEmbedUrl(urlValue)) {
+      showMaterialFeedback('Please enter a valid YouTube or Vimeo URL.');
+      urlInput?.classList.add('is-invalid-custom');
+      event.preventDefault();
+      return false;
+    }
+  }
+
+  urlInput?.classList.remove('is-invalid-custom');
+  showMaterialFeedback('');
+  return true;
 }
 
 function updateVideoPreview() {
   if (!urlInput || !videoPreviewWrapper || !videoPreviewIframe) return;
-  const type = typeSelect ? typeSelect.value : '';
+  const type = typeSelect?.value || '';
   if (type !== 'video') {
-    videoPreviewWrapper.style.display = 'none';
-    showVideoFeedback('');
+    videoPreviewIframe.src = 'about:blank';
+    setVisible(videoPreviewWrapper, false);
+    showMaterialFeedback('');
     return;
   }
+
   const embedUrl = buildVideoEmbedUrl(urlInput.value);
   if (embedUrl) {
-    videoPreviewWrapper.style.display = 'block';
     videoPreviewIframe.src = embedUrl;
-    showVideoFeedback('');
+    setVisible(videoPreviewWrapper, true);
+    showMaterialFeedback('');
   } else if (urlInput.value.trim().length) {
-    videoPreviewWrapper.style.display = 'none';
-    showVideoFeedback('Enter a valid YouTube or Vimeo URL to preview the video.');
+    videoPreviewIframe.src = 'about:blank';
+    setVisible(videoPreviewWrapper, false);
+    showMaterialFeedback('Enter a valid YouTube or Vimeo URL to preview the video.');
   } else {
-    videoPreviewWrapper.style.display = 'none';
-    showVideoFeedback('');
+    videoPreviewIframe.src = 'about:blank';
+    setVisible(videoPreviewWrapper, false);
+    showMaterialFeedback('');
   }
 }
 
 if (urlInput) {
-  urlInput.addEventListener('input', updateVideoPreview);
+  urlInput.addEventListener('input', () => {
+    urlInput.classList.remove('is-invalid-custom');
+    updateVideoPreview();
+  });
 }
 
 if (materialForm) {
-  materialForm.addEventListener('submit', event => {
-    const type = typeSelect ? typeSelect.value : '';
-    if (type === 'video' || type === 'link') {
-      const urlValue = urlInput ? urlInput.value.trim() : '';
-      if (!urlValue) {
-        showVideoFeedback('Please enter a URL for this material type.');
-        event.preventDefault();
-        return;
-      }
-      if (type === 'video' && !buildVideoEmbedUrl(urlValue)) {
-        showVideoFeedback('Please enter a valid YouTube or Vimeo URL.');
-        event.preventDefault();
-        return;
-      }
-    }
-    showVideoFeedback('');
-  });
+  materialForm.addEventListener('submit', validateMaterialForm);
 }
 
 // ── Tab switching ─────────────────────────────────────────────────
@@ -702,10 +734,6 @@ document.querySelectorAll('[data-tab]').forEach(btn => {
   });
 });
 
-// ── Client-side edit / populate for materials ─────────────────────
-{{ materials_json|json_script:"materials-data" }}
-const materialsData = JSON.parse(document.getElementById('materials-data').textContent || '[]');
-
 function clearMaterialErrors() {
   const errorBox = document.getElementById('materialFormErrors');
   if (errorBox) {
@@ -715,63 +743,33 @@ function clearMaterialErrors() {
     videoFeedback.style.display = 'none';
     videoFeedback.textContent = '';
   }
-}
-
-function openEditMaterial(matId) {
-  const mat = materialsData.find(m => String(m.id) === String(matId));
-  if (!mat) return;
-  clearMaterialErrors();
-  document.getElementById('materialAction').value = 'edit_material';
-  document.getElementById('materialId').value = mat.id;
-  const form = document.getElementById('materialForm');
-  if (form.elements['title']) form.elements['title'].value = mat.title || '';
-  if (form.elements['description']) form.elements['description'].value = mat.description || '';
-  if (form.elements['material_type']) form.elements['material_type'].value = mat.material_type || '';
-  if (form.elements['url']) form.elements['url'].value = mat.url || '';
-  if (form.elements['order']) form.elements['order'].value = mat.order || 0;
-  if (form.elements['is_published']) form.elements['is_published'].checked = !!mat.is_published;
-  if (materialEditor) materialEditor.setData(mat.content || '');
-  updateFields();
-
-  const currentFileNote = document.getElementById('currentFileNote');
-  if (mat.file_url) {
-    currentFileNote.style.display = 'block';
-    currentFileNote.textContent = 'Current file: ';
-    const link = document.createElement('a');
-    link.href = mat.file_url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.textContent = 'Download';
-    currentFileNote.appendChild(link);
-  } else {
-    currentFileNote.style.display = 'none';
+  if (urlInput) {
+    urlInput.classList.remove('is-invalid-custom');
   }
-
-  document.getElementById('materialModalTitle').innerText = 'Edit Course Material';
-  const modalEl = document.getElementById('addMaterialModal');
-  const modal = new bootstrap.Modal(modalEl);
-  modal.show();
 }
-
-document.querySelectorAll('.edit-material-btn').forEach(btn => {
-  btn.addEventListener('click', () => openEditMaterial(btn.dataset.materialId));
-});
 
 document.getElementById('addMaterialBtn')?.addEventListener('click', () => {
   const form = document.getElementById('materialForm');
+  const courseIdField = document.getElementById('courseId');
+  const courseIdValue = courseIdField?.value || '';
   form.reset();
+  if (courseIdField) {
+    courseIdField.value = courseIdValue;
+  }
   document.getElementById('materialAction').value = 'add_material';
   document.getElementById('materialId').value = '';
   clearMaterialErrors();
-  if (materialEditor) materialEditor.setData('');
+  setEditorData('materialContentEditor', '');
   const currentFileNote = document.getElementById('currentFileNote');
   if (currentFileNote) currentFileNote.style.display = 'none';
   document.getElementById('materialModalTitle').innerText = 'Add Course Material';
   updateFields();
 });
 
-{% if form.errors and active_tab == 'materials' %}
-document.addEventListener('DOMContentLoaded', () => {
+const showMaterialModal = {{ show_material_modal|yesno:'true,false' }};
+
+if (showMaterialModal) {
+  document.addEventListener('DOMContentLoaded', () => {
   const modalEl = document.getElementById('addMaterialModal');
   if (modalEl) {
     const currentFileUrl = '{{ current_file_url|default:''|escapejs }}';
@@ -784,6 +782,6 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.show();
   }
 });
-{% endif %}
+}
 </script>
 {% endblock %}

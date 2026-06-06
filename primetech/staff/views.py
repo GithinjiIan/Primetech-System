@@ -1,16 +1,13 @@
 """
 Staff views: course content management, sessions, assignments, grading, notifications.
 """
-import json
 import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Count, Q
-
 from website.models import Course, Enrollment
 from accounts.decorators import staff_required
 from notifications.models import Notification
-from django.core.serializers.json import DjangoJSONEncoder
 from courses.models import CourseMaterial, CourseSyllabus, ClassSession, Assignment, Submission, Grade
 from courses.forms import (
     CourseMaterialForm, CourseSyllabusForm, ClassSessionForm, AssignmentForm,
@@ -20,7 +17,7 @@ from courses.forms import (
 logger = logging.getLogger(__name__)
 
 
-# ── Dashboard ────────────────────────────────────────────────────
+# ── Dashboard ─────────────────────────────────────────────────────────────────
 @staff_required
 def staff_dashboard(request):
     """Staff/instructor dashboard: assigned courses, students, recent submissions."""
@@ -51,7 +48,7 @@ def staff_dashboard(request):
     })
 
 
-# ── Course Allocation ─────────────────────────────────────────────
+# ── Course Allocation ─────────────────────────────────────────────────────────
 @staff_required
 def course_allocation(request):
     allocated_courses = Course.objects.filter(
@@ -60,7 +57,7 @@ def course_allocation(request):
     return render(request, 'staff/course_allocation.html', {'allocated_courses': allocated_courses})
 
 
-# ── Students Roll Call ────────────────────────────────────────────
+# ── Students Roll Call ────────────────────────────────────────────────────────
 @staff_required
 def students_rollcall(request):
     allocated_courses = Course.objects.filter(
@@ -71,7 +68,7 @@ def students_rollcall(request):
     return render(request, 'staff/students_rollcall.html', {'allocated_courses': allocated_courses})
 
 
-# ── Course Content (Materials + Syllabus) ─────────────────────────
+# ── Course Content (Materials + Syllabus) ─────────────────────────────────────
 @staff_required
 def courses_setup(request):
     """
@@ -79,39 +76,32 @@ def courses_setup(request):
 
     POST actions recognised:
       add_material    – create a new CourseMaterial
+      edit_material   – update an existing CourseMaterial
       delete_material – delete an existing CourseMaterial
       save_syllabus   – create or update the CourseSyllabus
     """
     allocated_courses = Course.objects.filter(assigned_instructor=request.user, is_active=True)
     selected_course = None
     materials = []
-    materials_json = '[]'
     material_form = CourseMaterialForm()
     syllabus_form = CourseSyllabusForm()
     syllabus = None
-    active_tab = 'materials'   # default tab shown after any redirect
+    active_tab = 'materials'    # default tab shown after any redirect
 
+    # Context hints used to restore modal state after a failed edit
     material_action = 'add_material'
     material_id = ''
     current_file_url = ''
+    show_material_modal = False
+
     course_id = request.GET.get('course_id') or request.POST.get('course_id')
     if course_id:
         selected_course = get_object_or_404(Course, pk=course_id, assigned_instructor=request.user)
-        materials = CourseMaterial.objects.filter(course=selected_course).order_by('order')
-        materials_json = json.dumps([
-            {
-                'id': mat.pk,
-                'title': mat.title,
-                'description': mat.description,
-                'material_type': mat.material_type,
-                'content': mat.content,
-                'url': mat.url,
-                'order': mat.order,
-                'is_published': mat.is_published,
-                'file_url': mat.file.url if mat.file else '',
-            }
-            for mat in materials
-        ], cls=DjangoJSONEncoder)
+
+        # FIX #14: select_related on created_by avoids N+1 queries in template
+        materials = CourseMaterial.objects.filter(
+            course=selected_course
+        ).select_related('created_by').order_by('order')
 
         # Try to load existing syllabus (may not exist yet)
         try:
@@ -121,10 +111,20 @@ def courses_setup(request):
 
         syllabus_form = CourseSyllabusForm(instance=syllabus)
 
+        edit_material_id = request.GET.get('edit_material_id')
+        if request.method == 'GET' and edit_material_id:
+            material_action = 'edit_material'
+            material_id = edit_material_id
+            existing = get_object_or_404(CourseMaterial, pk=material_id, course=selected_course)
+            material_form = CourseMaterialForm(instance=existing)
+            current_file_url = existing.file.url if existing.file else ''
+            active_tab = 'materials'
+            show_material_modal = True
+
         if request.method == 'POST':
             action = request.POST.get('action')
 
-            # ── Add material ─────────────────────────────────────
+            # ── Add material ──────────────────────────────────────────────
             if action == 'add_material':
                 material_form = CourseMaterialForm(request.POST, request.FILES)
                 if material_form.is_valid():
@@ -136,35 +136,57 @@ def courses_setup(request):
                     return redirect(f'{request.path}?course_id={selected_course.pk}&tab=materials')
                 else:
                     active_tab = 'materials'
+                    show_material_modal = True
 
-            # ── Delete material ──────────────────────────────────
-            elif action == 'delete_material':
-                mat_id = request.POST.get('material_id')
-                mat = get_object_or_404(CourseMaterial, pk=mat_id, course=selected_course)
-                mat.delete()
-                messages.success(request, 'Material deleted.')
-                return redirect(f'{request.path}?course_id={selected_course.pk}&tab=materials')
-
-            # ── Edit material ────────────────────────────────────
+            # ── Edit material ─────────────────────────────────────────────
             elif action == 'edit_material':
                 material_action = 'edit_material'
                 material_id = request.POST.get('material_id', '')
-                mat_id = material_id
-                mat = get_object_or_404(CourseMaterial, pk=mat_id, course=selected_course)
-                current_file_url = mat.file.url if mat.file else ''
-                material_form = CourseMaterialForm(request.POST, request.FILES, instance=mat)
+
+                # FIX #4: use a clearly named variable for the existing DB object
+                # so it is never accidentally overwritten before we need it.
+                existing = get_object_or_404(CourseMaterial, pk=material_id, course=selected_course)
+                current_file_url = existing.file.url if existing.file else ''
+
+                material_form = CourseMaterialForm(request.POST, request.FILES, instance=existing)
                 if material_form.is_valid():
-                    if request.FILES.get('file') and mat.file:
-                        mat.file.delete(save=False)
+                    new_type = material_form.cleaned_data.get('material_type')
+
+                    # FIX #3: delete the old file from storage when:
+                    #   a) a new file replaces it, OR
+                    #   b) the material type no longer uses a file.
+                    # Note: the form's clean() already calls delete(save=False)
+                    # for case (b) — this guard handles case (a) explicitly.
+                    if existing.file and request.FILES.get('file') and new_type in ('pdf', 'file'):
+                        existing.file.delete(save=False)
+
                     mat = material_form.save(commit=False)
                     mat.course = selected_course
+
+                    # FIX #1: preserve the original creator; the form does not
+                    # include created_by so save(commit=False) would set it to None.
+                    if not mat.created_by_id:
+                        mat.created_by = existing.created_by
+
                     mat.save()
                     messages.success(request, f'Material "{mat.title}" updated successfully.')
                     return redirect(f'{request.path}?course_id={selected_course.pk}&tab=materials')
                 else:
                     active_tab = 'materials'
+                    show_material_modal = True
 
-            # ── Save syllabus ────────────────────────────────────
+            # ── Delete material ───────────────────────────────────────────
+            elif action == 'delete_material':
+                mat_id = request.POST.get('material_id')
+                mat = get_object_or_404(CourseMaterial, pk=mat_id, course=selected_course)
+                # Delete the associated file from storage before removing the DB row
+                if mat.file:
+                    mat.file.delete(save=False)
+                mat.delete()
+                messages.success(request, 'Material deleted.')
+                return redirect(f'{request.path}?course_id={selected_course.pk}&tab=materials')
+
+            # ── Save syllabus ─────────────────────────────────────────────
             elif action == 'save_syllabus':
                 syllabus_form = CourseSyllabusForm(request.POST, instance=syllabus)
                 if syllabus_form.is_valid():
@@ -177,26 +199,27 @@ def courses_setup(request):
                 else:
                     active_tab = 'syllabus'
 
-    # Preserve which tab was active (via GET param after redirect)
-    if request.GET.get('tab') == 'syllabus':
+    # FIX #8: only apply the tab GET param when a course is actually selected,
+    # otherwise ?tab=syllabus with no course_id would show an empty syllabus tab.
+    if selected_course and request.GET.get('tab') == 'syllabus':
         active_tab = 'syllabus'
 
     return render(request, 'staff/courses_setup.html', {
         'allocated_courses': allocated_courses,
         'selected_course': selected_course,
         'materials': materials,
-        'form': material_form,           # kept as 'form' so existing template refs still work
+        'form': material_form,          # kept as 'form' so existing template refs still work
         'syllabus_form': syllabus_form,
         'syllabus': syllabus,
         'active_tab': active_tab,
-        'materials_json': materials_json,
         'material_action': material_action,
         'material_id': material_id,
         'current_file_url': current_file_url,
+        'show_material_modal': show_material_modal,
     })
 
 
-# ── Class Sessions ────────────────────────────────────────────────
+# ── Class Sessions ────────────────────────────────────────────────────────────
 @staff_required
 def class_sessions(request):
     """Manage class sessions for assigned courses."""
@@ -223,9 +246,11 @@ def class_sessions(request):
                     _notify_course_students(
                         course=selected_course,
                         title=f'New Session: {session.title}',
-                        message=f'A new class session "{session.title}" has been scheduled for '
-                                f'{session.session_date.strftime("%b %d, %Y")} at '
-                                f'{session.start_time.strftime("%I:%M %p")}.',
+                        message=(
+                            f'A new class session "{session.title}" has been scheduled for '
+                            f'{session.session_date.strftime("%b %d, %Y")} at '
+                            f'{session.start_time.strftime("%I:%M %p")}.'
+                        ),
                     )
                     messages.success(request, f'Session "{session.title}" created.')
                     return redirect(f'{request.path}?course_id={selected_course.pk}')
@@ -245,7 +270,7 @@ def class_sessions(request):
     })
 
 
-# ── Assignments ───────────────────────────────────────────────────
+# ── Assignments ───────────────────────────────────────────────────────────────
 @staff_required
 def manage_assignments(request):
     """Create and list assignments for assigned courses."""
@@ -275,8 +300,11 @@ def manage_assignments(request):
                     _notify_course_students(
                         course=selected_course,
                         title=f'New Assignment: {assignment.title}',
-                        message=f'A new assignment "{assignment.title}" has been posted in '
-                                f'"{selected_course.title}". Due: {assignment.due_date.strftime("%b %d, %Y %I:%M %p")}.',
+                        message=(
+                            f'A new assignment "{assignment.title}" has been posted in '
+                            f'"{selected_course.title}". '
+                            f'Due: {assignment.due_date.strftime("%b %d, %Y %I:%M %p")}.'
+                        ),
                     )
                     messages.success(request, f'Assignment "{assignment.title}" created.')
                     return redirect(f'{request.path}?course_id={selected_course.pk}')
@@ -296,7 +324,7 @@ def manage_assignments(request):
     })
 
 
-# ── Student Submissions (grading) ─────────────────────────────────
+# ── Student Submissions (grading) ─────────────────────────────────────────────
 @staff_required
 def student_submissions(request):
     """View and grade student submissions for instructor's courses."""
@@ -338,6 +366,10 @@ def grade_submission(request, submission_id):
             grade = form.save(commit=False)
             grade.submission = submission
             grade.graded_by = request.user
+            # FIX #13: call full_clean() so Grade.clean() validates score
+            # against max_score even for brand-new Grade objects where the
+            # form's clean_score() cannot yet access the submission FK.
+            grade.full_clean(exclude=['submission'])
             grade.save()
             submission.status = 'graded'
             submission.save(update_fields=['status'])
@@ -347,9 +379,11 @@ def grade_submission(request, submission_id):
                 recipient=submission.student,
                 notification_type='course',
                 title=f'Assignment Graded: {submission.assignment.title}',
-                message=f'Your submission for "{submission.assignment.title}" in '
-                        f'"{submission.assignment.course.title}" has been graded. '
-                        f'Score: {grade.score}/{submission.assignment.max_score}.',
+                message=(
+                    f'Your submission for "{submission.assignment.title}" in '
+                    f'"{submission.assignment.course.title}" has been graded. '
+                    f'Score: {grade.score}/{submission.assignment.max_score}.'
+                ),
             )
             messages.success(request, f'Grade saved for {submission.student.get_full_name()}.')
             return redirect('staff:submissions')
@@ -363,7 +397,7 @@ def grade_submission(request, submission_id):
     })
 
 
-# ── Staff Notifications ───────────────────────────────────────────
+# ── Staff Notifications ───────────────────────────────────────────────────────
 @staff_required
 def send_notification(request):
     """Send a notification to students in instructor's courses."""
@@ -384,7 +418,10 @@ def send_notification(request):
             message_text = form.cleaned_data['message']
             audience = form.cleaned_data['audience']
 
-            courses_to_notify = allocated_courses if audience == 'all' else allocated_courses.filter(pk=audience)
+            courses_to_notify = (
+                allocated_courses if audience == 'all'
+                else allocated_courses.filter(pk=audience)
+            )
 
             student_ids = set()
             for course in courses_to_notify:
@@ -393,7 +430,10 @@ def send_notification(request):
 
             from accounts.models import User as UserModel
             from notifications.utils import create_notification
-            students = UserModel.objects.filter(pk__in=student_ids)
+
+            # FIX #7: materialise the queryset once so we can use len() rather
+            # than issuing a second COUNT query after the notification loop.
+            students = list(UserModel.objects.filter(pk__in=student_ids))
             for student in students:
                 create_notification(
                     recipient=student,
@@ -402,7 +442,7 @@ def send_notification(request):
                     message=message_text,
                 )
 
-            messages.success(request, f'Notification sent to {students.count()} student(s).')
+            messages.success(request, f'Notification sent to {len(students)} student(s).')
             return redirect('staff:send_notification')
 
     return render(request, 'staff/send_notification.html', {
@@ -411,7 +451,7 @@ def send_notification(request):
     })
 
 
-# ── Internal helper ───────────────────────────────────────────────
+# ── Internal helper ───────────────────────────────────────────────────────────
 def _notify_course_students(course, title, message):
     """Create in-app notifications for all active students in a course."""
     from notifications.utils import create_notification

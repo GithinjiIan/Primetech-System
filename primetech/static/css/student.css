@@ -82,19 +82,16 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar {
     min-width: 250px; max-width: 280px;
     min-height: 100vh;
-    background: linear-gradient(175deg, #111827 0%, var(--primary) 60%);
+    background: var(--primary);
     border-right: none;
     z-index: 1045;
     position: sticky;
     top: 0;
-
     display: flex;
     flex-direction: column;
 }
 
-/* Ensure the sidebar behaves as an offcanvas overlay on small screens.
-   Bootstrap applies .offcanvas-lg (not .offcanvas) below 992px, so target
-   that class here without a media query to correctly override sticky. */
+
 .sidebar.offcanvas-lg {
     position: fixed;
     top: 0;

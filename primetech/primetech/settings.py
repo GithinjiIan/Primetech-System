@@ -106,7 +106,7 @@ WSGI_APPLICATION = 'primetech.wsgi.application'
         
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': config('ENGINE', default='django.db.backends.sqlite3'),
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
@@ -182,7 +182,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # ── Email configuration ─────────────────────────────────────────
 # Console backend for development (prints emails to terminal)
-
+#Email_backend = 'django.core.mail.backends.dummy.EmailBackend'
 
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='')
 

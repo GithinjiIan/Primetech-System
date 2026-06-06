@@ -20,5 +20,4 @@ urlpatterns = [
     # Email verification
     path('verify-email/<uidb64>/<token>/', views.verify_email, name='verify_email'),
 
-    # Dashboards are now handled in their respective apps
 ]

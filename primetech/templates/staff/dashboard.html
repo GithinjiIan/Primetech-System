@@ -17,7 +17,7 @@
 {% endif %}
 
 <!-- Welcome -->
-<div class="mb-4">
+<div class="mb-4 text-start">
     <h4 class="fw-bold mb-1" style="font-family:'Merriweather',serif;">
         Welcome back, {{ request.user.first_name|default:"Instructor" }} 
     </h4>
@@ -25,35 +25,41 @@
 </div>
 
 <!-- Stats Row -->
-<div class="row mb-4 p-4 gap-2">
+<div class="row g-3 mb-4">
 
-    <div class="col-md-4 stats-card ">
-        <div class="stat-icon-wrap">
-            <i class="fas fa-book-open"></i>
-        </div>
-        <div>
-            <div class="stat-num">{{ allocated_courses.count|default:0 }}</div>
-            <div class="stat-label">Assigned Courses</div>
+    <div class="col-md-4">
+        <div class="stats-card h-100">
+            <div class="stat-icon-wrap">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <div>
+                <div class="stat-num">{{ allocated_courses.count|default:0 }}</div>
+                <div class="stat-label">Assigned Courses</div>
+            </div>
         </div>
     </div>
 
-    <div class="col-md-4 stats-card">
-        <div class="stat-icon-wrap">
-            <i class="fas fa-user-graduate"></i>
-        </div>
-        <div>
-            <div class="stat-num">{{ total_students|default:0 }}</div>
-            <div class="stat-label">Total Students</div>
+    <div class="col-md-4">
+        <div class="stats-card h-100">
+            <div class="stat-icon-wrap">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div>
+                <div class="stat-num">{{ total_students|default:0 }}</div>
+                <div class="stat-label">Total assigned Students</div>
+            </div>
         </div>
     </div>
     
-    <div class="col-md-4 stats-card">
-        <div class="stat-icon-wrap">
-            <i class="fas fa-clock"></i>
-        </div>
-        <div>
-            <div class="stat-num">{{ pending_submissions_count|default:0 }}</div>
-            <div class="stat-label">Pending Submissions</div>
+    <div class="col-md-4">
+        <div class="stats-card h-100">
+            <div class="stat-icon-wrap">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div>
+                <div class="stat-num">{{ pending_submissions_count|default:0 }}</div>
+                <div class="stat-label">Pending Submissions</div>
+            </div>
         </div>
     </div>
 </div>
@@ -70,13 +76,12 @@
             <div class="card-body">
                 {% if allocated_courses %}
                     {% for course in allocated_courses %}
-                    <div class="d-flex justify-content-between align-items-center gap-3 p-3 mb-2 rounded-xl"
-                         style="background:#f8fafc; border:1px solid #e2e8f0;">
+                    <div class="d-flex justify-content-between align-items-center gap-3 p-3 mb-2 rounded-xl bg-light border">
                         <div class="flex-grow-1 min-width-0">
-                            <div class="fw-bold mb-1" style="font-size:.9rem;">{{ course.title }}</div>
+                            <div class="fw-bold mb-1 small">{{ course.title }}</div>
                             <div class="d-flex flex-wrap gap-2">
                                 <span class="badge bg-secondary">{{ course.category }}</span>
-                                <span class="badge" style="background:var(--brand-accent-soft);color:var(--brand-accent);">{{ course.duration }}w</span>
+                                <span class="badge text-dark" style="background:var(--brand-accent-soft);color:var(--brand-accent);">{{ course.duration }}w</span>
                                 <span class="badge bg-success">{{ course.students_count }} students</span>
                             </div>
                         </div>
@@ -103,11 +108,10 @@
             <div class="card-body">
                 {% if recent_submissions %}
                     {% for sub in recent_submissions %}
-                    <div class="d-flex justify-content-between align-items-start gap-3 p-3 mb-2 rounded-xl"
-                         style="background:#f8fafc; border:1px solid #e2e8f0;">
+                    <div class="d-flex justify-content-between align-items-start gap-3 p-3 mb-2 rounded-xl bg-light border">
                         <div class="flex-grow-1">
-                            <div class="fw-bold" style="font-size:.85rem;">{{ sub.student_name }}</div>
-                            <div class="text-muted" style="font-size:.8rem;">{{ sub.assignment_title }} — {{ sub.course_title }}</div>
+                            <div class="fw-bold small">{{ sub.student_name }}</div>
+                            <div class="text-muted small">{{ sub.assignment_title }} — {{ sub.course_title }}</div>
                         </div>
                         <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0">
                             <small class="text-muted">{{ sub.submitted_at|timesince }} ago</small>
@@ -132,44 +136,45 @@
                 <i class="fas fa-bolt text-accent"></i> Quick Actions
             </div>
             <div class="card-body d-flex flex-column gap-2">
-                <a href="{% url 'staff:assignments' %}" class="d-flex align-items-center gap-3 p-3 rounded-xl text-decoration-none"
-                   style="background:#f8fafc; border:1px solid #e2e8f0; transition:background .2s;">
-                    <span style="width:36px;height:36px;border-radius:8px;background:var(--brand-accent-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <a href="{% url 'staff:assignments' %}" class="d-flex align-items-center gap-3 p-3 rounded-xl text-decoration-none bg-light border"
+                   style="transition:background .2s;">
+                    <span class="d-flex align-items-center justify-content-center flex-shrink-0 rounded-2"
+                          style="width:36px;height:36px;background:var(--brand-accent-soft);">
                         <i class="fas fa-file-pen text-accent"></i>
                     </span>
                     <div>
-                        <div class="fw-bold" style="font-size:.875rem;color:var(--brand-navy);">New Assignment</div>
-                        <div class="text-muted" style="font-size:.78rem;">Create and publish for students</div>
+                        <div class="fw-bold small text-dark">New Assignment</div>
+                        <div class="text-muted small">Create and publish for students</div>
                     </div>
                 </a>
-                <a href="{% url 'staff:sessions' %}" class="d-flex align-items-center gap-3 p-3 rounded-xl text-decoration-none"
-                   style="background:#f8fafc; border:1px solid #e2e8f0;">
-                    <span style="width:36px;height:36px;border-radius:8px;background:var(--brand-accent-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <a href="{% url 'staff:sessions' %}" class="d-flex align-items-center gap-3 p-3 rounded-xl text-decoration-none bg-light border">
+                    <span class="d-flex align-items-center justify-content-center flex-shrink-0 rounded-2"
+                          style="width:36px;height:36px;background:var(--brand-accent-soft);">
                         <i class="fas fa-calendar-plus text-accent"></i>
                     </span>
                     <div>
-                        <div class="fw-bold" style="font-size:.875rem;color:var(--brand-navy);">Schedule Session</div>
-                        <div class="text-muted" style="font-size:.78rem;">Set up a live class or webinar</div>
+                        <div class="fw-bold small text-dark">Schedule Session</div>
+                        <div class="text-muted small">Set up a live class or webinar</div>
                     </div>
                 </a>
-                <a href="{% url 'staff:submissions' %}" class="d-flex align-items-center gap-3 p-3 rounded-xl text-decoration-none"
-                   style="background:#f8fafc; border:1px solid #e2e8f0;">
-                    <span style="width:36px;height:36px;border-radius:8px;background:var(--brand-accent-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <a href="{% url 'staff:submissions' %}" class="d-flex align-items-center gap-3 p-3 rounded-xl text-decoration-none bg-light border">
+                    <span class="d-flex align-items-center justify-content-center flex-shrink-0 rounded-2"
+                          style="width:36px;height:36px;background:var(--brand-accent-soft);">
                         <i class="fas fa-tasks text-accent"></i>
                     </span>
                     <div>
-                        <div class="fw-bold" style="font-size:.875rem;color:var(--brand-navy);">Grade Submissions</div>
-                        <div class="text-muted" style="font-size:.78rem;">{{ pending_submissions_count|default:0 }} pending review</div>
+                        <div class="fw-bold small text-dark">Grade Submissions</div>
+                        <div class="text-muted small">{{ pending_submissions_count|default:0 }} pending review</div>
                     </div>
                 </a>
-                <a href="{% url 'staff:send_notification' %}" class="d-flex align-items-center gap-3 p-3 rounded-xl text-decoration-none"
-                   style="background:#f8fafc; border:1px solid #e2e8f0;">
-                    <span style="width:36px;height:36px;border-radius:8px;background:var(--brand-accent-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <a href="{% url 'staff:send_notification' %}" class="d-flex align-items-center gap-3 p-3 rounded-xl text-decoration-none bg-light border">
+                    <span class="d-flex align-items-center justify-content-center flex-shrink-0 rounded-2"
+                          style="width:36px;height:36px;background:var(--brand-accent-soft);">
                         <i class="fas fa-bullhorn text-accent"></i>
                     </span>
                     <div>
-                        <div class="fw-bold" style="font-size:.875rem;color:var(--brand-navy);">Send Notification</div>
-                        <div class="text-muted" style="font-size:.78rem;">Broadcast to your students</div>
+                        <div class="fw-bold small text-dark">Send Notification</div>
+                        <div class="text-muted small">Broadcast to your students</div>
                     </div>
                 </a>
             </div>

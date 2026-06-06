@@ -3,7 +3,6 @@ Context processor to inject unread notification count into all templates.
 Uses caching to avoid a DB query on every single request.
 """
 from django.core.cache import cache
-
 from .models import Notification
 
 
