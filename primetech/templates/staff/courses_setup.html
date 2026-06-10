@@ -4,784 +4,337 @@
 {% block page_heading %}Course Content{% endblock %}
 
 {% block extra_css %}
+{{ material_form.media }}
+{{ module_form.media }}
+{{ syllabus_form.media }}
 <style>
-/* ── Tab nav ────────────────────────────────────────────── */
-.setup-tabs .nav-link {
-  color: var(--text-muted, #6c757d);
-  border: none;
-  border-bottom: 3px solid transparent;
-  border-radius: 0;
-  padding: .6rem 1.2rem;
-  font-weight: 600;
-  font-size: .875rem;
-  transition: color .2s, border-color .2s;
+:root {
+  --brand-dark: #020617;
+  --brand-navy: #0f172a;
+  --brand-accent: #0ea5e9;
+  --brand-orange: #f7941d;
+  --brand-light: #f8fafc;
+  --brand-gray: #cbd5e1;
 }
-.setup-tabs .nav-link.active {
-  color: var(--brand-accent, #6366f1);
-  border-bottom-color: var(--brand-accent, #6366f1);
-  background: none;
+.course-shell { display: grid; grid-template-columns: 260px 1fr; gap: 1.25rem; }
+.course-list { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: .6rem; }
+.course-link { display: block; padding: .75rem .85rem; border-radius: 7px; color: #334155; text-decoration: none; font-weight: 700; font-size: .88rem; }
+.course-link:hover, .course-link.active { background: var(--brand-light); color: var(--brand-accent); }
+.workspace { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+.workspace-head { background: var(--brand-navy); color: #fff; padding: 1rem 1.15rem; }
+.workspace-head h2 { font-size: 1.15rem; margin: 0; font-weight: 800; letter-spacing: 0; }
+.workspace-body { padding: 1.15rem; background: #f8fafc; }
+.nav-pills .nav-link { border-radius: 7px; color: #475569; font-weight: 800; }
+.nav-pills .nav-link.active { background: var(--brand-accent); }
+.toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; justify-content: space-between; margin: 1rem 0; }
+.btn-brand { background: var(--brand-accent); color: #fff; border: 0; font-weight: 800; }
+.btn-brand:hover { background: #0284c7; color: #fff; }
+.btn-orange { background: var(--brand-orange); color: #111827; border: 0; font-weight: 800; }
+.btn-orange:hover { background: #ea7f0b; color: #111827; }
+.content-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-bottom: .9rem; }
+.content-row { display: flex; gap: .85rem; align-items: center; }
+.content-icon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 8px; background: #e0f2fe; color: #0369a1; flex: 0 0 auto; }
+.content-title { font-weight: 800; color: var(--brand-dark); }
+.content-meta { color: #64748b; font-size: .82rem; }
+.module-card { background: #fff; border: 1px solid #dbe3ee; border-radius: 8px; margin-bottom: 1rem; overflow: hidden; }
+.module-header { background: var(--brand-navy); color: #fff; padding: .9rem 1rem; display: flex; align-items: center; gap: .75rem; justify-content: space-between; }
+.module-header h3 { font-size: 1rem; margin: 0; font-weight: 800; letter-spacing: 0; }
+.module-body { padding: 1rem; }
+.module-notes { background: #f8fafc; border-left: 4px solid var(--brand-accent); padding: .75rem .9rem; border-radius: 0 7px 7px 0; margin-bottom: .85rem; color: #334155; font-size: .9rem; }
+.draft-badge { background: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
+.published-badge { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.syllabus-grid { display: grid; gap: 1rem; }
+.syllabus-section { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; }
+.syllabus-section label { color: var(--brand-navy); font-weight: 800; margin-bottom: .5rem; }
+.django-ckeditor-widget, .ck-editor { width: 100% !important; }
+.ck-editor__editable { min-height: 260px; line-height: 1.65; }
+.modal-xl .ck-editor__editable { min-height: 340px; }
+.modal-body .ck-editor__editable { max-height: 300px; overflow-y: auto; }
+.modal-dialog-scrollable .modal-body {
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
 }
-.setup-tabs .nav-link:hover:not(.active) {
-  color: var(--brand-accent, #6366f1);
-  border-bottom-color: rgba(99,102,241,.3);
+.modal-footer {
+  flex-shrink: 0;
+  border-top: 1px solid #dee2e6;
+  background-color: #f8f9fa;
 }
-
-/* ── CKEditor premium styling ───────────────────────────── */
-.ck-editor-wrapper {
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  background-color: #fff;
-  transition: border-color 0.2s, box-shadow 0.2s;
+.modal-footer .btn {
+  display: inline-block;
 }
-.ck-editor-wrapper:focus-within {
-  border-color: var(--brand-accent, #6366f1) !important;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+@media (max-width: 992px) {
+  .course-shell { grid-template-columns: 1fr; }
+  .course-list { display: none; }
 }
-.ck.ck-editor__editable_inline {
-  padding: 1.2rem 1.5rem !important;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  color: #1f2937;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  min-height: 280px;
-}
-.ck.ck-editor__editable_inline h2 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin-top: 1.4rem;
-  margin-bottom: 0.75rem;
-  color: #111827;
-  border-bottom: 1px solid #f3f4f6;
-  padding-bottom: 0.3rem;
-}
-.ck.ck-editor__editable_inline h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-top: 1.2rem;
-  margin-bottom: 0.5rem;
-  color: #1f2937;
-}
-.ck.ck-editor__editable_inline p {
-  margin-bottom: 1rem;
-}
-.ck.ck-toolbar {
-  border-top-left-radius: 0.5rem !important;
-  border-top-right-radius: 0.5rem !important;
-  background-color: #f9fafb !important;
-  border-bottom: 1px solid #e5e7eb !important;
-}
-.ck.ck-editor__main>.ck-editor__editable {
-  border-bottom-left-radius: 0.5rem !important;
-  border-bottom-right-radius: 0.5rem !important;
-  border-top: none !important;
-}
-.ck.ck-editor__editable_inline pre, 
-.ck.ck-editor__editable_inline code {
-  background-color: #f3f4f6 !important;
-  padding: 0.2rem 0.4rem;
-  border-radius: 0.25rem;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.9em;
-}
-.ck.ck-editor__editable_inline pre {
-  padding: 1rem !important;
-  display: block;
-  overflow-x: auto;
-  margin-bottom: 1rem;
-}
-
-/* ── Validation Error Highlight ──────────────────────────── */
-.is-invalid-custom {
-  border-color: #dc3545 !important;
-  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15) !important;
-}
-
-/* ── Syllabus section cards ─────────────────────────────── */
-.syllabus-section {
-  border-left: 4px solid var(--brand-accent, #6366f1);
-  background: #fff;
-  border-radius: .5rem;
-  padding: 1.25rem 1.5rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,.06);
-}
-.syllabus-section .section-label {
-  font-weight: 700;
-  font-size: .8rem;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  color: var(--brand-accent, #6366f1);
-  margin-bottom: .5rem;
-}
-
-/* ── Material type field toggles ────────────────────────── */
-#fileField-wrapper,
-#urlField-wrapper { display: none; }
-
-/* ── Material cards in list ─────────────────────────────── */
-.mat-card {
-  background: #fff;
-  border-radius: .5rem;
-  border: 1px solid #e9ecef;
-  padding: 1rem 1.25rem;
-  transition: box-shadow .15s;
-}
-.mat-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,.08); }
 </style>
 {% endblock %}
 
 {% block content %}
 {% if messages %}
   {% for msg in messages %}
-  <div class="alert alert-{{ msg.tags }} alert-dismissible fade show mb-4" role="alert">
+  <div class="alert alert-{{ msg.tags }} alert-dismissible fade show mb-3" role="alert">
     {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
   </div>
   {% endfor %}
 {% endif %}
 
-<!-- Mobile course bar -->
-<div class="mobile-course-bar mb-3">
-  <div class="course-picker-mobile">
-    {% for course in allocated_courses %}
-    <a href="?course_id={{ course.pk }}"
-       class="list-group-item {% if selected_course.pk == course.pk %}active{% endif %}">
-      {{ course.title }}
-    </a>
-    {% empty %}
-    <span class="text-muted small">No courses assigned.</span>
+<div class="d-lg-none mb-3">
+  <select class="form-select" onchange="if (this.value) location.href='?course_id=' + this.value;">
+    <option value="">Select course</option>
+    {% for c in allocated_courses %}
+      <option value="{{ c.pk }}" {% if selected_course.pk == c.pk %}selected{% endif %}>{{ c.title }}</option>
     {% endfor %}
+  </select>
+</div>
+
+<div class="course-shell">
+  <aside class="course-list">
+    {% for c in allocated_courses %}
+      <a class="course-link {% if selected_course.pk == c.pk %}active{% endif %}" href="?course_id={{ c.pk }}">
+        {{ c.title }}
+        <div class="small text-muted fw-normal">{{ c.category|default:"Course" }}</div>
+      </a>
+    {% empty %}
+      <p class="text-muted small p-2 mb-0">No courses assigned yet.</p>
+    {% endfor %}
+  </aside>
+
+  <main class="workspace">
+    {% if selected_course %}
+    <div class="workspace-head">
+      <h2>{{ selected_course.title }}</h2>
+      <div class="small text-white-50">Build the syllabus first, then publish weekly modules and learning materials.</div>
+    </div>
+    <div class="workspace-body">
+      <ul class="nav nav-pills gap-2 mb-3">
+        <li class="nav-item">
+          <button class="nav-link {% if active_tab != 'syllabus' %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#materialsTab" type="button">
+            <i class="fas fa-layer-group me-1"></i> Content
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link {% if active_tab == 'syllabus' %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#syllabusTab" type="button">
+            <i class="fas fa-scroll me-1"></i> Syllabus
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        <section class="tab-pane fade {% if active_tab != 'syllabus' %}show active{% endif %}" id="materialsTab">
+          <div class="toolbar">
+            <div class="text-muted small">Published modules unlock sequentially for learners.</div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-orange btn-sm" data-bs-toggle="modal" data-bs-target="#moduleModal" id="newModuleBtn">
+                <i class="fas fa-folder-plus me-1"></i> Module
+              </button>
+              <button class="btn btn-brand btn-sm" data-bs-toggle="modal" data-bs-target="#materialModal" id="newMaterialBtn">
+                <i class="fas fa-plus me-1"></i> Material
+              </button>
+            </div>
+          </div>
+
+          {% if flat_materials %}
+          <h6 class="text-uppercase text-muted fw-bold small">General Materials</h6>
+          {% for mat in flat_materials %}
+            {% include "staff/partials/material_row.html" with mat=mat selected_course=selected_course %}
+          {% endfor %}
+          {% endif %}
+
+          {% for mod in modules %}
+          <article class="module-card">
+            <div class="module-header">
+              <div>
+                <h3>{{ mod.title }}</h3>
+                <div class="small text-white-50">Order {{ mod.order }}{% if mod.description %} · {{ mod.description }}{% endif %}</div>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge {% if mod.is_published %}published-badge{% else %}draft-badge{% endif %}">
+                  {% if mod.is_published %}Published{% else %}Draft{% endif %}
+                </span>
+                <a class="btn btn-sm btn-outline-light" href="?course_id={{ selected_course.pk }}&edit_module={{ mod.pk }}&tab=materials" title="Edit module">
+                  <i class="fas fa-pencil"></i>
+                </a>
+                <form method="post" onsubmit="return confirm('Delete this module and all its materials?')" class="m-0">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="delete_module">
+                  <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
+                  <input type="hidden" name="module_id" value="{{ mod.pk }}">
+                  <button class="btn btn-sm btn-outline-light" title="Delete module"><i class="fas fa-trash"></i></button>
+                </form>
+              </div>
+            </div>
+            <div class="module-body">
+              {% if mod.notes %}
+              <div class="module-notes ck-content">{{ mod.notes|safe }}</div>
+              {% endif %}
+              <button class="btn btn-sm btn-outline-primary mb-3" type="button" onclick="assignModule('{{ mod.pk }}')">
+                <i class="fas fa-plus me-1"></i> Add material here
+              </button>
+              {% for mat in mod.materials.all %}
+                {% include "staff/partials/material_row.html" with mat=mat selected_course=selected_course %}
+              {% empty %}
+                <p class="text-muted small mb-0">No materials inside this module yet.</p>
+              {% endfor %}
+            </div>
+          </article>
+          {% empty %}
+            {% if not flat_materials %}
+            <div class="content-card text-center py-5">
+              <i class="fas fa-folder-open fs-1 text-muted mb-3"></i>
+              <h5 class="fw-bold">No content yet</h5>
+              <p class="text-muted mb-0">Create a syllabus, then add the first module or material.</p>
+            </div>
+            {% endif %}
+          {% endfor %}
+        </section>
+
+        <section class="tab-pane fade {% if active_tab == 'syllabus' %}show active{% endif %}" id="syllabusTab">
+          <form method="post" class="syllabus-grid">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_syllabus">
+            <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
+            {% for field in syllabus_form %}
+            <div class="syllabus-section">
+              <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+              {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+            {% endfor %}
+            <div class="d-flex justify-content-end">
+              <button class="btn btn-brand px-4"><i class="fas fa-save me-1"></i> Save Syllabus</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+    {% else %}
+    <div class="workspace-body text-center py-5">
+      <i class="fas fa-book-open fs-1 text-muted mb-3"></i>
+      <h5 class="fw-bold">Choose a course</h5>
+      <p class="text-muted mb-0">Select an assigned course to manage its syllabus and content.</p>
+    </div>
+    {% endif %}
+  </main>
+</div>
+
+{% if selected_course %}
+<div class="modal fade" id="moduleModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
+        <input type="hidden" name="action" id="moduleAction" value="{% if module_form.instance.pk %}edit_module{% else %}add_module{% endif %}">
+        <input type="hidden" name="module_id" value="{{ module_form.instance.pk|default:'' }}">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">{% if module_form.instance.pk %}Edit Module{% else %}Add Module{% endif %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-8">{{ module_form.title.label_tag }}{{ module_form.title }}</div>
+            <div class="col-md-2">{{ module_form.order.label_tag }}{{ module_form.order }}</div>
+            <div class="col-md-2 d-flex align-items-end"><div class="form-check">{{ module_form.is_published }} {{ module_form.is_published.label_tag }}</div></div>
+            <div class="col-12">{{ module_form.description.label_tag }}{{ module_form.description }}</div>
+            <div class="col-12">{{ module_form.notes.label_tag }}{{ module_form.notes }}</div>
+          </div>
+          {{ module_form.non_field_errors }}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-brand">Save Module</button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 
-<div class="row g-4">
-  <!-- Desktop sidebar -->
-  <div class="col-lg-3 sidebar-course-panel">
-    <div class="card">
-      <div class="card-header d-flex align-items-center gap-2">
-        <i class="fas fa-book-open text-accent"></i> Assigned Courses
-      </div>
-      <div class="list-group list-group-flush px-2 pb-3 pt-2">
-        {% for course in allocated_courses %}
-        <a href="?course_id={{ course.pk }}"
-           class="list-group-item list-group-item-action {% if selected_course.pk == course.pk %}active{% endif %}">
-          <div class="fw-semibold" style="font-size:.875rem;">{{ course.title }}</div>
-          <small>{{ course.category }}</small>
-        </a>
-        {% empty %}
-        <p class="text-muted px-2 py-2 small mb-0">No courses assigned.</p>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-
-  <!-- Main content panel -->
-  <div class="col-lg-9">
-    {% if selected_course %}
-
-    <!-- Tab navigation -->
-    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-      <h5 class="mb-0 fw-bold">{{ selected_course.title }}</h5>
-    </div>
-
-    <ul class="nav setup-tabs border-bottom mb-4" id="setupTabs">
-      <li class="nav-item">
-        <button class="nav-link {% if active_tab == 'materials' %}active{% endif %}"
-                data-tab="materials" type="button">
-          <i class="fas fa-layer-group me-1"></i> Materials
-          <span class="badge bg-secondary ms-1">{{ materials|length }}</span>
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link {% if active_tab == 'syllabus' %}active{% endif %}"
-                data-tab="syllabus" type="button">
-          <i class="fas fa-scroll me-1"></i> Syllabus
-          {% if syllabus %}<span class="badge bg-success ms-1">Saved</span>{% else %}<span class="badge bg-warning text-dark ms-1">Draft</span>{% endif %}
-        </button>
-      </li>
-    </ul>
-
-    <!-- ═══════════════════ MATERIALS TAB ═══════════════════ -->
-    <div id="tab-materials" class="tab-pane {% if active_tab != 'syllabus' %}d-block{% else %}d-none{% endif %}">
-      <div class="d-flex justify-content-end mb-3">
-        <button id="addMaterialBtn" class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
-          <i class="fas fa-plus me-1"></i> Add Material
-        </button>
-      </div>
-
-      {% if materials %}
-      <div class="d-flex flex-column gap-3">
-        {% for mat in materials %}
-        <div class="mat-card">
-          <div class="d-flex align-items-start gap-3">
-
-            <!-- Icon -->
-            <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-xl"
-                 style="width:42px;height:42px;background:var(--brand-accent-soft, #dcd5f8);">
-              {% if mat.material_type == 'video' %}<i class="fas fa-play-circle text-accent"></i>
-              {% elif mat.material_type == 'pdf' %}<i class="fas fa-file-pdf" style="color:#991b1b;"></i>
-              {% elif mat.material_type == 'file' %}<i class="fas fa-file-arrow-down" style="color:#065f46;"></i>
-              {% elif mat.material_type == 'link' %}<i class="fas fa-link" style="color:#5b21b6;"></i>
-              {% else %}<i class="fas fa-file-lines" style="color:#1d4ed8;"></i>{% endif %}
-            </div>
-
-            <!-- Info -->
-            <div class="flex-grow-1 min-width-0">
-              <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                <span class="fw-bold" style="font-size:.9rem;">{{ mat.title }}</span>
-                <span class="badge bg-light text-dark border">{{ mat.get_material_type_display }}</span>
-                {% if not mat.is_published %}<span class="badge bg-warning text-dark">Draft</span>{% endif %}
-                <span class="badge bg-light text-muted border">#{{ mat.order }}</span>
-              </div>
-              {% if mat.description %}
-              <p class="text-muted mb-0" style="font-size:.8rem;">{{ mat.description }}</p>
-              {% endif %}
-            </div>
-            
-            <div class="flex-shrink-0 d-flex gap-2">
-              <a href="?course_id={{ selected_course.pk }}&edit_material_id={{ mat.pk }}&tab=materials" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-edit"></i>
-              </a>
-              <form method="post" onsubmit="return confirm('Delete this material?')">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="delete_material">
-                <input type="hidden" name="material_id" value="{{ mat.pk }}">
-                <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
-                <button type="submit" class="btn btn-sm btn-outline-danger">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="empty-state text-center py-5">
-        <i class="fas fa-inbox fs-1 text-muted opacity-50 mb-3 d-block"></i>
-        <p class="text-muted">No materials yet. Add your first one!</p>
-      </div>
-      {% endif %}
-    </div><!-- /tab-materials -->
-
-    <!-- ═══════════════════ SYLLABUS TAB ════════════════════ -->
-    <div id="tab-syllabus" class="tab-pane {% if active_tab == 'syllabus' %}d-block{% else %}d-none{% endif %}">
-      <form method="post" enctype="multipart/form-data" id="syllabusForm">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="save_syllabus">
-        <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
-
-        <div class="d-flex flex-column gap-4">
-
-          <!-- 1. Instructor Introduction -->
-          <div class="syllabus-section">
-            <div class="section-label"><i class="fas fa-user-tie me-1"></i> Instructor Introduction</div>
-            <p class="text-muted small mb-2">A personal welcome and brief bio from you.</p>
-            <div class="ck-editor-wrapper">
-              {{ syllabus_form.instructor_intro }}
-            </div>
-          </div>
-
-          <!-- 2. Learning Outcomes -->
-          <div class="syllabus-section">
-            <div class="section-label"><i class="fas fa-bullseye me-1"></i> Learning Outcomes</div>
-            <p class="text-muted small mb-2">What students will know and be able to do after completing this course.</p>
-            <div class="ck-editor-wrapper">
-              {{ syllabus_form.learning_outcomes }}
-            </div>
-          </div>
-
-          <!-- 3. Course Relevance -->
-          <div class="syllabus-section">
-            <div class="section-label"><i class="fas fa-globe me-1"></i> Course Relevance</div>
-            <p class="text-muted small mb-2">Why this course matters — industry context, career paths, and real-world applications.</p>
-            <div class="ck-editor-wrapper">
-              {{ syllabus_form.course_relevance }}
-            </div>
-          </div>
-
-          <!-- 4. Course Activities -->
-          <div class="syllabus-section">
-            <div class="section-label"><i class="fas fa-tasks me-1"></i> Course Activities</div>
-            <p class="text-muted small mb-2">Types of activities students can expect: readings, quizzes, group projects, live sessions, etc.</p>
-            <div class="ck-editor-wrapper">
-              {{ syllabus_form.course_activities }}
-            </div>
-          </div>
-
-          <!-- 5. Overview of Course Modules -->
-          <div class="syllabus-section">
-            <div class="section-label"><i class="fas fa-list-ol me-1"></i> Overview of Course Modules</div>
-            <p class="text-muted small mb-2">Week-by-week or module-by-module breakdown of the course content.</p>
-            <div class="ck-editor-wrapper">
-              {{ syllabus_form.modules_overview }}
-            </div>
-          </div>
-
-          <!-- 6. Final Project -->
-          <div class="syllabus-section">
-            <div class="section-label"><i class="fas fa-trophy me-1"></i> Final Project</div>
-            <p class="text-muted small mb-2">Description of the capstone project, deliverables, and grading criteria.</p>
-            <div class="ck-editor-wrapper">
-              {{ syllabus_form.final_project }}
-            </div>
-          </div>
-
-          <!-- 7. Certification -->
-          <div class="syllabus-section">
-            <div class="section-label"><i class="fas fa-certificate me-1"></i> Certification</div>
-            <p class="text-muted small mb-2">What certificate/credential students earn and the requirements to obtain it.</p>
-            <div class="ck-editor-wrapper">
-              {{ syllabus_form.certification_info }}
-            </div>
-          </div>
-
-        </div><!-- /gap-4 -->
-
-        <div class="d-flex gap-2 mt-4 pb-2">
-          <button type="submit" class="btn btn-brand px-4">
-            <i class="fas fa-save me-1"></i> Save Syllabus
-          </button>
-          {% if syllabus %}
-          <span class="text-muted small align-self-center">
-            Last updated {{ syllabus.updated_at|date:"M d, Y · H:i" }}
-          </span>
-          {% endif %}
-        </div>
-      </form>
-    </div><!-- /tab-syllabus -->
-
-    {% else %}
-    <div class="empty-state text-center py-5">
-      <i class="fas fa-hand-pointer fs-1 text-muted opacity-50 mb-3 d-block"></i>
-      <p class="text-muted">Select a course to manage its content.</p>
-    </div>
-    {% endif %}
-  </div><!-- /col-lg-9 -->
-</div><!-- /row -->
-
-
-<!-- ═══════════════ ADD MATERIAL MODAL ═══════════════════════════ -->
-{% if selected_course %}
-<div class="modal fade" id="addMaterialModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="materialModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="materialModalTitle">
-          <i class="fas fa-plus-circle text-accent me-2"></i>Add Course Material
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form method="post" enctype="multipart/form-data" id="materialForm">
-          {% csrf_token %}
-          <input type="hidden" id="courseId" name="course_id" value="{{ selected_course.pk }}">
-          <input type="hidden" id="materialAction" name="action" value="{{ material_action|default:'add_material' }}">
-          <input type="hidden" id="materialId" name="material_id" value="{{ material_id|default:'' }}">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
+        <input type="hidden" name="action" value="{% if material_form.instance.pk %}edit_material{% else %}add_material{% endif %}">
+        <input type="hidden" name="material_id" value="{{ material_form.instance.pk|default:'' }}">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">{% if material_form.instance.pk %}Edit Material{% else %}Add Material{% endif %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
           <div class="row g-3">
-            <div class="col-12">
-              {% if form.errors %}
-              <div id="materialFormErrors" class="alert alert-danger rounded-3 shadow-sm mb-3">
-                <div class="d-flex align-items-start gap-2 mb-2">
-                  <span class="badge bg-danger text-white">Error</span>
-                  <div>
-                    <strong>We couldn’t save the material.</strong>
-                    <div class="text-muted small">Please fix the following fields and try again.</div>
-                  </div>
-                </div>
-                <ul class="mb-0 ps-3">
-                  {% for field in form %}
-                    {% for err in field.errors %}
-                      <li><strong>{{ field.label }}:</strong> {{ err }}</li>
-                    {% endfor %}
-                  {% endfor %}
-                  {% for err in form.non_field_errors %}
-                    <li>{{ err }}</li>
-                  {% endfor %}
-                </ul>
-              </div>
-              {% endif %}
-            </div>
-            <!-- Title + Type -->
-            <div class="col-md-8">
-              <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
-              {{ form.title }}
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-semibold">Type <span class="text-danger">*</span></label>
-              {{ form.material_type }}
-            </div>
-
-            <!-- Description -->
-            <div class="col-12">
-              <label class="form-label fw-semibold">Description
-                <small class="text-muted fw-normal">(shown on the material card)</small>
-              </label>
-              {{ form.description }}
-            </div>
-            <!-- Rich text notes (text type) -->
-            <div class="col-12" id="contentField-wrapper">
-              <label class="form-label fw-semibold">
-                <i class="fas fa-pen-nib me-1 text-primary"></i> Notes / Content
-              </label>
-              <div class="ck-editor-wrapper border rounded-3 overflow-hidden">
-                {{ form.content }}
-              </div>
-              <small class="text-muted">
-                Supports headings, bold/italic, bullet lists, tables, images, and YouTube embeds.
-              </small>
-              <small class="text-muted d-block mt-1">
-                Insert <code>&lt;!--page--&gt;</code> in text content to force a student-facing page break.
-              </small>
-            </div>
-
-            <!-- File upload (pdf / file types) -->
-            <div class="col-12" id="fileField-wrapper">
-              <label class="form-label fw-semibold">
-                <i class="fas fa-upload me-1 text-danger"></i> Upload File
-              </label>
-              {{ form.file }}
-              <small class="text-muted">PDF, DOC, XLSX, ZIP, etc. — max size set by your server.</small>
-              <div id="currentFileNote" class="form-text text-muted" style="display: {{ current_file_url|yesno:'block,none' }}; margin-top:.4rem;">
-                {% if current_file_url %}
-                  Current file: <a href="{{ current_file_url }}" target="_blank" rel="noopener noreferrer">Download</a>
-                {% endif %}
-              </div>
-            </div>
-
-            <!-- URL (video / link types) -->
-            <div class="col-12" id="urlField-wrapper">
-              <label class="form-label fw-semibold">
-                <i class="fas fa-link me-1 text-purple"></i> URL
-              </label>
-              {{ form.url }}
-              <small class="text-muted">
-                For videos: paste the full YouTube or Vimeo URL —
-                e.g. <code>https://www.youtube.com/watch?v=dQw4w9WgXcQ</code>.
-                The player will be embedded automatically for students.
-              </small>
-              <div id="videoUrlFeedback" class="form-text text-danger" style="display:none; margin-top:.4rem;"></div>
-              <div id="videoPreviewWrapper" class="ratio ratio-16x9 mt-3" style="display:none;">
-                <iframe id="videoPreviewIframe" src="about:blank" allowfullscreen title="Video preview"></iframe>
-              </div>
-            </div>
-
-            <!-- Order + Published -->
-            <div class="col-md-4">
-              <label class="form-label fw-semibold">Display Order</label>
-              {{ form.order }}
-            </div>
-            <div class="col-md-8 d-flex align-items-end gap-2 pb-1">
-              {{ form.is_published }}
-              <label class="form-check-label" style="font-size:.875rem;">
-                Publish immediately (visible to students)
-              </label>
-            </div>
-          </div><!-- /row -->
-
-          <div class="d-flex gap-2 mt-4">
-            <button type="submit" class="btn btn-brand">
-              <i class="fas fa-save me-1"></i> Save Material
-            </button>
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <div class="col-md-7">{{ material_form.title.label_tag }}{{ material_form.title }}</div>
+            <div class="col-md-3">{{ material_form.material_type.label_tag }}{{ material_form.material_type }}</div>
+            <div class="col-md-2">{{ material_form.order.label_tag }}{{ material_form.order }}</div>
+            <div class="col-md-8">{{ material_form.module.label_tag }}{{ material_form.module }}</div>
+            <div class="col-md-4 d-flex align-items-end"><div class="form-check">{{ material_form.is_published }} {{ material_form.is_published.label_tag }}</div></div>
+            <div class="col-12">{{ material_form.description.label_tag }}{{ material_form.description }}</div>
+            <div class="col-12 material-field material-content">{{ material_form.content.label_tag }}{{ material_form.content }}</div>
+            <div class="col-12 material-field material-url">{{ material_form.url.label_tag }}{{ material_form.url }}</div>
+            <div class="col-12 material-field material-file">{{ material_form.file.label_tag }}{{ material_form.file }}</div>
           </div>
-        </form>
-      </div>
+          {{ material_form.non_field_errors }}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-brand">Save Material</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
 {% endif %}
 {% endblock %}
 
-
 {% block extra_js %}
-
-<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super/build/ckeditor.js"></script>
-
 <script>
-// ── Shared CKEditor config ────────────────────────────────────────
-const CK_CONFIG = {
-  toolbar: {
-    items: [
-      'heading', '|',
-      'bold', 'italic', 'underline', 'strikethrough', 'removeFormat', '|',
-      'fontSize', 'fontColor', 'fontBackgroundColor', '|',
-      'bulletedList', 'numberedList', 'outdent', 'indent', '|',
-      'alignment', '|',
-      'link', 'insertTable', '|',
-      'uploadImage', 'mediaEmbed', 'blockQuote', '|',
-      'code', 'codeBlock', 'horizontalLine', '|',
-      'findAndReplace', 'sourceEditing', '|',
-      'undo', 'redo'
-    ],
-    shouldNotGroupWhenFull: true
-  },
-  image: {
-    toolbar: ['imageStyle:inline', 'imageStyle:block', 'imageStyle:side', '|', 'toggleImageCaption', 'imageTextAlternative'],
-    upload: {
-      types: ['jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'svg+xml']
-    }
-  },
-  simpleUpload: {
-    uploadUrl: '/ckeditor5/image_upload/',
-    withCredentials: true,
-    headers: {
-      'X-CSRFToken': getCookie('csrftoken')
-    }
-  },
-  mediaEmbed: {
-    extraProviders: [
-      {
-        name: 'youtube-watch',
-        url: /^(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([\w-]+)/,
-        html: match => {
-          const id = match[1];
-          return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
-            <iframe src="https://www.youtube.com/embed/${id}"
-              style="position:absolute;top:0;left:0;width:100%;height:100%;"
-              frameborder="0" allowfullscreen></iframe></div>`;
-        }
-      },
-      {
-        name: 'youtube-shorts',
-        url: /^(?:https?:\/\/)?(?:www\.)?youtube\.com\/shorts\/([\w-]+)/,
-        html: match => {
-          const id = match[1];
-          return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
-            <iframe src="https://www.youtube.com/embed/${id}"
-              style="position:absolute;top:0;left:0;width:100%;height:100%;"
-              frameborder="0" allowfullscreen></iframe></div>`;
-        }
-      }
-    ]
-  },
-  heading: {
-    options: [
-      { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
-      { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
-      { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
-      { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
-    ]
-  }
-};
-
-function getCookie(name) {
-  const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
-  return v ? v[2] : null;
-}
-
-const CK_EDITOR_IDS = [
-  'materialContentEditor',
-  'syllabusInstructorIntro',
-  'syllabusLearningOutcomes',
-  'syllabusCourseRelevance',
-  'syllabusCourseActivities',
-  'syllabusModulesOverview',
-  'syllabusFinalProject',
-  'syllabusCertification',
-];
-const editorInstances = {};
-
-function initCKEditor(editorId) {
-  const element = document.getElementById(editorId);
-  if (!element) return;
-  ClassicEditor
-    .create(element, CK_CONFIG)
-    .then(editor => { editorInstances[editorId] = editor; })
-    .catch(error => { console.error(`CKEditor init failed for ${editorId}`, error); });
-}
-
-function getEditorData(editorId) {
-  return editorInstances[editorId]?.getData?.() ?? '';
-}
-
-function setEditorData(editorId, data) {
-  if (editorInstances[editorId]?.setData) {
-    editorInstances[editorId].setData(data);
+let lastModalTrigger = null;
+function recordModalTrigger(element) {
+  if (element instanceof HTMLElement) {
+    lastModalTrigger = element;
   }
 }
-
-CK_EDITOR_IDS.forEach(initCKEditor);
-
-const typeSelect = document.getElementById('materialTypeSelect');
-const contentWrapper = document.getElementById('contentField-wrapper');
-const fileWrapper = document.getElementById('fileField-wrapper');
-const urlWrapper = document.getElementById('urlField-wrapper');
-const urlInput = document.getElementById('id_url');
-const videoFeedback = document.getElementById('videoUrlFeedback');
-const videoPreviewWrapper = document.getElementById('videoPreviewWrapper');
-const videoPreviewIframe = document.getElementById('videoPreviewIframe');
-const materialForm = document.getElementById('materialForm');
-
-function setVisible(element, visible) {
-  if (!element) return;
-  element.style.display = visible ? 'block' : 'none';
-}
-
-function buildVideoEmbedUrl(url) {
-  if (!url) return null;
-  const normalized = url.trim();
-  const ytMatch = normalized.match(/(?:v=|\/v\/|youtu\.be\/|shorts\/)([\w-]{6,})/i);
-  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
-  const ytEmbedMatch = normalized.match(/youtube\.com\/embed\/([\w-]{6,})/i);
-  if (ytEmbedMatch) return normalized;
-  const vimeoMatch = normalized.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
-  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
-  const vimeoEmbedMatch = normalized.match(/player\.vimeo\.com\/video\/(\d+)/i);
-  if (vimeoEmbedMatch) return normalized;
-  return null;
-}
-
-function showMaterialFeedback(message) {
-  if (!videoFeedback) return;
-  videoFeedback.style.display = message ? 'block' : 'none';
-  videoFeedback.textContent = message || '';
-}
-
-function updateFields() {
-  const val = typeSelect?.value || '';
-  setVisible(contentWrapper, val === 'text');
-  setVisible(fileWrapper, val === 'pdf' || val === 'file');
-  setVisible(urlWrapper, val === 'video' || val === 'link');
-  if (val !== 'video') {
-    videoPreviewWrapper.style.display = 'none';
+function restoreModalFocus(modalEl) {
+  if (modalEl?.contains(document.activeElement)) {
+    document.activeElement.blur();
   }
-  showMaterialFeedback('');
-}
-
-if (typeSelect) {
-  typeSelect.addEventListener('change', updateFields);
-  updateFields();
-}
-
-function validateMaterialForm(event) {
-  const type = typeSelect?.value || '';
-  if (type === 'text') {
-    const content = getEditorData('materialContentEditor').trim();
-    if (!content) {
-      showMaterialFeedback('Please enter content for course notes.');
-      event.preventDefault();
-      return false;
-    }
-  }
-
-  if (type === 'video' || type === 'link') {
-    const urlValue = urlInput?.value.trim() || '';
-    if (!urlValue) {
-      showMaterialFeedback('Please enter a URL for this material type.');
-      urlInput?.classList.add('is-invalid-custom');
-      event.preventDefault();
-      return false;
-    }
-    if (type === 'video' && !buildVideoEmbedUrl(urlValue)) {
-      showMaterialFeedback('Please enter a valid YouTube or Vimeo URL.');
-      urlInput?.classList.add('is-invalid-custom');
-      event.preventDefault();
-      return false;
-    }
-  }
-
-  urlInput?.classList.remove('is-invalid-custom');
-  showMaterialFeedback('');
-  return true;
-}
-
-function updateVideoPreview() {
-  if (!urlInput || !videoPreviewWrapper || !videoPreviewIframe) return;
-  const type = typeSelect?.value || '';
-  if (type !== 'video') {
-    videoPreviewIframe.src = 'about:blank';
-    setVisible(videoPreviewWrapper, false);
-    showMaterialFeedback('');
-    return;
-  }
-
-  const embedUrl = buildVideoEmbedUrl(urlInput.value);
-  if (embedUrl) {
-    videoPreviewIframe.src = embedUrl;
-    setVisible(videoPreviewWrapper, true);
-    showMaterialFeedback('');
-  } else if (urlInput.value.trim().length) {
-    videoPreviewIframe.src = 'about:blank';
-    setVisible(videoPreviewWrapper, false);
-    showMaterialFeedback('Enter a valid YouTube or Vimeo URL to preview the video.');
-  } else {
-    videoPreviewIframe.src = 'about:blank';
-    setVisible(videoPreviewWrapper, false);
-    showMaterialFeedback('');
+  if (lastModalTrigger && typeof lastModalTrigger.focus === 'function') {
+    lastModalTrigger.focus();
+    lastModalTrigger = null;
   }
 }
-
-if (urlInput) {
-  urlInput.addEventListener('input', () => {
-    urlInput.classList.remove('is-invalid-custom');
-    updateVideoPreview();
-  });
+function refreshMaterialFields() {
+  const type = document.querySelector('[name="material_type"]')?.value || 'text';
+  document.querySelectorAll('.material-field').forEach(el => el.classList.add('d-none'));
+  if (type === 'text') document.querySelector('.material-content')?.classList.remove('d-none');
+  if (type === 'video' || type === 'link') document.querySelector('.material-url')?.classList.remove('d-none');
+  if (type === 'pdf' || type === 'file') document.querySelector('.material-file')?.classList.remove('d-none');
 }
-
-if (materialForm) {
-  materialForm.addEventListener('submit', validateMaterialForm);
+function assignModule(moduleId) {
+  recordModalTrigger(document.activeElement);
+  const select = document.querySelector('[name="module"]');
+  if (select) select.value = moduleId;
+  const modal = new bootstrap.Modal(document.getElementById('materialModal'));
+  modal.show();
 }
-
-// ── Tab switching ─────────────────────────────────────────────────
-document.querySelectorAll('[data-tab]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const target = btn.dataset.tab;
-    document.getElementById('tab-materials').classList.toggle('d-none', target !== 'materials');
-    document.getElementById('tab-materials').classList.toggle('d-block', target === 'materials');
-    document.getElementById('tab-syllabus').classList.toggle('d-none', target !== 'syllabus');
-    document.getElementById('tab-syllabus').classList.toggle('d-block', target === 'syllabus');
-  });
+document.querySelector('[name="material_type"]')?.addEventListener('change', refreshMaterialFields);
+document.getElementById('newMaterialBtn')?.addEventListener('click', event => {
+  recordModalTrigger(event.currentTarget);
+  refreshMaterialFields();
 });
-
-function clearMaterialErrors() {
-  const errorBox = document.getElementById('materialFormErrors');
-  if (errorBox) {
-    errorBox.style.display = 'none';
-  }
-  if (videoFeedback) {
-    videoFeedback.style.display = 'none';
-    videoFeedback.textContent = '';
-  }
-  if (urlInput) {
-    urlInput.classList.remove('is-invalid-custom');
-  }
-}
-
-document.getElementById('addMaterialBtn')?.addEventListener('click', () => {
-  const form = document.getElementById('materialForm');
-  const courseIdField = document.getElementById('courseId');
-  const courseIdValue = courseIdField?.value || '';
-  form.reset();
-  if (courseIdField) {
-    courseIdField.value = courseIdValue;
-  }
-  document.getElementById('materialAction').value = 'add_material';
-  document.getElementById('materialId').value = '';
-  clearMaterialErrors();
-  setEditorData('materialContentEditor', '');
-  const currentFileNote = document.getElementById('currentFileNote');
-  if (currentFileNote) currentFileNote.style.display = 'none';
-  document.getElementById('materialModalTitle').innerText = 'Add Course Material';
-  updateFields();
+document.querySelectorAll('[data-bs-toggle="modal"]').forEach(el => {
+  el.addEventListener('click', event => recordModalTrigger(event.currentTarget));
 });
+document.addEventListener('DOMContentLoaded', () => {
+  const materialModalEl = document.getElementById('materialModal');
+  const moduleModalEl = document.getElementById('moduleModal');
 
-const showMaterialModal = {{ show_material_modal|yesno:'true,false' }};
+  materialModalEl?.addEventListener('hide.bs.modal', () => restoreModalFocus(materialModalEl));
+  moduleModalEl?.addEventListener('hide.bs.modal', () => restoreModalFocus(moduleModalEl));
 
-if (showMaterialModal) {
-  document.addEventListener('DOMContentLoaded', () => {
-  const modalEl = document.getElementById('addMaterialModal');
-  if (modalEl) {
-    const currentFileUrl = '{{ current_file_url|default:''|escapejs }}';
-    if (currentFileUrl) {
-      const currentFileNote = document.getElementById('currentFileNote');
-      currentFileNote.style.display = 'block';
-      currentFileNote.innerHTML = 'Current file: <a href="' + currentFileUrl + '" target="_blank" rel="noopener noreferrer">Download</a>';
-    }
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
-  }
+  refreshMaterialFields();
+  {% if show_material_modal %}new bootstrap.Modal(document.getElementById('materialModal')).show();{% endif %}
+  {% if show_module_modal %}new bootstrap.Modal(document.getElementById('moduleModal')).show();{% endif %}
 });
-}
 </script>
 {% endblock %}

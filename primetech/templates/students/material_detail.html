@@ -2,79 +2,45 @@
 {% load static %}
 
 {% block title %}{{ material.title }}{% endblock %}
-{% block page_title %}Material Detail{% endblock %}
+{% block page_title %}Lesson{% endblock %}
 
 {% block extra_css %}
 <style>
-/* ── Nav position pill ───────────────────────────────────── */
-.material-position {
-  font-size: .78rem;
-  font-weight: 600;
-  color: #0ea5e9;
-  background: #a2d1ff;
-  border-radius: 999px;
-  padding: .25rem .75rem;
-  display: inline-block;
+:root {
+  --brand-dark: #020617;
+  --brand-navy: #0f172a;
+  --brand-accent: #0ea5e9;
+  --brand-orange: #f7941d;
+  --brand-light: #f8fafc;
+  --brand-gray: #cbd5e1;
 }
-
-/* ── Prev / Next nav buttons ─────────────────────────────── */
-.mat-nav-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: .4rem;
-  font-size: .85rem;
-  font-weight: 600;
-  padding: .45rem 1rem;
-  border-radius: .5rem;
-  border: 1.5px solid #e5e7eb;
-  background: #fff;
-  color: #374151;
-  text-decoration: none;
-  transition: all .15s;
-}
-.mat-nav-btn:hover {
-  background: #0ea5e9;
-  border-color: #6366f1;
-  color: #fff;
-}
-.mat-nav-btn.disabled {
-  opacity: .4;
-  pointer-events: none;
-}
-
-/* ── CKEditor content rendering ──────────────────────────── */
-.ck-content h2, .ck-content h3, .ck-content h4 { font-weight: 700; margin-top: 1.5rem; }
-.ck-content ul, .ck-content ol { padding-left: 1.5rem; }
-.ck-content blockquote {
-  border-left: 4px solid #6366f1;
-  padding: .5rem 1rem;
-  color: #475569;
-  background: #f8f9ff;
-  border-radius: 0 .4rem .4rem 0;
-  margin: 1rem 0;
-}
-.ck-content table { width:100%; border-collapse:collapse; }
-.ck-content table td,
-.ck-content table th { border:1px solid #dee2e6; padding:.5rem .75rem; }
-.ck-content figure.image { text-align:center; margin:1rem 0; }
-.ck-content figure.image img { max-width:100%; border-radius:.5rem; }
-.ck-content pre { background:#1e293b; color:#e2e8f0; padding:1rem; border-radius:.5rem; overflow-x:auto; }
-.ck-content code { background:#f1f5f9; padding:.1rem .35rem; border-radius:.25rem; font-size:.875em; }
-
-/* ── Video embed ratio ───────────────────────────────────── */
-.video-embed-wrapper {
-  position:relative;
-  padding-bottom:56.25%;
-  height:0;
-  overflow:hidden;
-  border-radius:.75rem;
-}
-.video-embed-wrapper iframe {
-  position:absolute;
-  top:0; left:0;
-  width:100%; height:100%;
-  border:none;
-}
+.lesson-shell { max-width: 940px; margin: 0 auto; padding: 1rem; }
+.lesson-top { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+.lesson-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+.lesson-header { background: var(--brand-navy); color: #fff; padding: 1.25rem; }
+.lesson-header h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: 0; margin: .35rem 0; }
+.position-pill { background: #e0f2fe; color: #075985; border-radius: 999px; padding: .3rem .7rem; font-size: .78rem; font-weight: 800; }
+.lesson-body { padding: 1.35rem; }
+.ck-content { color: #1f2937; font-size: 1rem; line-height: 1.8; }
+.ck-content h2, .ck-content h3, .ck-content h4 { color: var(--brand-dark); font-weight: 800; margin-top: 1.5rem; letter-spacing: 0; }
+.ck-content a { color: #0284c7; font-weight: 700; }
+.ck-content blockquote { border-left: 4px solid var(--brand-accent); background: #f0f9ff; border-radius: 0 7px 7px 0; padding: .75rem 1rem; color: #334155; }
+.ck-content img { max-width: 100%; height: auto; border-radius: 8px; }
+.ck-content figure { margin: 1.2rem 0; }
+.ck-content figure.image { text-align: center; }
+.ck-content iframe { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 8px; }
+.ck-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+.ck-content th, .ck-content td { border: 1px solid #cbd5e1; padding: .6rem .75rem; }
+.ck-content pre { background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: 1rem; overflow-x: auto; }
+.video-box { position: relative; aspect-ratio: 16 / 9; background: var(--brand-dark); border-radius: 8px; overflow: hidden; }
+.video-box iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.resource-box { background: var(--brand-light); border: 1px solid #e2e8f0; border-radius: 8px; padding: 2rem 1rem; text-align: center; }
+.nav-footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 1rem; display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+.reader-btn { display: inline-flex; align-items: center; gap: .45rem; text-decoration: none; border: 1px solid #cbd5e1; color: #334155; background: #fff; border-radius: 7px; padding: .55rem .85rem; font-weight: 800; }
+.reader-btn:hover { color: #fff; background: var(--brand-accent); border-color: var(--brand-accent); }
+.reader-btn.disabled { opacity: .45; pointer-events: none; }
+.complete-btn { background: var(--brand-orange); color: #111827; border: 0; border-radius: 7px; padding: .6rem 1rem; font-weight: 900; }
+.complete-btn:hover { background: #ea7f0b; }
 </style>
 {% endblock %}
 
@@ -87,179 +53,99 @@
   {% endfor %}
 {% endif %}
 
-<div class="container-fluid p-3 p-md-4" style="max-width:960px;">
-
-  <!-- ── Top navigation row ────────────────────────────────────── -->
-  <div class="d-flex align-items-center justify-content-between gap-3 mb-4 flex-wrap">
-    <a href="{% url 'students:course_materials' course.pk %}" class="text-decoration-none text-success small fw-semibold">
-      <i class="fas fa-arrow-left me-1 "></i> Back to {{ course.title }}
-    </a>
-    {% if total_in_course %}
-    <span class="material-position">{{ current_position }} / {{ total_in_course }}</span>
-    {% endif %}
+<div class="lesson-shell">
+  <div class="lesson-top">
+    <a href="{% url 'students:course_materials' course.pk %}" class="reader-btn"><i class="fas fa-arrow-left"></i> Course outline</a>
+    {% if total_in_course %}<span class="position-pill">{{ current_position }} of {{ total_in_course }}</span>{% endif %}
   </div>
 
-  <!-- ── Material card ─────────────────────────────────────────── -->
-  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+  <article class="lesson-card">
+    <header class="lesson-header">
+      <span class="badge bg-light text-dark">{{ material.get_material_type_display }}</span>
+      <h1>{{ material.title }}</h1>
+      {% if material.description %}<p class="mb-0 text-white-50">{{ material.description }}</p>{% endif %}
+    </header>
 
-    <!-- Header -->
-    <div class="card-header bg-success border-bottom p-4 ">
-      <div class="d-flex justify-content-between align-items-start gap-3">
-        <div>
-          <span class="badge bg-white mb-2">{{ material.get_material_type_display }}</span>
-          <h2 class="h3 fw-bold mb-1">{{ material.title }}</h2>
-          {% if material.description %}
-          <p class="text-white mb-0">{{ material.description }}</p>
-          {% endif %}
-        </div>
-        {% if progress.completed %}
-        <div class="text-success text-center px-3 py-2 bg-success bg-opacity-10 rounded-3 flex-shrink-0">
-          <i class="fas fa-check-circle fs-4 mb-1 d-block"></i>
-          <span class="small fw-bold">Completed</span>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-
-    <!-- Body -->
-<!-- ============IF MATERIAL=TEXT -->
-    <div class="card-body p-4 p-md-5">
-
+    <div class="lesson-body">
       {% if material.material_type == 'text' %}
         <div class="ck-content">
-          {% if page_content %}
-            {{ page_content|safe }}
-          {% else %}
-            {{ material.content|safe }}
-          {% endif %}
+          {% if page_content %}{{ page_content|safe }}{% else %}{{ material.content|safe }}{% endif %}
         </div>
 
-        {% if total_pages and total_pages > 1 %}
-        <div class="d-flex justify-content-between align-items-center mt-4">
-          <div>
-            {% if current_page|default:1 > 1 %}
-            <a href="?page={{ current_page|add:"-1" }}" class="btn btn-sm btn-outline-secondary">Previous Page</a>
-            {% else %}
-            <span class="btn btn-sm btn-outline-secondary disabled">Previous Page</span>
-            {% endif %}
-          </div>
-          <div class="small text-muted">Page {{ current_page }} of {{ total_pages }}</div>
-          <div>
-            {% if current_page < total_pages %}
-            <a href="?page={{ current_page|add:"1" }}" class="btn btn-sm btn-outline-secondary">Next Page</a>
-            {% else %}
-            <span class="btn btn-sm btn-outline-secondary disabled">Next Page</span>
-            {% endif %}
-          </div>
+        {% if total_pages > 1 %}
+        <div class="d-flex align-items-center justify-content-between mt-4 border-top pt-3">
+          {% if current_page > 1 %}
+            <a class="reader-btn" href="?page={{ current_page|add:'-1' }}"><i class="fas fa-chevron-left"></i> Previous page</a>
+          {% else %}
+            <span class="reader-btn disabled"><i class="fas fa-chevron-left"></i> Previous page</span>
+          {% endif %}
+          <span class="small text-muted fw-bold">Page {{ current_page }} of {{ total_pages }}</span>
+          {% if current_page < total_pages %}
+            <a class="reader-btn" href="?page={{ current_page|add:'1' }}">Next page <i class="fas fa-chevron-right"></i></a>
+          {% else %}
+            <span class="reader-btn disabled">Next page <i class="fas fa-chevron-right"></i></span>
+          {% endif %}
         </div>
         {% endif %}
 
-<!-- ============#IF MATERIAL TYPE IS VIDEO (YOUTUBE) -->
       {% elif material.material_type == 'video' %}
-        {% if material.url %}
-        {% with embed_url=embed_url|default:material.url %}
-        <div class="video-embed-wrapper shadow-sm mb-3">
-          {# Convert standard YouTube watch URLs to embed URLs on the fly #}
-          {% if "youtube.com/watch?v=" in embed_url %}
-            {% with vid_id=embed_url|cut:"https://www.youtube.com/watch?v="|cut:"https://youtube.com/watch?v=" %}
-            <iframe src="https://www.youtube.com/embed/{{ vid_id }}"
-                    title="{{ material.title }}" allowfullscreen></iframe>
-            {% endwith %}
-          {% elif "youtu.be/" in embed_url %}
-            {% with vid_id=embed_url|cut:"https://youtu.be/" %}
-            <iframe src="https://www.youtube.com/embed/{{ vid_id }}"
-                    title="{{ material.title }}" allowfullscreen></iframe>
-            {% endwith %}
-          {% else %}
-            <iframe src="{{ embed_url }}" title="{{ material.title }}" allowfullscreen></iframe>
-          {% endif %}
+        {% if embed_url %}
+        <div class="video-box">
+          <iframe src="{{ embed_url }}" title="{{ material.title }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
-        {% endwith %}
-        <p class="text-muted small text-center">
-          <i class="fas fa-info-circle me-1"></i>
-          If the video doesn't play, <a href="{{ material.url }}" target="_blank" rel="noopener">open it directly</a>.
-        </p>
+        <p class="text-muted small text-center mt-3 mb-0">Video not loading? <a href="{{ material.url }}" target="_blank" rel="noopener">Open it directly</a>.</p>
         {% else %}
-        <div class="alert alert-warning">No video URL provided.</div>
+        <div class="alert alert-warning mb-0">No video URL was added for this lesson.</div>
         {% endif %}
 
-<!-- ============#IF MATERIAL TYPE IS A FILE IE PDF -->
       {% elif material.material_type == 'pdf' or material.material_type == 'file' %}
-        <div class="text-center py-5 bg-light rounded-4 border">
-          <i class="fas {% if material.material_type == 'pdf' %}fa-file-pdf text-danger{% else %}fa-file-arrow-down text-success{% endif %} fs-1 mb-3"></i>
-          <h5 class="fw-bold">Download Resource</h5>
-          <p class="text-muted mb-4">Click below to download or view the file.</p>
+        <div class="resource-box">
+          <i class="fas {% if material.material_type == 'pdf' %}fa-file-pdf text-danger{% else %}fa-file-arrow-down text-info{% endif %} fs-1 mb-3"></i>
+          <h2 class="h5 fw-bold">Download Resource</h2>
+          <p class="text-muted">Use the button below to open or download the file.</p>
           {% if material.file %}
-          <a href="{{ material.file.url }}" target="_blank" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">
-            <i class="fas fa-download me-2"></i> Download File
-          </a>
+          <a href="{{ material.file.url }}" target="_blank" class="btn btn-primary fw-bold px-4"><i class="fas fa-download me-2"></i>Download File</a>
           {% else %}
-          <span class="text-danger">File is missing.</span>
+          <span class="text-danger">The file is missing.</span>
           {% endif %}
         </div>
-        
-<!-- ============#IF MATERIAL TYPE IS A LINK -->
+
       {% elif material.material_type == 'link' %}
-        <div class="text-center py-5 bg-light rounded-4 border">
-          <i class="fas fa-external-link-alt text-primary fs-1 mb-3"></i>
-          <h5 class="fw-bold">External Resource</h5>
-          <p class="text-muted mb-4">This material links to an external website.</p>
+        <div class="resource-box">
+          <i class="fas fa-external-link-alt text-info fs-1 mb-3"></i>
+          <h2 class="h5 fw-bold">External Resource</h2>
+          <p class="text-muted">This lesson opens another learning resource.</p>
           {% if material.url %}
-          <a href="{{ material.url }}" target="_blank" rel="noopener"
-             class="btn btn-primary px-4 py-2 fw-bold shadow-sm">
-            Open Link <i class="fas fa-arrow-right ms-2"></i>
-          </a>
+          <a href="{{ material.url }}" target="_blank" rel="noopener" class="btn btn-primary fw-bold px-4">Open Link <i class="fas fa-arrow-right ms-2"></i></a>
           {% else %}
-          <span class="text-danger">URL is missing.</span>
+          <span class="text-danger">The link is missing.</span>
           {% endif %}
         </div>
       {% endif %}
+    </div>
 
-    </div><!-- /card-body -->
+    <footer class="nav-footer">
+      {% if prev_material_id %}
+        <a class="reader-btn" href="{% url 'students:material_detail' course.pk prev_material_id %}"><i class="fas fa-chevron-left"></i> Previous</a>
+      {% else %}
+        <span class="reader-btn disabled"><i class="fas fa-chevron-left"></i> Previous</span>
+      {% endif %}
 
- 
-    <!-- Footer: mark complete + prev/next -->
-    <div class="card-footer bg-light border-top p-4">
-      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      {% if not progress.completed %}
+      <form method="post" class="m-0">
+        {% csrf_token %}
+        <button class="complete-btn"><i class="fas fa-check me-2"></i>Mark Complete</button>
+      </form>
+      {% else %}
+        <span class="reader-btn disabled"><i class="fas fa-check-circle"></i> Completed</span>
+      {% endif %}
 
-        <!-- Prev -->
-        {% if prev_material_id %}
-        <a href="{% url 'students:material_detail' course.pk prev_material_id %}"
-           class="mat-nav-btn">
-          <i class="fas fa-chevron-left"></i> Previous
-        </a>
-        {% else %}
-        <span class="mat-nav-btn disabled"><i class="fas fa-chevron-left"></i> Previous</span>
-        {% endif %}
-
-        <!-- Mark complete / return -->
-        {% if not progress.completed %}
-        <form method="post" class="text-center">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-success px-4 py-2 fw-bold shadow-sm">
-            <i class="fas fa-check me-2"></i> Mark as Completed
-          </button>
-        </form>
-        {% else %}
-        <a href="{% url 'students:course_materials' course.pk %}"
-           class="btn btn-outline-secondary px-4 py-2">
-          <i class="fas fa-th-large me-1"></i> Back to Materials
-        </a>
-        {% endif %}
-
-        <!-- Next -->
-        {% if next_material_id %}
-        <a href="{% url 'students:material_detail' course.pk next_material_id %}"
-           class="mat-nav-btn">
-          Next <i class="fas fa-chevron-right"></i>
-        </a>
-        {% else %}
-        <span class="mat-nav-btn disabled">Next <i class="fas fa-chevron-right"></i></span>
-        {% endif %}
-
-      </div>
-    </div><!-- /card-footer -->
-
-  </div><!-- /card -->
-</div><!-- /container-fluid -->
+      {% if next_material_id %}
+        <a class="reader-btn" href="{% url 'students:material_detail' course.pk next_material_id %}">Next <i class="fas fa-chevron-right"></i></a>
+      {% else %}
+        <span class="reader-btn disabled">Next <i class="fas fa-chevron-right"></i></span>
+      {% endif %}
+    </footer>
+  </article>
+</div>
 {% endblock %}

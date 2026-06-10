@@ -1,8 +1,9 @@
 :root {
-    --primary: #0f172a;
-    --accent: #0ea5e9;
+    /* Map student tokens to the shared theme in custom.css */
+    --primary: var(--sidebar-student-bg);
+    --accent: var(--brand-accent);
     --accent-hover: #0284c7;
-    --brand-light: #f8fafc;
+    --brand-light: var(--brand-light);
     --accent-glow: rgba(14, 165, 233, 0.18);
     --sidebar-width: 280px;
     --gray-50: #f8fafc;
@@ -11,7 +12,7 @@
     --gray-300: #cbd5e1;
     --gray-400: #94a3b8;
     --gray-600: #475569;
-    --gray-900: #0f172a;
+    --gray-900: var(--brand-navy);
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
@@ -19,7 +20,7 @@
     --shadow-md: 0 4px 16px -2px rgb(0 0 0 / 0.10), 0 2px 6px -2px rgb(0 0 0 / 0.05);
     --shadow-lg: 0 10px 30px -4px rgb(0 0 0 / 0.14), 0 4px 10px -4px rgb(0 0 0 / 0.06);
     --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-    --sidebar-link-color: rgba(255, 255, 255, 0.62);
+    --sidebar-link-color: rgba(255, 255, 255, 0.72);
     --sidebar-divider: rgba(255, 255, 255, 0.07);
     --header-height: 68px;
 }
@@ -82,7 +83,7 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar {
     min-width: 250px; max-width: 280px;
     min-height: 100vh;
-    background: var(--primary);
+    background-color: var(--primary);
     border-right: none;
     z-index: 1045;
     position: sticky;
@@ -188,7 +189,7 @@ h1, h2, h3, h4, h5, h6 {
     background: rgba(255,255,255,0.1);
     border: 1px solid rgba(255,255,255,0.12);
     padding: 5px;
-    border-radius: 50%;
+    border-radius: 25%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -197,7 +198,7 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar .logo:hover .logo-ring { background: rgba(255,255,255,0.16); }
 
 .sidebar .logo .brand-name {
-    color: #fff;
+    color: var(--text-on-dark);
     font-family: 'Merriweather', serif;
     font-size: 0.9rem;
     font-weight: 700;
@@ -222,7 +223,7 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1.4px;
-    color: rgba(255,255,255,0.28);
+    color: rgba(255,255,255,0.30);
 }
 
 /* Nav links */
@@ -261,8 +262,8 @@ h1, h2, h3, h4, h5, h6 {
 
 /* hover state */
 .sidebar .nav-link:hover {
-    background: rgba(255, 255, 255, 0.09);
-    color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-on-dark);
 }
 .sidebar .nav-link:hover .nav-icon {
     transform: translateX(2px);
@@ -272,8 +273,8 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar .nav-link.active {
     background: var(--accent);
     color: #fff;
-    font-weight: 600;
-    box-shadow: 0 4px 14px rgba(14, 165, 233, 0.32);
+    font-weight: 700;
+    box-shadow: 0 6px 18px rgba(14, 165, 233, 0.28);
 }
 .sidebar .nav-link.active .nav-icon {
     color: #fff;
@@ -305,19 +306,19 @@ h1, h2, h3, h4, h5, h6 {
     gap: 0.55rem;
     width: 100%;
     padding: 0.6rem 1rem;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: var(--radius-sm);
-    color: rgba(255,255,255,0.65);
+    color: rgba(255,255,255,0.78);
     font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
     transition: all var(--transition);
 }
 .sidebar-footer .btn-logout:hover {
-    background: rgba(239,68,68,0.15);
-    border-color: rgba(239,68,68,0.3);
-    color: #fca5a5;
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.12);
+    color: #fff;
 }
 
 /* Offcanvas close btn */

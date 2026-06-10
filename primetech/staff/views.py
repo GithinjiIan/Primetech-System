@@ -1,17 +1,20 @@
 """
 Staff views: course content management, sessions, assignments, grading, notifications.
 """
+import json
 import logging
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import Count, Prefetch, Q
+from django.views.decorators.http import require_POST
 from website.models import Course, Enrollment
 from accounts.decorators import staff_required
 from notifications.models import Notification
-from courses.models import CourseMaterial, CourseSyllabus, ClassSession, Assignment, Submission, Grade
+from courses.models import CourseModule, CourseMaterial, CourseSyllabus, ClassSession, Assignment, Submission, Grade
 from courses.forms import (
-    CourseMaterialForm, CourseSyllabusForm, ClassSessionForm, AssignmentForm,
-    GradeForm, StaffNotificationForm
+    CourseModuleForm, CourseMaterialForm, CourseSyllabusForm,
+    ClassSessionForm, AssignmentForm, GradeForm, StaffNotificationForm
 )
 
 logger = logging.getLogger(__name__)
@@ -68,155 +71,260 @@ def students_rollcall(request):
     return render(request, 'staff/students_rollcall.html', {'allocated_courses': allocated_courses})
 
 
-# ── Course Content (Materials + Syllabus) ─────────────────────────────────────
+# ── Course Content (Materials + Modules + Syllabus) ───────────────────────
 @staff_required
 def courses_setup(request):
     """
-    List and manage materials and syllabus for a selected course.
-
-    POST actions recognised:
-      add_material    – create a new CourseMaterial
-      edit_material   – update an existing CourseMaterial
-      delete_material – delete an existing CourseMaterial
-      save_syllabus   – create or update the CourseSyllabus
+    Main course content page. Handles:
+      - Module CRUD  (add_module / edit_module / delete_module)
+      - Material CRUD (add_material / edit_material / delete_material)
+      - Syllabus save (save_syllabus)
+    Materials may be assigned to a module (grouped) or left flat (module=NULL).
+    Deleting a module cascades and removes all its child materials.
     """
     allocated_courses = Course.objects.filter(assigned_instructor=request.user, is_active=True)
-    selected_course = None
-    materials = []
-    material_form = CourseMaterialForm()
-    syllabus_form = CourseSyllabusForm()
-    syllabus = None
-    active_tab = 'materials'    # default tab shown after any redirect
-
-    # Context hints used to restore modal state after a failed edit
-    material_action = 'add_material'
-    material_id = ''
-    current_file_url = ''
+    selected_course   = None
+    flat_materials    = []
+    modules           = []
+    syllabus          = None
+    syllabus_form     = CourseSyllabusForm()
+    material_form     = CourseMaterialForm()
+    module_form       = CourseModuleForm()
+    active_tab        = 'materials'
     show_material_modal = False
+    show_module_modal   = False
 
     course_id = request.GET.get('course_id') or request.POST.get('course_id')
     if course_id:
         selected_course = get_object_or_404(Course, pk=course_id, assigned_instructor=request.user)
 
-        # FIX #14: select_related on created_by avoids N+1 queries in template
-        materials = CourseMaterial.objects.filter(
-            course=selected_course
-        ).select_related('created_by').order_by('order')
+        flat_materials = (
+            CourseMaterial.objects
+            .filter(course=selected_course, module__isnull=True)
+            .select_related('created_by')
+            .order_by('order', 'created_at')
+        )
+        modules = (
+            CourseModule.objects
+            .filter(course=selected_course)
+            .prefetch_related(
+                Prefetch(
+                    'materials',
+                    queryset=CourseMaterial.objects
+                        .select_related('created_by')
+                        .order_by('order', 'created_at'),
+                )
+            )
+            .order_by('order', 'created_at')
+        )
 
-        # Try to load existing syllabus (may not exist yet)
         try:
             syllabus = selected_course.syllabus
         except CourseSyllabus.DoesNotExist:
             syllabus = None
 
+        material_form = CourseMaterialForm(course=selected_course)
         syllabus_form = CourseSyllabusForm(instance=syllabus)
 
-        edit_material_id = request.GET.get('edit_material_id')
-        if request.method == 'GET' and edit_material_id:
-            material_action = 'edit_material'
-            material_id = edit_material_id
-            existing = get_object_or_404(CourseMaterial, pk=material_id, course=selected_course)
-            material_form = CourseMaterialForm(instance=existing)
-            current_file_url = existing.file.url if existing.file else ''
-            active_tab = 'materials'
-            show_material_modal = True
+        # ── GET: pre-populate modals for editing ─────────────────────────
+        if request.method == 'GET':
+            edit_material_id = request.GET.get('edit_material')
+            edit_module_id   = request.GET.get('edit_module')
 
-        if request.method == 'POST':
+            if edit_material_id:
+                existing = get_object_or_404(CourseMaterial, pk=edit_material_id, course=selected_course)
+                material_form = CourseMaterialForm(instance=existing, course=selected_course)
+                show_material_modal = True
+
+            elif edit_module_id:
+                existing_mod = get_object_or_404(CourseModule, pk=edit_module_id, course=selected_course)
+                module_form = CourseModuleForm(instance=existing_mod)
+                show_module_modal = True
+
+        # ── POST: handle all actions ──────────────────────────────────
+        elif request.method == 'POST':
             action = request.POST.get('action')
 
-            # ── Add material ──────────────────────────────────────────────
-            if action == 'add_material':
-                material_form = CourseMaterialForm(request.POST, request.FILES)
+            # ── Add module ────────────────────────────────────────────
+            if action == 'add_module':
+                module_form = CourseModuleForm(request.POST)
+                if module_form.is_valid():
+                    mod = module_form.save(commit=False)
+                    mod.course     = selected_course
+                    mod.created_by = request.user
+                    mod.save()
+                    if mod.is_published:
+                        _notify_course_students(
+                            selected_course,
+                            title=f'New module: {mod.title}',
+                            message=f'A new module has been published in "{selected_course.title}".',
+                        )
+                    messages.success(request, f'Module "{mod.title}" created.')
+                    return redirect(f'{request.path}?course_id={selected_course.pk}&tab=materials')
+                show_module_modal = True
+
+            # ── Edit module ─────────────────────────────────────────
+            elif action == 'edit_module':
+                module_id    = request.POST.get('module_id')
+                existing_mod = get_object_or_404(CourseModule, pk=module_id, course=selected_course)
+                was_published = existing_mod.is_published
+                module_form  = CourseModuleForm(request.POST, instance=existing_mod)
+                if module_form.is_valid():
+                    mod = module_form.save()
+                    if mod.is_published and not was_published:
+                        _notify_course_students(
+                            selected_course,
+                            title=f'Module published: {mod.title}',
+                            message=f'"{mod.title}" is now available in "{selected_course.title}".',
+                        )
+                    messages.success(request, f'Module "{existing_mod.title}" updated.')
+                    return redirect(f'{request.path}?course_id={selected_course.pk}&tab=materials')
+                show_module_modal = True
+
+            # ── Delete module (cascades to its materials) ───────────────
+            elif action == 'delete_module':
+                module_id = request.POST.get('module_id')
+                mod = get_object_or_404(CourseModule, pk=module_id, course=selected_course)
+                # Delete file attachments for any materials inside this module
+                for mat in mod.materials.all():
+                    if mat.file:
+                        mat.file.delete(save=False)
+                mod_title = mod.title
+                mod.delete()  # CASCADE removes all child CourseMaterial rows
+                messages.success(request, f'Module "{mod_title}" and all its materials have been deleted.')
+                return redirect(f'{request.path}?course_id={selected_course.pk}&tab=materials')
+
+            # ── Add material ─────────────────────────────────────────
+            elif action == 'add_material':
+                material_form = CourseMaterialForm(request.POST, request.FILES, course=selected_course)
                 if material_form.is_valid():
-                    mat = material_form.save(commit=False)
-                    mat.course = selected_course
+                    mat            = material_form.save(commit=False)
+                    mat.course     = selected_course
                     mat.created_by = request.user
                     mat.save()
-                    messages.success(request, f'Material "{mat.title}" added successfully.')
+                    if mat.is_published:
+                        _notify_course_students(
+                            selected_course,
+                            title=f'New material: {mat.title}',
+                            message=f'New learning material has been added to "{selected_course.title}".',
+                        )
+                    messages.success(request, f'Material "{mat.title}" added.')
                     return redirect(f'{request.path}?course_id={selected_course.pk}&tab=materials')
-                else:
-                    active_tab = 'materials'
-                    show_material_modal = True
+                show_material_modal = True
 
-            # ── Edit material ─────────────────────────────────────────────
+            # ── Edit material ───────────────────────────────────────
             elif action == 'edit_material':
-                material_action = 'edit_material'
-                material_id = request.POST.get('material_id', '')
-
-                # FIX #4: use a clearly named variable for the existing DB object
-                # so it is never accidentally overwritten before we need it.
-                existing = get_object_or_404(CourseMaterial, pk=material_id, course=selected_course)
-                current_file_url = existing.file.url if existing.file else ''
-
-                material_form = CourseMaterialForm(request.POST, request.FILES, instance=existing)
+                material_id = request.POST.get('material_id')
+                existing    = get_object_or_404(CourseMaterial, pk=material_id, course=selected_course)
+                was_published = existing.is_published
+                material_form = CourseMaterialForm(
+                    request.POST, request.FILES,
+                    instance=existing,
+                    course=selected_course,
+                )
                 if material_form.is_valid():
                     new_type = material_form.cleaned_data.get('material_type')
-
-                    # FIX #3: delete the old file from storage when:
-                    #   a) a new file replaces it, OR
-                    #   b) the material type no longer uses a file.
-                    # Note: the form's clean() already calls delete(save=False)
-                    # for case (b) — this guard handles case (a) explicitly.
+                    # Delete old file if a new one replaces it
                     if existing.file and request.FILES.get('file') and new_type in ('pdf', 'file'):
                         existing.file.delete(save=False)
-
                     mat = material_form.save(commit=False)
                     mat.course = selected_course
-
-                    # FIX #1: preserve the original creator; the form does not
-                    # include created_by so save(commit=False) would set it to None.
                     if not mat.created_by_id:
                         mat.created_by = existing.created_by
-
                     mat.save()
-                    messages.success(request, f'Material "{mat.title}" updated successfully.')
+                    if mat.is_published and not was_published:
+                        _notify_course_students(
+                            selected_course,
+                            title=f'Material published: {mat.title}',
+                            message=f'"{mat.title}" is now available in "{selected_course.title}".',
+                        )
+                    messages.success(request, f'Material "{mat.title}" updated.')
                     return redirect(f'{request.path}?course_id={selected_course.pk}&tab=materials')
-                else:
-                    active_tab = 'materials'
-                    show_material_modal = True
+                show_material_modal = True
 
-            # ── Delete material ───────────────────────────────────────────
+            # ── Delete material ──────────────────────────────────────
             elif action == 'delete_material':
                 mat_id = request.POST.get('material_id')
-                mat = get_object_or_404(CourseMaterial, pk=mat_id, course=selected_course)
-                # Delete the associated file from storage before removing the DB row
+                mat    = get_object_or_404(CourseMaterial, pk=mat_id, course=selected_course)
                 if mat.file:
                     mat.file.delete(save=False)
                 mat.delete()
                 messages.success(request, 'Material deleted.')
                 return redirect(f'{request.path}?course_id={selected_course.pk}&tab=materials')
 
-            # ── Save syllabus ─────────────────────────────────────────────
+            # ── Save syllabus ──────────────────────────────────────
             elif action == 'save_syllabus':
                 syllabus_form = CourseSyllabusForm(request.POST, instance=syllabus)
                 if syllabus_form.is_valid():
                     syl = syllabus_form.save(commit=False)
-                    syl.course = selected_course
+                    syl.course     = selected_course
                     syl.updated_by = request.user
                     syl.save()
+                    _notify_course_students(
+                        selected_course,
+                        title=f'Syllabus updated: {selected_course.title}',
+                        message=f'The course syllabus for "{selected_course.title}" has been updated.',
+                    )
                     messages.success(request, 'Course syllabus saved successfully.')
                     return redirect(f'{request.path}?course_id={selected_course.pk}&tab=syllabus')
-                else:
-                    active_tab = 'syllabus'
+                active_tab = 'syllabus'
 
-    # FIX #8: only apply the tab GET param when a course is actually selected,
-    # otherwise ?tab=syllabus with no course_id would show an empty syllabus tab.
+    # Honour tab GET param only when a course is selected
     if selected_course and request.GET.get('tab') == 'syllabus':
         active_tab = 'syllabus'
 
     return render(request, 'staff/courses_setup.html', {
         'allocated_courses': allocated_courses,
         'selected_course': selected_course,
-        'materials': materials,
-        'form': material_form,          # kept as 'form' so existing template refs still work
+        'flat_materials': flat_materials,
+        'modules': modules,
+        'material_form': material_form,
+        'module_form': module_form,
         'syllabus_form': syllabus_form,
         'syllabus': syllabus,
         'active_tab': active_tab,
-        'material_action': material_action,
-        'material_id': material_id,
-        'current_file_url': current_file_url,
         'show_material_modal': show_material_modal,
+        'show_module_modal': show_module_modal,
     })
+
+
+@staff_required
+@require_POST
+def reorder_content(request):
+    """
+    AJAX view to handle drag-and-drop reordering of modules and materials.
+    Payload: { "type": "module"|"material", "order": [{"id": pk, "order": int}, ...] }
+    """
+    try:
+        from django.db import transaction
+        with transaction.atomic():
+            data = json.loads(request.body)
+            item_type = data.get('type')
+            orders = data.get('order', [])
+
+            if item_type == 'module':
+                for o in orders:
+                    mod_id = o.get('id')
+                    new_ord = o.get('order')
+                    if mod_id is not None and new_ord is not None:
+                        module = get_object_or_404(CourseModule, pk=mod_id, course__assigned_instructor=request.user)
+                        module.order = new_ord
+                        module.save(update_fields=['order'])
+            elif item_type == 'material':
+                for o in orders:
+                    mat_id = o.get('id')
+                    new_ord = o.get('order')
+                    if mat_id is not None and new_ord is not None:
+                        material = get_object_or_404(CourseMaterial, pk=mat_id, course__assigned_instructor=request.user)
+                        material.order = new_ord
+                        material.save(update_fields=['order'])
+            else:
+                return JsonResponse({'error': 'Invalid item type'}, status=400)
+
+            return JsonResponse({'status': 'success'})
+    except Exception as e:
+        logger.exception("Error in reorder_content view", exc_info=True)
+        return JsonResponse({'error': 'Unable to reorder items'}, status=400)
 
 
 # ── Class Sessions ────────────────────────────────────────────────────────────

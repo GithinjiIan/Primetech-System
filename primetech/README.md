@@ -32,7 +32,7 @@ A comprehensive Learning Management System (LMS) and community platform built fo
 - **API**: [Django REST Framework](https://www.django-rest-framework.org/)
 - **Database**: [PostgreSQL](https://www.postgresql.org/)
 - **Task Queue**: [Celery](https://docs.celeryq.dev/) with [Redis](https://redis.io/)
-- **Frontend Styling**: [Tailwind CSS](https://tailwindcss.com/) & [Bootstrap 5](https://getbootstrap.com/)
+- **Frontend Styling**:  [Bootstrap 5](https://getbootstrap.com/)
 - **Rich Text Editor**: [CKEditor 5](https://ckeditor.com/ckeditor-5/)
 - **Admin Interface**: [Jazzmin](https://github.com/farridav/django-jazzmin)
 

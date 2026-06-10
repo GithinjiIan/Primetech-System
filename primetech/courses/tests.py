@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django_ckeditor_5.widgets import CKEditor5Widget
 
 from courses.forms import CourseMaterialForm
 
@@ -7,7 +8,8 @@ from courses.forms import CourseMaterialForm
 class CourseMaterialFormTests(TestCase):
     def test_content_field_uses_ckeditor_widget(self):
         form = CourseMaterialForm()
-        self.assertEqual(form.fields['content'].widget.attrs['class'], 'ckeditor-field form-control')
+        self.assertIsInstance(form.fields['content'].widget, CKEditor5Widget)
+        self.assertEqual(form.fields['content'].widget.attrs['class'], 'django_ckeditor_5 form-control')
         self.assertEqual(form.fields['content'].widget.attrs['id'], 'materialContentEditor')
 
     def test_text_material_clears_url_and_file_pre_save(self):

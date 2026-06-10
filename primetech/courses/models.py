@@ -1,5 +1,5 @@
 """
-LMS Core Models: CourseMaterial, Assignment, Submission, Grade, ClassSession, CourseSyllabus.
+LMS Core Models: CourseModule, CourseMaterial, Assignment, Submission, Grade, ClassSession, CourseSyllabus.
 These power the learning experience for students and content management for staff.
 """
 from django.db import models
@@ -79,12 +79,56 @@ class CourseSyllabus(models.Model):
         return f"Syllabus — {self.course.title}"
 
 
+class CourseModule(models.Model):
+    """
+    An optional module/section that groups CourseMaterials under a titled heading.
+    Instructors can choose to organise course content into modules.
+    Materials without a module assignment are displayed "flat" before any modules.
+    Deleting a module cascades to all of its CourseMaterial children.
+    """
+    course = models.ForeignKey(
+        'website.Course',
+        on_delete=models.CASCADE,
+        related_name='modules',
+    )
+    title = models.CharField(
+        max_length=255,
+        help_text="Module heading, e.g. 'Module 1: Introduction'",
+    )
+    description = models.TextField(
+        blank=True,
+        help_text="Short description displayed on the module card.",
+    )
+    notes = models.TextField(
+        blank=True,
+        help_text="Rich HTML notes for this module (CKEditor). Written and edited by the instructor.",
+    )
+    order = models.PositiveSmallIntegerField(default=0, help_text="Display order within the course.")
+    is_published = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='created_modules',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name = 'Course Module'
+        verbose_name_plural = 'Course Modules'
+
+    def __str__(self):
+        return f"{self.course.title} — {self.title}"
+
+
 class CourseMaterial(models.Model):
     """A unit of learning content (video, PDF, link, or rich-text) in a course."""
 
     TYPE_CHOICES = [
         ('text', 'Notes'),
-        ('video', 'Video (Embed URL)'),
+        ('video', 'Video (YouTube/Vimeo)'),
         ('pdf', 'PDF Document'),
         ('file', 'File Download'),
         ('link', 'External Link'),
@@ -94,6 +138,14 @@ class CourseMaterial(models.Model):
         'website.Course',
         on_delete=models.CASCADE,
         related_name='materials',
+    )
+    module = models.ForeignKey(
+        CourseModule,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='materials',
+        help_text="Assign to a module, or leave blank for a flat (top-level) material.",
     )
     title = models.CharField(max_length=255)
     material_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='text')

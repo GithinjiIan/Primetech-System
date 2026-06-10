@@ -1,0 +1,33 @@
+<div class="content-card">
+  <div class="content-row">
+    <div class="content-icon">
+      {% if mat.material_type == 'video' %}<i class="fas fa-play"></i>
+      {% elif mat.material_type == 'pdf' %}<i class="fas fa-file-pdf"></i>
+      {% elif mat.material_type == 'file' %}<i class="fas fa-file-arrow-down"></i>
+      {% elif mat.material_type == 'link' %}<i class="fas fa-link"></i>
+      {% else %}<i class="fas fa-file-lines"></i>{% endif %}
+    </div>
+
+    <div class="flex-grow-1">
+      <div class="content-title">{{ mat.title }}</div>
+      <div class="content-meta">
+        {{ mat.get_material_type_display }} · Order {{ mat.order }}
+        {% if mat.description %} · {{ mat.description|truncatechars:90 }}{% endif %}
+      </div>
+    </div>
+    
+    <span class="badge {% if mat.is_published %}published-badge{% else %}draft-badge{% endif %}">
+      {% if mat.is_published %}Published{% else %}Draft{% endif %}
+    </span>
+    <a class="btn btn-sm btn-outline-secondary" href="?course_id={{ selected_course.pk }}&edit_material={{ mat.pk }}&tab=materials" title="Edit material">
+      <i class="fas fa-pencil"></i>
+    </a>
+    <form method="post" onsubmit="return confirm('Delete this material?')" class="m-0">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="delete_material">
+      <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
+      <input type="hidden" name="material_id" value="{{ mat.pk }}">
+      <button class="btn btn-sm btn-outline-danger" title="Delete material"><i class="fas fa-trash"></i></button>
+    </form>
+  </div>
+</div>

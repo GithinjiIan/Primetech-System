@@ -181,8 +181,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 
 # ── Email configuration ─────────────────────────────────────────
-# Console backend for development (prints emails to terminal)
-#Email_backend = 'django.core.mail.backends.dummy.EmailBackend'
+
 
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='')
 
@@ -312,6 +311,31 @@ CKEDITOR_5_CONFIGS = {
         'height': 350,
         'width': '100%',
     },
+    'course_full': {
+        'toolbar': [
+            'heading', '|',
+            'bold', 'italic', 'underline', 'strikethrough', 'code', '|',
+            'fontColor', 'fontBackgroundColor', 'highlight', '|',
+            'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent', '|',
+            'link', 'blockQuote', 'insertTable', 'imageUpload', 'mediaEmbed', '|',
+            'codeBlock', 'horizontalLine', 'sourceEditing', '|',
+            'removeFormat', 'undo', 'redo',
+        ],
+        'image': {
+            'toolbar': [
+                'imageTextAlternative', 'toggleImageCaption', '|',
+                'imageStyle:inline', 'imageStyle:block', 'imageStyle:side',
+            ],
+        },
+        'table': {
+            'contentToolbar': ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties'],
+        },
+        'mediaEmbed': {
+            'previewsInData': True,
+        },
+        'height': 420,
+        'width': '100%',
+    },
     'minimal': {
         'toolbar': ['bold', 'italic', 'underline', '|', 'bulletedList', 'numberedList', '|', 'link', 'blockQuote'],
         'height': 200,
@@ -321,3 +345,4 @@ CKEDITOR_5_CONFIGS = {
 # Upload path for CKEditor image uploads
 CKEDITOR_5_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 CKEDITOR_5_UPLOAD_PATH = 'ckeditor_uploads/'
+CKEDITOR_5_UPLOAD_FILE_TYPES = ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp', 'tiff']

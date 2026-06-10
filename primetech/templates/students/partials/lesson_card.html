@@ -1,0 +1,32 @@
+<a class="lesson-card {% if locked %}locked{% endif %}" href="{% url 'students:material_detail' course.pk mat.pk %}">
+
+  <div class="lesson-icon">
+    {% if mat.material_type == 'video' %}<i class="fas fa-play"></i>
+    {% elif mat.material_type == 'pdf' %}<i class="fas fa-file-pdf"></i>
+    {% elif mat.material_type == 'file' %}<i class="fas fa-file-arrow-down"></i>
+    {% elif mat.material_type == 'link' %}<i class="fas fa-link"></i>
+    {% else %}<i class="fas fa-file-lines"></i>{% endif %}
+  </div>
+
+  <div class="d-flex flex-column flex-grow-1">
+    <div class="lesson-title">{{ mat.title }}</div>
+    <div class="small text-muted mb-2">
+      {% if mat.material_type == 'text' %}Reading notes
+      {% elif mat.material_type == 'video' %}Video lesson
+      {% elif mat.material_type == 'pdf' %}PDF download
+      {% elif mat.material_type == 'file' %}File download
+      {% elif mat.material_type == 'link' %}External resource{% endif %}
+    </div>
+    
+    {% if mat.description %}
+      <div class="small text-muted">{{ mat.description|truncatechars:88 }}</div>
+    {% endif %}
+    <div class="mt-auto pt-2">
+      {% if mat.pk in completed_ids %}
+        <span class="badge-soft badge-done"><i class="fas fa-check-circle me-1"></i>Done</span>
+      {% else %}
+        <span class="badge-soft badge-open">Open</span>
+      {% endif %}
+    </div>
+  </div>
+</a>

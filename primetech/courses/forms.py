@@ -14,7 +14,8 @@ except ImportError:
 
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import CourseMaterial, CourseSyllabus, ClassSession, Assignment, Submission, Grade
+from django_ckeditor_5.widgets import CKEditor5Widget
+from .models import CourseModule, CourseMaterial, CourseSyllabus, ClassSession, Assignment, Submission, Grade
 
 
 # ── HTML sanitisation helper ──────────────────────────────────────────────────
@@ -30,6 +31,7 @@ _ALLOWED_TAGS = {
     'blockquote', 'pre', 'code',
     'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td',
     'a', 'img',
+    'oembed',
     'figure', 'figcaption',
     'div', 'span',
     'hr',
@@ -39,9 +41,10 @@ _ALLOWED_TAGS = {
 
 _ALLOWED_ATTRS = {
     'a':      ['href', 'title', 'target', 'rel'],
-    'img':    ['src', 'alt', 'width', 'height', 'style', 'class'],
+    'img':    ['src', 'alt', 'width', 'height', 'style', 'class', 'srcset', 'sizes'],
     'iframe': ['src', 'width', 'height', 'frameborder', 'allowfullscreen',
                'allow', 'title', 'style'],
+    'oembed': ['url'],
     'td':     ['colspan', 'rowspan', 'style'],
     'th':     ['colspan', 'rowspan', 'style'],
     'div':    ['style', 'class'],
@@ -73,17 +76,70 @@ def _sanitise_html(value: str) -> str:
 
 
 # ── CKEditor widget helper ────────────────────────────────────────────────────
-# Attaches the CKEditor class + a unique id so the JS initialiser in the
-# template can target each field individually via ClassicEditor.create().
-class CKEditorWidget(forms.Textarea):
-    """Textarea that gets styled as a full CKEditor 5 instance in the template."""
+class CKEditorWidget(CKEditor5Widget):
+    """Project wrapper around django-ckeditor-5's full WYSIWYG widget."""
     def __init__(self, editor_id, *args, **kwargs):
-        kwargs.setdefault('attrs', {})
-        kwargs['attrs'].update({
-            'class': 'ckeditor-field form-control',
+        attrs = kwargs.pop('attrs', {})
+        attrs.update({
+            'class': 'django_ckeditor_5 form-control',
             'id': editor_id,
         })
-        super().__init__(*args, **kwargs)
+        super().__init__(config_name='course_full', attrs=attrs)
+
+    def render(self, name, value, attrs=None, renderer=None):
+        attrs = {} if attrs is None else dict(attrs)
+        attrs.setdefault('id', self.attrs.get('id'))
+        return super().render(name, value, attrs=attrs, renderer=renderer)
+
+
+# ── CourseModuleForm ─────────────────────────────────────────────────────────
+
+class CourseModuleForm(forms.ModelForm):
+    """
+    Staff form to create/edit a course module.
+    Each module can have a rich-text notes body written by the instructor.
+    """
+
+    class Meta:
+        model = CourseModule
+        fields = ['title', 'description', 'notes', 'order', 'is_published']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'id': 'mod_title',
+                'placeholder': "Module title, e.g. 'Module 1: Introduction'",
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'id': 'mod_description',
+                'rows': 2,
+                'placeholder': 'Short description of this module (optional)',
+            }),
+            'notes': CKEditorWidget('mod_notes', attrs={
+                'rows': 12,
+                'placeholder': 'Write module notes here…',
+            }),
+            'order': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'id': 'mod_order',
+                'min': 0,
+            }),
+            'is_published': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+                'id': 'mod_is_published',
+            }),
+        }
+        labels = {
+            'title': 'Module Title',
+            'description': 'Short Description',
+            'notes': 'Module Notes',
+            'order': 'Display Order',
+            'is_published': 'Publish immediately (visible to students)',
+        }
+
+    def clean_notes(self):
+        notes = self.cleaned_data.get('notes', '')
+        return _sanitise_html(notes) if notes else notes
 
 
 # ── CourseMaterialForm ────────────────────────────────────────────────────────
@@ -91,48 +147,72 @@ class CKEditorWidget(forms.Textarea):
 class CourseMaterialForm(forms.ModelForm):
     """
     Staff form to add/edit course materials.
-    The 'content' field uses a full CKEditor instance that supports:
-      - Headings, bold, italic, underline, strikethrough
-      - Bullet & numbered lists
-      - Image upload (via CKFinder / simple upload adapter wired in the template)
-      - YouTube / Vimeo embed via Media Embed plugin
-      - Table insertion
-      - Code blocks
-      - Link insertion
-      - PDF / file uploads are handled as a separate model field (file)
+    Accepts a ``course`` keyword argument to populate the module dropdown
+    with only the modules belonging to that course.
     """
+
+    def __init__(self, *args, course=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if course is not None:
+            self.fields['module'].queryset = CourseModule.objects.filter(course=course)
+        else:
+            self.fields['module'].queryset = CourseModule.objects.none()
+        self.fields['module'].required = False
+        self.fields['module'].empty_label = '— No module (flat material) —'
 
     class Meta:
         model = CourseMaterial
-        fields = ['title', 'material_type', 'description', 'content', 'file', 'url', 'order', 'is_published']
+        fields = [
+            'title', 'material_type', 'module',
+            'description', 'content', 'file', 'url',
+            'order', 'is_published',
+        ]
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
+                'id': 'mat_title',
                 'placeholder': 'Material title',
             }),
             'material_type': forms.Select(attrs={
                 'class': 'form-select',
-                'id': 'materialTypeSelect',
+                'id': 'mat_type',
+            }),
+            'module': forms.Select(attrs={
+                'class': 'form-select',
+                'id': 'mat_module',
             }),
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 3,
+                'id': 'mat_description',
+                'rows': 2,
                 'placeholder': 'Brief description visible to students',
             }),
-            # Content is replaced by CKEditor in the template — kept as
-            # a textarea fallback.  The editor_id MUST match the id used
-            # in the CK_EDITOR_IDS array in the template JS.
+            # CKEditor for rich-text notes content
             'content': CKEditorWidget('materialContentEditor', attrs={
                 'rows': 10,
                 'placeholder': 'Write your notes here…',
             }),
-            'file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'file': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'id': 'mat_file',
+            }),
             'url': forms.URLInput(attrs={
                 'class': 'form-control',
+                'id': 'mat_url',
                 'placeholder': 'https://www.youtube.com/watch?v=… or https://…',
             }),
-            'order': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'is_published': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'order': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'id': 'mat_order',
+                'min': 0,
+            }),
+            'is_published': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+                'id': 'mat_is_published',
+            }),
+        }
+        labels = {
+            'module': 'Assign to Module',
         }
 
     def clean(self):

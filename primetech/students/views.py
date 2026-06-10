@@ -24,6 +24,140 @@ User = get_user_model()
 MATERIALS_PER_PAGE = 9
 
 
+def _published_modules(course):
+    from django.db.models import Prefetch
+    from courses.models import CourseModule
+    return (
+        CourseModule.objects
+        .filter(course=course, is_published=True)
+        .prefetch_related(
+            Prefetch(
+                'materials',
+                queryset=CourseMaterial.objects
+                    .filter(is_published=True)
+                    .order_by('order', 'created_at'),
+            )
+        )
+        .order_by('order', 'created_at')
+    )
+
+
+def _published_flat_materials(course):
+    return (
+        CourseMaterial.objects
+        .filter(course=course, module__isnull=True, is_published=True)
+        .order_by('order', 'created_at')
+    )
+
+
+def _completed_material_ids(student, course):
+    return set(
+        MaterialProgress.objects.filter(
+            student=student,
+            material__course=course,
+            material__is_published=True,
+            completed=True,
+        ).values_list('material_id', flat=True)
+    )
+
+
+def _module_states(course, completed_ids):
+    """Return modules with sequential lock state and completion counts."""
+    flat_ids = list(_published_flat_materials(course).values_list('pk', flat=True))
+    previous_complete = all(pk in completed_ids for pk in flat_ids)
+    states = []
+
+    for module in _published_modules(course):
+        materials = list(module.materials.all())
+        material_ids = [material.pk for material in materials]
+        completed_count = sum(1 for pk in material_ids if pk in completed_ids)
+        is_complete = bool(material_ids) and completed_count == len(material_ids)
+        states.append({
+            'module': module,
+            'materials': materials,
+            'is_locked': not previous_complete,
+            'completed_count': completed_count,
+            'total_count': len(material_ids),
+            'is_complete': is_complete,
+        })
+        previous_complete = previous_complete and all(pk in completed_ids for pk in material_ids)
+
+    return states
+
+
+def _course_material_sequence(course):
+    sequence = list(_published_flat_materials(course))
+    for module in _published_modules(course):
+        sequence.extend(list(module.materials.all()))
+    return sequence
+
+
+def _material_is_accessible(material, completed_ids):
+    if material.module_id is None:
+        return True
+
+    flat_ids = list(_published_flat_materials(material.course).values_list('pk', flat=True))
+    if not all(pk in completed_ids for pk in flat_ids):
+        return False
+
+    for state in _module_states(material.course, completed_ids):
+        if state['module'].pk == material.module_id:
+            return not state['is_locked']
+    return False
+
+
+def _video_embed_url(url):
+    if not url:
+        return None
+    url = url.strip()
+    youtube = re.search(r'(?:v=|/v/|youtu\.be/|shorts/)([\w-]{6,})', url)
+    if youtube:
+        return f'https://www.youtube.com/embed/{youtube.group(1)}'
+    vimeo = re.search(r'vimeo\.com/(?:video/)?(\d+)', url)
+    if vimeo:
+        return f'https://player.vimeo.com/video/{vimeo.group(1)}'
+    return url
+
+
+def _split_html_pages(html, current_page):
+    if not html:
+        return None, 1, 1
+
+    marker_pages = [part.strip() for part in re.split(r'<!--\s*page\s*-->', html, flags=re.IGNORECASE) if part.strip()]
+    if len(marker_pages) > 1:
+        pages = marker_pages
+    else:
+        parts = re.split(r'(</(?:p|h[1-6]|ul|ol|blockquote|pre|table|figure|div)>)', html, flags=re.IGNORECASE)
+        tokens = []
+        i = 0
+        while i < len(parts):
+            token = parts[i]
+            if i + 1 < len(parts):
+                token += parts[i + 1]
+                i += 2
+            else:
+                i += 1
+            if token.strip():
+                tokens.append(token)
+
+        pages = []
+        current = ''
+        for token in tokens:
+            current_text = re.sub('<[^<]+?>', '', current)
+            token_text = re.sub('<[^<]+?>', '', token)
+            if current and len(current_text) + len(token_text) > 2400:
+                pages.append(current)
+                current = token
+            else:
+                current += token
+        if current:
+            pages.append(current)
+
+    total_pages = max(len(pages), 1)
+    current_page = max(1, min(current_page, total_pages))
+    return pages[current_page - 1] if pages else html, total_pages, current_page
+
+
 # ── Dashboard ────────────────────────────────────────────────────
 @student_required
 def student_dashboard(request):
@@ -104,10 +238,11 @@ def my_courses(request):
 @student_required
 def course_materials(request, course_id):
     """
-    View all published materials for an enrolled course, with:
-      - Course syllabus shown as a collapsible section above the material cards
-      - Materials paginated (MATERIALS_PER_PAGE per page)
-      - Mark-as-complete POST action
+    View all published materials for an enrolled course, grouped by module.
+      - Flat materials (module=NULL) are shown first.
+      - Modules are shown in order, with their notes and grouped materials.
+      - Course syllabus is shown as a collapsible section above the content.
+      - Mark-as-complete POST action is supported.
     """
     course = get_object_or_404(Course, pk=course_id, is_active=True)
     enrollment = get_object_or_404(Enrollment, student=request.user, course=course, status='active')
@@ -117,6 +252,10 @@ def course_materials(request, course_id):
         mat_id = request.POST.get('material_id')
         if mat_id:
             material = get_object_or_404(CourseMaterial, pk=mat_id, course=course)
+            completed_ids = _completed_material_ids(request.user, course)
+            if not _material_is_accessible(material, completed_ids):
+                messages.warning(request, 'Complete the earlier module before marking this lesson complete.')
+                return redirect('students:course_materials', course_id=course_id)
             progress, _ = MaterialProgress.objects.get_or_create(
                 student=request.user,
                 material=material,
@@ -125,21 +264,9 @@ def course_materials(request, course_id):
             messages.success(request, f'"{material.title}" marked as complete.')
         return redirect('students:course_materials', course_id=course_id)
 
-    # ── Fetch materials + completed set ─────────────────────────
-    all_materials = CourseMaterial.objects.filter(course=course, is_published=True).order_by('order')
-
-    completed_ids = set(
-        MaterialProgress.objects.filter(
-            student=request.user,
-            material__course=course,
-            completed=True,
-        ).values_list('material_id', flat=True)
-    )
-
-    # ── Pagination ───────────────────────────────────────────────
-    paginator = Paginator(all_materials, MATERIALS_PER_PAGE)
-    page_number = request.GET.get('page', 1)
-    materials_page = paginator.get_page(page_number)
+    flat_materials = list(_published_flat_materials(course))
+    completed_ids = _completed_material_ids(request.user, course)
+    module_states = _module_states(course, completed_ids)
 
     # ── Syllabus (may not exist yet) ─────────────────────────────
     try:
@@ -148,20 +275,20 @@ def course_materials(request, course_id):
         syllabus = None
 
     # ── Overall progress stats ───────────────────────────────────
-    total_count = all_materials.count()
+    total_count = CourseMaterial.objects.filter(course=course, is_published=True).count()
     completed_count = len(completed_ids)
     progress_pct = int((completed_count / total_count) * 100) if total_count else 0
 
     return render(request, 'students/course_materials.html', {
         'course': course,
-        'materials': materials_page,          # paginated
+        'flat_materials': flat_materials,
+        'module_states': module_states,
         'completed_ids': completed_ids,
         'enrollment': enrollment,
         'syllabus': syllabus,
         'total_count': total_count,
         'completed_count': completed_count,
         'progress_pct': progress_pct,
-        'paginator': paginator,
     })
 
 
@@ -172,16 +299,20 @@ def material_detail(request, course_id, material_id):
     course = get_object_or_404(Course, pk=course_id, is_active=True)
     get_object_or_404(Enrollment, student=request.user, course=course, status='active')
     material = get_object_or_404(CourseMaterial, pk=material_id, course=course, is_published=True)
+    completed_ids = _completed_material_ids(request.user, course)
+
+    if not _material_is_accessible(material, completed_ids):
+        messages.warning(request, 'Complete the earlier module before opening this lesson.')
+        return redirect('students:course_materials', course_id=course_id)
 
     progress, _ = MaterialProgress.objects.get_or_create(student=request.user, material=material)
 
     # ── Previous / Next navigation ───────────────────────────────
-    all_materials = list(
-        CourseMaterial.objects.filter(course=course, is_published=True).order_by('order').values_list('pk', flat=True)
-    )
-    current_index = all_materials.index(material.pk) if material.pk in all_materials else -1
-    prev_material_id = all_materials[current_index - 1] if current_index > 0 else None
-    next_material_id = all_materials[current_index + 1] if current_index < len(all_materials) - 1 else None
+    all_materials = _course_material_sequence(course)
+    all_material_ids = [item.pk for item in all_materials]
+    current_index = all_material_ids.index(material.pk) if material.pk in all_material_ids else -1
+    prev_material_id = all_material_ids[current_index - 1] if current_index > 0 else None
+    next_material_id = all_material_ids[current_index + 1] if current_index < len(all_material_ids) - 1 else None
 
     if request.method == 'POST':
         progress.mark_complete()
@@ -200,65 +331,10 @@ def material_detail(request, course_id, material_id):
         current_page = 1
 
     if material.material_type == 'text' and material.content:
-        html = material.content
-
-        # Explicit page markers take precedence if the instructor inserts <!--page-->
-        marker_pages = [part.strip() for part in re.split(r'<!--\s*page\s*-->', html, flags=re.IGNORECASE) if part.strip()]
-        if len(marker_pages) > 1:
-            pages = marker_pages
-        else:
-            # Split HTML into tokens by block-level closing tags to preserve structure roughly
-            parts = re.split(r'(</(?:p|h[1-6]|ul|ol|li|blockquote|pre|table|figure|div)>)', html, flags=re.IGNORECASE)
-            # Recombine delimiters with their preceding part
-            tokens = []
-            i = 0
-            while i < len(parts):
-                part = parts[i]
-                if i + 1 < len(parts):
-                    part += parts[i+1]
-                    i += 2
-                else:
-                    i += 1
-                if part.strip():
-                    tokens.append(part)
-
-            # Accumulate tokens into pages by approximate character threshold
-            THRESHOLD = 2200
-            pages = []
-            cur = ''
-            for tok in tokens:
-                tok_text = re.sub('<[^<]+?>', '', tok).strip()
-                if len(re.sub('<[^<]+?>', '', cur)) + len(tok_text) > THRESHOLD and cur:
-                    pages.append(cur)
-                    cur = tok
-                else:
-                    cur += tok
-            if cur:
-                pages.append(cur)
-
-        if pages:
-            total_pages = len(pages)
-            if current_page < 1: current_page = 1
-            if current_page > total_pages: current_page = total_pages
-            page_content = pages[current_page - 1]
+        page_content, total_pages, current_page = _split_html_pages(material.content, current_page)
 
     # ── Precompute embed URL for video materials (handles common YouTube/Vimeo forms)
-    embed_url = None
-    if material.material_type == 'video' and material.url:
-        url = material.url.strip()
-        # YouTube watch URLs
-        m = re.search(r'(?:v=|/v/|youtu\.be/)([\w-]{6,})', url)
-        if m:
-            vid = m.group(1)
-            embed_url = f'https://www.youtube.com/embed/{vid}'
-        else:
-            # Vimeo patterns
-            m2 = re.search(r'vimeo\.com/(?:video/)?(\d+)', url)
-            if m2:
-                vid = m2.group(1)
-                embed_url = f'https://player.vimeo.com/video/{vid}'
-            else:
-                embed_url = url
+    embed_url = _video_embed_url(material.url) if material.material_type == 'video' else None
 
     return render(request, 'students/material_detail.html', {
         'course': course,
@@ -266,7 +342,7 @@ def material_detail(request, course_id, material_id):
         'progress': progress,
         'prev_material_id': prev_material_id,
         'next_material_id': next_material_id,
-        'total_in_course': len(all_materials),
+        'total_in_course': len(all_material_ids),
         'current_position': current_index + 1,
         'page_content': page_content,
         'total_pages': total_pages,

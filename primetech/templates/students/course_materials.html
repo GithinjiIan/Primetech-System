@@ -1,138 +1,53 @@
 {% extends "students/base.html" %}
 {% load static %}
 
-{% block title %}Course Materials{% endblock %}
+{% block title %}{{ course.title }}{% endblock %}
 {% block page_title %}Course Materials{% endblock %}
 
 {% block extra_css %}
 <style>
-  :root {
-    --brand-dark: #020617;        /* Deeper Navy */
-    --brand-navy: #0f172a;        /* Primary Navy */
-    --brand-accent: #0ea5e9;      /* Sky Blue Accent */
-    --brand-light: #f8fafc;       
-    --brand-gray: #cbd5e1;        
-    --transition-speed: 0.3s;
-    
-  }
-/* ── Material cards ──────────────────────────────────────── */
-.material-link { text-decoration:none; color:inherit; display:block; }
-.material-card { transition: transform 0.2s, box-shadow 0.2s; border-left: 4px solid transparent; }
-.material-card:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08)!important; }
-.material-card.completed { border-left-color: #10b981; }
-.material-card.pending   { border-left-color: #f59e0b; }
-.type-icon { width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:12px; font-size:1.5rem; }
-.type-video { background:#fce7f3; color:#be185d; }
-.type-pdf   { background:#fee2e2; color:#991b1b; }
-.type-file  { background:#d1fae5; color:#065f46; }
-.type-link  { background:#ede9fe; color:#5b21b6; }
-.type-text  { background:#dbeafe; color:#1d4ed8; }
-
-/* ── Progress bar strip ──────────────────────────────────── */
-.course-progress-strip {
-  background: #fff;
-  border-radius: 1rem;
-  padding: 1rem 1.25rem;
-  box-shadow: 0 1px 6px rgba(0,0,0,.06);
+:root {
+  --brand-dark: #020617;
+  --brand-navy: #0f172a;
+  --brand-accent: #0ea5e9;
+  --brand-orange: #f7941d;
+  --brand-light: #f8fafc;
+  --brand-gray: #cbd5e1;
 }
-.progress-bar-track {
-  background: #e9ecef;
-  border-radius: 999px;
-  height: 8px;
-  overflow: hidden;
-}
-.progress-bar-fill {
-  background: linear-gradient(90deg, #6366f1, #10b981);
-  height: 100%;
-  border-radius: 999px;
-  transition: width .5s ease;
-}
-
-/* ── Syllabus accordion ──────────────────────────────────── */
-.syllabus-wrapper {
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 1px 6px rgba(0,0,0,.06);
-}
-.syllabus-toggle {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  color: #fff;
-  border: none;
-  width: 100%;
-  text-align: left;
-  padding: 1rem 1.5rem;
-  font-weight: 700;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: opacity .2s;
-}
-.syllabus-toggle:hover { opacity: .92; }
-.syllabus-toggle .chevron { transition: transform .3s; }
-.syllabus-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
-
-.syllabus-body {
-  background: #fff;
-  padding: 0;             /* collapsed default */
-}
-
-/* Individual syllabus sections */
-.syl-section {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #f1f3f5;
-}
-.syl-section:last-child { border-bottom: none; }
-.syl-section-header {
-  display: flex;
-  align-items: center;
-  gap: .6rem;
-  margin-bottom: .6rem;
-}
-.syl-section-icon {
-  width: 32px; height: 32px;
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: .9rem;
-  flex-shrink: 0;
-}
-.syl-section-title {
-  font-weight: 700;
-  font-size: .9rem;
-  color: #1e293b;
-}
-.syl-section-body {
-  font-size: .875rem;
-  color: #475569;
-  line-height: 1.7;
-  padding-left: 2.6rem; /* align with title text */
-}
-/* Style rendered HTML from CKEditor inside syllabus */
-.syl-section-body h2,
-.syl-section-body h3,
-.syl-section-body h4 { font-size: 1rem; font-weight: 700; margin-top: .75rem; }
-.syl-section-body ul,
-.syl-section-body ol { padding-left: 1.4rem; }
-.syl-section-body table { width:100%; border-collapse:collapse; font-size:.8rem; }
-.syl-section-body table td,
-.syl-section-body table th { border:1px solid #dee2e6; padding:.4rem .6rem; }
-.syl-section-body figure.image img { max-width:100%; border-radius:.4rem; }
-
-/* ── Pagination ──────────────────────────────────────────── */
-.pagination .page-link {
-  border-radius: .5rem !important;
-  margin: 0 2px;
-  color: #6366f1;
-  border-color: #e5e7eb;
-  font-size: .85rem;
-}
-.pagination .page-item.active .page-link {
-  background: #6366f1;
-  border-color: #6366f1;
-  color: #fff;
-}
-.pagination .page-link:hover { background: #ede9fe; color: #6366f1; }
+.reader-shell { max-width: 1120px; margin: 0 auto; padding: 1rem; }
+.course-hero { background: var(--brand-navy); color: #fff; border-radius: 8px; padding: 1.25rem; display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
+.course-hero h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: 0; margin: 0 0 .25rem; }
+.progress-panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+.progress-track { height: 9px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--brand-accent), var(--brand-orange)); }
+.section-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 1rem; overflow: hidden; }
+.section-head { padding: 1rem 1.1rem; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.section-head h2 { font-size: 1.05rem; font-weight: 800; margin: 0; color: var(--brand-dark); letter-spacing: 0; }
+.section-body { padding: 1rem 1.1rem; }
+.syllabus-grid { display: grid; gap: 1rem; }
+.syl-block { border-left: 4px solid var(--brand-accent); background: var(--brand-light); border-radius: 0 7px 7px 0; padding: .9rem 1rem; }
+.syl-block h3 { font-size: .82rem; font-weight: 800; text-transform: uppercase; color: var(--brand-navy); margin: 0 0 .45rem; letter-spacing: .04em; }
+.module-card { background: #fff; border: 1px solid #dbe3ee; border-radius: 8px; margin-bottom: 1rem; overflow: hidden; }
+.module-head { background: var(--brand-light); padding: 1rem; display: flex; justify-content: space-between; gap: 1rem; align-items: center; border-bottom: 1px solid #e2e8f0; }
+.module-head.locked { background: #f1f5f9; color: #64748b; }
+.module-head h3 { font-size: 1.05rem; font-weight: 800; margin: 0; letter-spacing: 0; }
+.module-notes { border-left: 4px solid var(--brand-orange); background: #fff7ed; padding: .85rem 1rem; border-radius: 0 7px 7px 0; margin-bottom: 1rem; }
+.lesson-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: .85rem; }
+.lesson-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: .9rem; text-decoration: none; color: inherit; display: flex; gap: .8rem; min-height: 126px; background: #fff; }
+.lesson-card:hover { border-color: var(--brand-accent); box-shadow: 0 8px 20px rgba(2, 6, 23, .08); }
+.lesson-card.locked { pointer-events: none; background: #f8fafc; color: #94a3b8; }
+.lesson-icon { width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; background: #e0f2fe; color: #0369a1; flex: 0 0 auto; }
+.lesson-title { font-weight: 800; color: var(--brand-dark); margin-bottom: .25rem; }
+.lesson-card.locked .lesson-title { color: #64748b; }
+.badge-soft { border-radius: 999px; padding: .28rem .65rem; font-size: .74rem; font-weight: 800; }
+.badge-done { background: #dcfce7; color: #166534; }
+.badge-open { background: #e0f2fe; color: #075985; }
+.badge-lock { background: #e2e8f0; color: #475569; }
+.ck-content { color: #334155; line-height: 1.75; }
+.ck-content img { max-width: 100%; height: auto; border-radius: 8px; }
+.ck-content figure { margin: 1rem 0; }
+.ck-content iframe { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 8px; }
+.empty-state { text-align: center; padding: 3rem 1rem; color: #64748b; }
 </style>
 {% endblock %}
 
@@ -145,288 +60,105 @@
   {% endfor %}
 {% endif %}
 
-<div class="container-fluid p-3 p-md-4">
-
-  <!-- ── Course header ──────────────────────────────────────────── -->
-  <div class="d-flex align-items-center gap-3 mb-4">
-    <a href="{% url 'students:my_courses' %}"
-       class="btn btn-outline-secondary btn-sm rounded-circle"
-       style="width:36px;height:36px;padding:0;line-height:34px;">
-      <i class="fas fa-arrow-left"></i>
-    </a>
-    <div class="flex-grow-1">
-      <h2 class="h4 fw-bold mb-1">{{ course.title }}</h2>
-      <div class="text-muted small">
-        <i class="fas fa-chalkboard-user me-1"></i>
-        {{ course.assigned_instructor.get_full_name|default:"Staff" }}
-      </div>
+<div class="reader-shell">
+  <div class="course-hero">
+    <div>
+      <a href="{% url 'students:my_courses' %}" class="text-white-50 text-decoration-none small"><i class="fas fa-arrow-left me-1"></i> My courses</a>
+      <h1>{{ course.title }}</h1>
+      <div class="text-white-50 small">{{ course.assigned_instructor.get_full_name|default:"Instructor" }}</div>
+    </div>
+    <div class="text-end">
+      <div class="fw-bold">{{ progress_pct }}%</div>
+      <div class="small text-white-50">{{ completed_count }} of {{ total_count }} materials</div>
     </div>
   </div>
 
-  <!-- ── Progress strip ─────────────────────────────────────────── -->
-  <div class="course-progress-strip mb-4">
+  <div class="progress-panel">
     <div class="d-flex justify-content-between align-items-center mb-2">
-      <span class="fw-semibold" style="font-size:.875rem;">Your Progress</span>
-      <span class="badge rounded-pill px-3"
-            style="background:{% if progress_pct == 100 %}#d1fae5;color:#065f46{% else %}#ede9fe;color:#5b21b6{% endif %};">
-        {{ completed_count }} / {{ total_count }} completed
-      </span>
+      <strong>Course Progress</strong>
+      {% if progress_pct == 100 %}<span class="badge-soft badge-done">Completed</span>{% else %}<span class="badge-soft badge-open">In progress</span>{% endif %}
     </div>
-    <div class="progress-bar-track">
-      <div class="progress-bar-fill" style="width:{{ progress_pct }}%;"></div>
-    </div>
-    {% if progress_pct == 100 %}
-    <p class="text-success small mt-2 mb-0 fw-semibold">
-      <i class="fas fa-check-circle me-1"></i> You've completed all materials — great work!
-    </p>
-    {% endif %}
+    <div class="progress-track"><div class="progress-fill" style="width: {{ progress_pct }}%;"></div></div>
   </div>
 
-  <!-- ── Course Syllabus accordion ──────────────────────────────── -->
-  {% if syllabus %}
-  <div class="syllabus-wrapper mb-4">
-    <button class="syllabus-toggle" type="button"
-            data-bs-toggle="collapse" data-bs-target="#syllabusCollapse"
-            aria-expanded="false" aria-controls="syllabusCollapse">
-      <span><i class="fas fa-scroll me-2"></i> Course Syllabus</span>
-      <i class="fas fa-chevron-down chevron"></i>
-    </button>
+  <section class="section-card">
+    <div class="section-head">
+      <h2><i class="fas fa-scroll me-2 text-info"></i>Syllabus</h2>
+      <span class="badge-soft badge-open">Start here</span>
+    </div>
+    <div class="section-body">
+      {% if syllabus %}
+      <div class="syllabus-grid ck-content">
+        {% if syllabus.instructor_intro %}<div class="syl-block"><h3>Instructor Introduction</h3>{{ syllabus.instructor_intro|safe }}</div>{% endif %}
+        {% if syllabus.learning_outcomes %}<div class="syl-block"><h3>Learning Outcomes</h3>{{ syllabus.learning_outcomes|safe }}</div>{% endif %}
+        {% if syllabus.course_relevance %}<div class="syl-block"><h3>Course Relevance</h3>{{ syllabus.course_relevance|safe }}</div>{% endif %}
+        {% if syllabus.course_activities %}<div class="syl-block"><h3>Course Activities</h3>{{ syllabus.course_activities|safe }}</div>{% endif %}
+        {% if syllabus.modules_overview %}<div class="syl-block"><h3>Modules Overview</h3>{{ syllabus.modules_overview|safe }}</div>{% endif %}
+        {% if syllabus.final_project %}<div class="syl-block"><h3>Final Project</h3>{{ syllabus.final_project|safe }}</div>{% endif %}
+        {% if syllabus.certification_info %}<div class="syl-block"><h3>Certification</h3>{{ syllabus.certification_info|safe }}</div>{% endif %}
+      </div>
+      {% else %}
+      <p class="text-muted mb-0">The instructor has not published a syllabus yet.</p>
+      {% endif %}
+    </div>
+  </section>
 
-    <div class="collapse" id="syllabusCollapse">
-      <div class="syllabus-body">
-
-        <!-- Course title + instructor row -->
-        <div class="syl-section" style="background:#f8f9ff;">
-          <div class="d-flex flex-wrap gap-4 align-items-center">
-            <div>
-              <div class="text-muted" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;">Course</div>
-              <div class="fw-bold" style="font-size:1rem;">{{ course.title }}</div>
-            </div>
-            <div>
-              <div class="text-muted" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;">Instructor</div>
-              <div class="fw-bold">{{ course.assigned_instructor.get_full_name|default:"Staff" }}</div>
-            </div>
-            {% if course.category %}
-            <div>
-              <div class="text-muted" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;">Category</div>
-              <div class="fw-bold">{{ course.category }}</div>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-
-        <!-- 1. Instructor Introduction -->
-        {% if syllabus.instructor_intro %}
-        <div class="syl-section">
-          <div class="syl-section-header">
-            <div class="syl-section-icon" style="background:#ede9fe;color:#7c3aed;">
-              <i class="fas fa-user-tie"></i>
-            </div>
-            <div class="syl-section-title">Instructor Introduction</div>
-          </div>
-          <div class="syl-section-body ck-content">{{ syllabus.instructor_intro|safe }}</div>
-        </div>
-        {% endif %}
-
-        <!-- 2. Learning Outcomes -->
-        {% if syllabus.learning_outcomes %}
-        <div class="syl-section">
-          <div class="syl-section-header">
-            <div class="syl-section-icon" style="background:#dbeafe;color:#1d4ed8;">
-              <i class="fas fa-bullseye"></i>
-            </div>
-            <div class="syl-section-title">Learning Outcomes</div>
-          </div>
-          <div class="syl-section-body ck-content">{{ syllabus.learning_outcomes|safe }}</div>
-        </div>
-        {% endif %}
-
-        <!-- 3. Course Relevance -->
-        {% if syllabus.course_relevance %}
-        <div class="syl-section">
-          <div class="syl-section-header">
-            <div class="syl-section-icon" style="background:#d1fae5;color:#065f46;">
-              <i class="fas fa-globe"></i>
-            </div>
-            <div class="syl-section-title">Course Relevance</div>
-          </div>
-          <div class="syl-section-body ck-content">{{ syllabus.course_relevance|safe }}</div>
-        </div>
-        {% endif %}
-
-        <!-- 4. Course Activities -->
-        {% if syllabus.course_activities %}
-        <div class="syl-section">
-          <div class="syl-section-header">
-            <div class="syl-section-icon" style="background:#fce7f3;color:#be185d;">
-              <i class="fas fa-tasks"></i>
-            </div>
-            <div class="syl-section-title">Course Activities</div>
-          </div>
-          <div class="syl-section-body ck-content">{{ syllabus.course_activities|safe }}</div>
-        </div>
-        {% endif %}
-
-        <!-- 5. Overview of Course Modules -->
-        {% if syllabus.modules_overview %}
-        <div class="syl-section">
-          <div class="syl-section-header">
-            <div class="syl-section-icon" style="background:#fef3c7;color:#92400e;">
-              <i class="fas fa-list-ol"></i>
-            </div>
-            <div class="syl-section-title">Overview of Course Modules</div>
-          </div>
-          <div class="syl-section-body ck-content">{{ syllabus.modules_overview|safe }}</div>
-        </div>
-        {% endif %}
-
-        <!-- 6. Final Project -->
-        {% if syllabus.final_project %}
-        <div class="syl-section">
-          <div class="syl-section-header">
-            <div class="syl-section-icon" style="background:#fee2e2;color:#991b1b;">
-              <i class="fas fa-trophy"></i>
-            </div>
-            <div class="syl-section-title">Final Project and submission</div>
-          </div>
-          <div class="syl-section-body ck-content">{{ syllabus.final_project|safe }}</div>
-        </div>
-        {% endif %}
-
-        <!-- 7. Certification -->
-        {% if syllabus.certification_info %}
-        <div class="syl-section">
-          <div class="syl-section-header">
-            <div class="syl-section-icon" style="background:#ecfdf5;color:#059669;">
-              <i class="fas fa-certificate"></i>
-            </div>
-            <div class="syl-section-title">Certification</div>
-          </div>
-          <div class="syl-section-body ck-content">{{ syllabus.certification_info|safe }}</div>
-        </div>
-        {% endif %}
-
-      </div><!-- /syllabus-body -->
-    </div><!-- /collapse -->
-  </div><!-- /syllabus-wrapper -->
-  {% endif %}
-
-  <!-- ── Materials grid ─────────────────────────────────────────── -->
-  <div class="d-flex align-items-center justify-content-between mb-3">
-    <h5 class="fw-bold mb-0">
-      <i class="fas fa-layer-group me-2 text-primary opacity-75"></i>Course Materials
-    </h5>
-    {% if materials.paginator.num_pages > 1 %}
-    <span class="text-muted small">
-      Page {{ materials.number }} of {{ materials.paginator.num_pages }}
-    </span>
-    {% endif %}
+  {% if not flat_materials and not module_states %}
+  <div class="section-card empty-state">
+    <i class="fas fa-folder-open fs-1 mb-3"></i>
+    <h5 class="fw-bold">No published materials yet</h5>
+    <p class="mb-0">Your instructor will publish materials here when they are ready.</p>
   </div>
-
-  <div class="row g-4">
-    {% for mat in materials %}
-    <div class="col-md-6 col-xl-4">
-      <div class="card border-0 shadow-sm rounded-4 material-card h-100
-                  {% if mat.pk in completed_ids %}completed{% else %}pending{% endif %}">
-        <a href="{% url 'students:material_detail' course.pk mat.pk %}" class="material-link h-100 p-3">
-          <div class="d-flex gap-3 h-100">
-            <div class="flex-shrink-0">
-              <div class="type-icon type-{{ mat.material_type }}">
-                {% if mat.material_type == 'video' %}<i class="fas fa-play"></i>
-                {% elif mat.material_type == 'pdf' %}<i class="fas fa-file-pdf"></i>
-                {% elif mat.material_type == 'file' %}<i class="fas fa-file-arrow-down"></i>
-                {% elif mat.material_type == 'link' %}<i class="fas fa-link"></i>
-                {% else %}<i class="fas fa-file-lines"></i>{% endif %}
-              </div>
-            </div>
-            <div class="flex-grow-1 d-flex flex-column">
-              <h6 class="fw-bold mb-1 lh-sm">{{ mat.title }}</h6>
-              <div class="small text-muted mb-2">
-                {% if mat.material_type == 'text' %}Reading
-                {% elif mat.material_type == 'video' %}Video Lesson
-                {% elif mat.material_type == 'pdf' %}PDF Document
-                {% elif mat.material_type == 'file' %}Download
-                {% elif mat.material_type == 'link' %}External Resource{% endif %}
-              </div>
-              {% if mat.description %}
-              <p class="small text-muted mb-3"
-                 style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
-                {{ mat.description }}
-              </p>
-              {% endif %}
-              <div class="mt-auto d-flex align-items-center justify-content-between">
-                {% if mat.pk in completed_ids %}
-                  <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-1">
-                    <i class="fas fa-check-circle me-1"></i> Completed
-                  </span>
-                {% else %}
-                  <form method="post" onclick="event.stopPropagation();" class="m-0">
-                    {% csrf_token %}
-                    <input type="hidden" name="material_id" value="{{ mat.pk }}">
-                    <button type="submit" class="btn btn-sm btn-light border rounded-pill px-3 py-1"
-                            style="font-size:.8rem;">
-                      Mark complete
-                    </button>
-                  </form>
-                {% endif %}
-                <span class="text-primary small fw-semibold">
-                  View <i class="fas fa-arrow-right ms-1"></i>
-                </span>
-              </div>
-            </div>
-          </div>
-        </a>
-      </div>
-    </div>
-    {% empty %}
-    <div class="col-12 text-center py-5">
-      <div class="text-muted">
-        <i class="fas fa-folder-open fs-1 mb-3 text-secondary opacity-50"></i>
-        <h5>No materials available yet</h5>
-        <p>Your instructor hasn't published any materials for this course yet.</p>
-      </div>
-    </div>
-    {% endfor %}
-  </div><!-- /row -->
-
-  <!-- ── Pagination controls ────────────────────────────────────── -->
-  {% if materials.paginator.num_pages > 1 %}
-  <nav class="mt-5 d-flex justify-content-center" aria-label="Materials pages">
-    <ul class="pagination">
-      {% if materials.has_previous %}
-      <li class="page-item">
-        <a class="page-link" href="?page={{ materials.previous_page_number }}">
-          <i class="fas fa-chevron-left"></i>
-        </a>
-      </li>
-      {% else %}
-      <li class="page-item disabled">
-        <span class="page-link"><i class="fas fa-chevron-left"></i></span>
-      </li>
-      {% endif %}
-
-      {% for num in materials.paginator.page_range %}
-        {% if materials.number == num %}
-        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-        {% elif num > materials.number|add:"-3" and num < materials.number|add:"3" %}
-        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-        {% endif %}
-      {% endfor %}
-
-      {% if materials.has_next %}
-      <li class="page-item">
-        <a class="page-link" href="?page={{ materials.next_page_number }}">
-          <i class="fas fa-chevron-right"></i>
-        </a>
-      </li>
-      {% else %}
-      <li class="page-item disabled">
-        <span class="page-link"><i class="fas fa-chevron-right"></i></span>
-      </li>
-      {% endif %}
-    </ul>
-  </nav>
   {% endif %}
 
-</div><!-- /container-fluid -->
+  {% if flat_materials %}
+  <section class="section-card">
+    <div class="section-head">
+      <h2>General Materials</h2>
+      <span class="badge-soft badge-open">{{ flat_materials|length }} item{{ flat_materials|length|pluralize }}</span>
+    </div>
+    <div class="section-body">
+      <div class="lesson-grid">
+        {% for mat in flat_materials %}
+          {% include "students/partials/lesson_card.html" with mat=mat course=course completed_ids=completed_ids locked=False %}
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% for state in module_states %}
+  <article class="module-card">
+    <div class="module-head {% if state.is_locked %}locked{% endif %}">
+      <div>
+        <h3>{% if state.is_locked %}<i class="fas fa-lock me-2"></i>{% else %}<i class="fas fa-folder-open me-2 text-info"></i>{% endif %}{{ state.module.title }}</h3>
+        {% if state.module.description %}<div class="small text-muted">{{ state.module.description }}</div>{% endif %}
+      </div>
+      {% if state.is_locked %}
+        <span class="badge-soft badge-lock">Locked</span>
+      {% elif state.is_complete %}
+        <span class="badge-soft badge-done">Complete</span>
+      {% else %}
+        <span class="badge-soft badge-open">{{ state.completed_count }} / {{ state.total_count }}</span>
+      {% endif %}
+    </div>
+    <div class="section-body">
+      {% if state.module.notes %}
+      <div class="module-notes ck-content">{{ state.module.notes|safe }}</div>
+      {% endif %}
+      {% if state.is_locked %}
+        <p class="text-muted mb-0">Complete the previous module before opening these lessons.</p>
+      {% else %}
+        <div class="lesson-grid">
+          {% for mat in state.materials %}
+            {% include "students/partials/lesson_card.html" with mat=mat course=course completed_ids=completed_ids locked=False %}
+          {% empty %}
+            <p class="text-muted mb-0">No materials in this module yet.</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </article>
+  {% endfor %}
+</div>
 {% endblock %}

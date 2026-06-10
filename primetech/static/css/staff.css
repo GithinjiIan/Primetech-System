@@ -2,19 +2,10 @@
    PrimeTech LMS — Staff Panel CSS
    ============================================================ */
 
-/* ---------- Tokens ---------- */
+/* Use shared theme variables from custom.css and provide a few view-specific mappings */
 :root {
-    --brand-dark:    #020617;
-    --brand-navy:    #0f172a;
-    --brand-accent:  #0ea5e9;          /* sky-500 */
-    --brand-accent-hover: #0284c7;     /* sky-600 */
-    --brand-accent-soft:  #e0f2fe;     /* sky-100 */
-    --brand-accent-muted: rgba(14,165,233,.12);
-    --brand-light:   #f8fafc;
-    --brand-gray:    #cbd5e1;
-    --brand-text:    #0f172a;
-    --brand-muted:   #64748b;
-
+    --primary: var(--sidebar-staff-bg); /* solid dark sidebar for staff */
+    --brand-accent-soft:  #e0f2fe; /* light accent for card/icon backgrounds */
     --sidebar-w:     260px;
     --topbar-h:      60px;
     --radius-card:   14px;
@@ -50,7 +41,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ---------- Sidebar ---------- */
 .staff-sidebar {
     width: var(--sidebar-w);
-    background: var(--primary);
+    background-color: var(--primary); /* maps to --sidebar-staff-bg via :root above */
     display: flex;
     flex-direction: column;
     position: sticky;
@@ -81,7 +72,7 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 1rem;
     font-weight: 900;
     letter-spacing: -0.01em;
-    color: #fff;
+    color: var(--text-on-dark);
 }
 
 /* Nav */
@@ -94,7 +85,7 @@ h1, h2, h3, h4, h5, h6 {
     gap: 10px;
     padding: 10px 14px;
     border-radius: var(--radius-sm);
-    color: rgba(255,255,255,.65);
+    color: rgba(255,255,255,.85);
     font-size: .875rem;
     font-weight: 500;
     transition: background var(--transition), color var(--transition);
@@ -109,14 +100,14 @@ h1, h2, h3, h4, h5, h6 {
     flex-shrink: 0;
 }
 .sidebar-nav .nav-link:hover {
-    background: rgba(255,255,255,.07);
-    color: #fff;
+    background: rgba(255,255,255,.06);
+    color: var(--text-on-dark);
 }
 .sidebar-nav .nav-link.active {
-    background: var(--brand-accent-muted);
+    background: rgba(14,165,233,0.12);
     color: var(--brand-accent);
     border-left-color: var(--brand-accent);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 /* Section label */
@@ -141,9 +132,9 @@ h1, h2, h3, h4, h5, h6 {
     width: 100%;
     padding: 9px 14px;
     border-radius: var(--radius-sm);
-    background: rgba(255,255,255,.06);
-    border: 1px solid rgba(255,255,255,.1);
-    color: rgba(255,255,255,.7);
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    color: rgba(255,255,255,.85);
     font-size: .85rem;
     font-weight: 500;
     transition: background var(--transition), color var(--transition);
@@ -151,9 +142,9 @@ h1, h2, h3, h4, h5, h6 {
     text-decoration: none;
 }
 .sidebar-footer .btn-logout:hover {
-    background: rgba(239,68,68,.15);
-    border-color: rgba(239,68,68,.3);
-    color: #fca5a5;
+    background: rgba(255,255,255,.08);
+    border-color: rgba(255,255,255,.12);
+    color: #fff;
 }
 
 /* ---------- Main Content ---------- */
@@ -162,7 +153,7 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     flex-direction: column;
     min-width: 0;
-    background: #edf6ff;
+    background: var(--brand-light);
 }
 
 /* ---------- Top Navbar ---------- */
