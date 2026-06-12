@@ -43,6 +43,8 @@
 .badge-done { background: #dcfce7; color: #166534; }
 .badge-open { background: #e0f2fe; color: #075985; }
 .badge-lock { background: #e2e8f0; color: #475569; }
+.transition-icon { transition: transform .3s ease; }
+[aria-expanded="true"] .transition-icon { transform: rotate(180deg); }
 .ck-content { color: #334155; line-height: 1.75; }
 .ck-content img { max-width: 100%; height: auto; border-radius: 8px; }
 .ck-content figure { margin: 1rem 0; }
@@ -60,10 +62,10 @@
   {% endfor %}
 {% endif %}
 
-<div class="reader-shell">
+<div class="reader-shell container-fluid">
   <div class="course-hero">
     <div>
-      <a href="{% url 'students:my_courses' %}" class="text-white-50 text-decoration-none small"><i class="fas fa-arrow-left me-1"></i> My courses</a>
+      <a href="{% url 'students:my_courses' %}" class="text-white text-decoration-none small"><i class="fas fa-arrow-left me-1"></i> Back to courses</a>
       <h1>{{ course.title }}</h1>
       <div class="text-white-50 small">{{ course.assigned_instructor.get_full_name|default:"Instructor" }}</div>
     </div>
@@ -83,10 +85,15 @@
 
   <section class="section-card">
     <div class="section-head">
-      <h2><i class="fas fa-scroll me-2 text-info"></i>Syllabus</h2>
-      <span class="badge-soft badge-open">Start here</span>
+      <div class="d-flex align-items-center gap-2">
+        <h2><i class="fas fa-scroll me-2 text-info"></i>Course Outline</h2>
+        <span class="badge-soft badge-open">Start here</span>
+      </div>
+      <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#syllabusCollapse" aria-expanded="false" aria-controls="syllabusCollapse">
+        <i class="fas fa-chevron-down me-1"></i> View summary
+      </button>
     </div>
-    <div class="section-body">
+    <div id="syllabusCollapse" class="section-body collapse">
       {% if syllabus %}
       <div class="syllabus-grid ck-content">
         {% if syllabus.instructor_intro %}<div class="syl-block"><h3>Instructor Introduction</h3>{{ syllabus.instructor_intro|safe }}</div>{% endif %}
@@ -98,7 +105,7 @@
         {% if syllabus.certification_info %}<div class="syl-block"><h3>Certification</h3>{{ syllabus.certification_info|safe }}</div>{% endif %}
       </div>
       {% else %}
-      <p class="text-muted mb-0">The instructor has not published a syllabus yet.</p>
+      <p class="text-muted mb-0">The instructor has not published a Course Outline yet.</p>
       {% endif %}
     </div>
   </section>
@@ -130,33 +137,51 @@
   {% for state in module_states %}
   <article class="module-card">
     <div class="module-head {% if state.is_locked %}locked{% endif %}">
-      <div>
-        <h3>{% if state.is_locked %}<i class="fas fa-lock me-2"></i>{% else %}<i class="fas fa-folder-open me-2 text-info"></i>{% endif %}{{ state.module.title }}</h3>
-        {% if state.module.description %}<div class="small text-muted">{{ state.module.description }}</div>{% endif %}
-      </div>
-      {% if state.is_locked %}
-        <span class="badge-soft badge-lock">Locked</span>
-      {% elif state.is_complete %}
-        <span class="badge-soft badge-done">Complete</span>
-      {% else %}
-        <span class="badge-soft badge-open">{{ state.completed_count }} / {{ state.total_count }}</span>
-      {% endif %}
-    </div>
-    <div class="section-body">
-      {% if state.module.notes %}
-      <div class="module-notes ck-content">{{ state.module.notes|safe }}</div>
-      {% endif %}
-      {% if state.is_locked %}
-        <p class="text-muted mb-0">Complete the previous module before opening these lessons.</p>
-      {% else %}
-        <div class="lesson-grid">
-          {% for mat in state.materials %}
-            {% include "students/partials/lesson_card.html" with mat=mat course=course completed_ids=completed_ids locked=False %}
-          {% empty %}
-            <p class="text-muted mb-0">No materials in this module yet.</p>
-          {% endfor %}
+      <button class="w-100 border-0 bg-transparent text-start d-flex justify-content-between align-items-center p-0" 
+              type="button" 
+              {% if not state.is_locked %}data-bs-toggle="collapse" data-bs-target="#moduleContent{{ state.module.pk }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"{% endif %}>
+        <div>
+          <h3 class="mb-1">
+            {% if state.is_locked %}
+              <i class="fas fa-lock me-2 text-muted"></i>
+            {% else %}
+              <i class="fas fa-folder-open me-2 text-info"></i>
+            {% endif %}
+            {{ state.module.title }}
+          </h3>
+          {% if state.module.description %}<div class="small text-muted">{{ state.module.description }}</div>{% endif %}
         </div>
-      {% endif %}
+        <div class="d-flex align-items-center gap-3">
+          {% if state.is_locked %}
+            <span class="badge-soft badge-lock">Locked</span>
+          {% elif state.is_complete %}
+            <span class="badge-soft badge-done"><i class="fas fa-check-circle me-1"></i>Complete</span>
+          {% else %}
+            <span class="badge-soft badge-open">{{ state.completed_count }} / {{ state.total_count }}</span>
+          {% endif %}
+          {% if not state.is_locked %}
+            <i class="fas fa-chevron-down transition-icon"></i>
+          {% endif %}
+        </div>
+      </button>
+    </div>
+    <div id="moduleContent{{ state.module.pk }}" class="collapse {% if not state.is_locked and forloop.first %}show{% endif %}">
+      <div class="section-body">
+        {% if state.module.notes %}
+        <div class="module-notes ck-content">{{ state.module.notes|safe }}</div>
+        {% endif %}
+        {% if state.is_locked %}
+          <p class="text-muted mb-0"><i class="fas fa-info-circle me-1"></i> Complete the previous module to unlock these lessons.</p>
+        {% else %}
+          <div class="lesson-grid">
+            {% for mat in state.materials %}
+              {% include "students/partials/lesson_card.html" with mat=mat course=course completed_ids=completed_ids locked=False %}
+            {% empty %}
+              <p class="text-muted mb-0">No materials in this module yet.</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
     </div>
   </article>
   {% endfor %}

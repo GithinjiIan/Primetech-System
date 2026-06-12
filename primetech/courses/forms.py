@@ -116,8 +116,8 @@ class CourseModuleForm(forms.ModelForm):
                 'placeholder': 'Short description of this module (optional)',
             }),
             'notes': CKEditorWidget('mod_notes', attrs={
-                'rows': 12,
-                'placeholder': 'Write module notes here…',
+                'rows': 6,
+                'placeholder': 'What does the module entails ',
             }),
             'order': forms.NumberInput(attrs={
                 'class': 'form-control',

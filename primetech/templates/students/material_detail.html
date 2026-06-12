@@ -14,7 +14,7 @@
   --brand-light: #f8fafc;
   --brand-gray: #cbd5e1;
 }
-.lesson-shell { max-width: 940px; margin: 0 auto; padding: 1rem; }
+.lesson-shell { max-width: ; margin: 0 auto; padding: 1rem; }
 .lesson-top { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-bottom: 1rem; }
 .lesson-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
 .lesson-header { background: var(--brand-navy); color: #fff; padding: 1.25rem; }
@@ -53,7 +53,7 @@
   {% endfor %}
 {% endif %}
 
-<div class="lesson-shell">
+<div class="lesson-shell container-fluid">
   <div class="lesson-top">
     <a href="{% url 'students:course_materials' course.pk %}" class="reader-btn"><i class="fas fa-arrow-left"></i> Course outline</a>
     {% if total_in_course %}<span class="position-pill">{{ current_position }} of {{ total_in_course }}</span>{% endif %}
@@ -125,26 +125,45 @@
     </div>
 
     <footer class="nav-footer">
+      {% comment "" %}
       {% if prev_material_id %}
         <a class="reader-btn" href="{% url 'students:material_detail' course.pk prev_material_id %}"><i class="fas fa-chevron-left"></i> Previous</a>
       {% else %}
         <span class="reader-btn disabled"><i class="fas fa-chevron-left"></i> Previous</span>
       {% endif %}
+      {% endcomment %}
 
       {% if not progress.completed %}
-      <form method="post" class="m-0">
-        {% csrf_token %}
-        <button class="complete-btn"><i class="fas fa-check me-2"></i>Mark Complete</button>
-      </form>
+        {% if current_page == total_pages %}
+          <form method="post" class="m-0">
+            {% csrf_token %}
+            <input type="hidden" name="page" value="{{ current_page }}">
+            <button class="complete-btn">
+              <i class="fas fa-check-double me-2"></i>
+              {% if not next_material_id %}Complete Course{% else %}Mark as Complete{% endif %}
+            </button>
+          </form>
+        {% else %}
+          <div class="alert alert-info py-2 px-3 mb-0 small border-0 shadow-sm" style="background: #e0f2fe; color: #0369a1;">
+            <i class="fas fa-info-circle me-2"></i> Finish all pages before marking this lesson complete.
+          </div>
+        {% endif %}
       {% else %}
-        <span class="reader-btn disabled"><i class="fas fa-check-circle"></i> Completed</span>
+        <div class="d-flex align-items-center gap-2">
+           <span class="badge bg-success py-2 px-3 rounded-3"><i class="fas fa-check-circle me-1"></i> Completed</span>
+           {% if next_material_id %}
+             <a href="{% url 'students:material_detail' course.pk next_material_id %}" class="btn btn-brand btn-sm fw-bold">Next Lesson <i class="fas fa-arrow-right ms-1"></i></a>
+           {% endif %}
+        </div>
       {% endif %}
 
+      {% comment "" %}
       {% if next_material_id %}
         <a class="reader-btn" href="{% url 'students:material_detail' course.pk next_material_id %}">Next <i class="fas fa-chevron-right"></i></a>
       {% else %}
         <span class="reader-btn disabled">Next <i class="fas fa-chevron-right"></i></span>
       {% endif %}
+      {% endcomment %}
     </footer>
   </article>
 </div>

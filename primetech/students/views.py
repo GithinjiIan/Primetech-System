@@ -316,6 +316,15 @@ def material_detail(request, course_id, material_id):
 
     if request.method == 'POST':
         progress.mark_complete()
+        
+        # If this is the last material in the entire course sequence, mark enrollment as completed
+        if not next_material_id:
+            enrollment = get_object_or_404(Enrollment, student=request.user, course=course, status='active')
+            enrollment.status = 'completed'
+            enrollment.save()
+            messages.success(request, f'Congratulations! You have completed the course "{course.title}".')
+            return redirect('students:my_courses')
+
         messages.success(request, f'"{material.title}" marked as complete!')
         # Go to next material if available, else back to list
         if next_material_id:

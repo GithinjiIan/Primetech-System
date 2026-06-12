@@ -16,12 +16,17 @@
   --brand-light: #f8fafc;
   --brand-gray: #cbd5e1;
 }
-.course-shell { display: grid; grid-template-columns: 260px 1fr; gap: 1.25rem; }
-.course-list { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: .6rem; }
-.course-link { display: block; padding: .75rem .85rem; border-radius: 7px; color: #334155; text-decoration: none; font-weight: 700; font-size: .88rem; }
-.course-link:hover, .course-link.active { background: var(--brand-light); color: var(--brand-accent); }
+.course-shell { display: grid; grid-template-columns: 320px 1fr; gap: 1.25rem; }
+.course-list { display: grid; gap: .9rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; }
+.course-entry { display: flex; flex-direction: column; gap: .35rem; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; transition: border-color .2s ease, box-shadow .2s ease; }
+.course-entry:hover { border-color: var(--brand-accent); box-shadow: 0 12px 24px rgba(14,165,233,.12); }
+.course-entry.active { border-color: var(--brand-accent); box-shadow: 0 12px 24px rgba(14,165,233,.18); }
+.course-entry-title { font-weight: 800; color: #0f172a; text-decoration: none; }
+.course-entry-meta { color: #64748b; font-size: .83rem; }
+.course-entry-status { font-size: .78rem; font-weight: 700; color: #475569; }
+.course-link { display: block; }
 .workspace { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
-.workspace-head { background: var(--brand-navy); color: #fff; padding: 1rem 1.15rem; }
+.workspace-head { background: var(--brand-navy); color: #fff; padding: 1rem 1.15rem; border-radius: 7px; }
 .workspace-head h2 { font-size: 1.15rem; margin: 0; font-weight: 800; letter-spacing: 0; }
 .workspace-body { padding: 1.15rem; background: #f8fafc; }
 .nav-pills .nav-link { border-radius: 7px; color: #475569; font-weight: 800; }
@@ -36,17 +41,22 @@
 .content-icon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 8px; background: #e0f2fe; color: #0369a1; flex: 0 0 auto; }
 .content-title { font-weight: 800; color: var(--brand-dark); }
 .content-meta { color: #64748b; font-size: .82rem; }
-.module-card { background: #fff; border: 1px solid #dbe3ee; border-radius: 8px; margin-bottom: 1rem; overflow: hidden; }
-.module-header { background: var(--brand-navy); color: #fff; padding: .9rem 1rem; display: flex; align-items: center; gap: .75rem; justify-content: space-between; }
-.module-header h3 { font-size: 1rem; margin: 0; font-weight: 800; letter-spacing: 0; }
+..module-card { background: #fff; border: 1px solid #dbe3ee; border-radius: 8px; margin-bottom: 1rem; overflow: hidden; }
+.module-header { background: var(--brand-navy); color: #fff; padding: 0; display: flex; flex-direction: column; }
+.module-toggle { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; color: inherit; background: transparent; border: 0; text-align: left; padding: 1rem; }
+.module-toggle:hover { text-decoration: none; }
+.module-toggle h3 { font-size: 1rem; margin: 0; font-weight: 800; letter-spacing: 0; }
+.module-toggle .small { color: rgba(255,255,255,.75); }
+.module-toggle-icon { min-width: 24px; display: grid; place-items: center; transition: transform .25s ease; }
+.module-toggle:not(.collapsed) .module-toggle-icon { transform: rotate(180deg); }
 .module-body { padding: 1rem; }
 .module-notes { background: #f8fafc; border-left: 4px solid var(--brand-accent); padding: .75rem .9rem; border-radius: 0 7px 7px 0; margin-bottom: .85rem; color: #334155; font-size: .9rem; }
 .draft-badge { background: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
 .published-badge { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-.syllabus-grid { display: grid; gap: 1rem; }
-.syllabus-section { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; }
-.syllabus-section label { color: var(--brand-navy); font-weight: 800; margin-bottom: .5rem; }
-.django-ckeditor-widget, .ck-editor { width: 100% !important; }
+.syllabus-grid { display: flex; flex-direction: column; gap: 1.25rem; width: 100%; }
+.syllabus-section { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem; width: 100%; box-sizing: border-box; }
+.syllabus-section label { color: var(--brand-navy); font-weight: 800; margin-bottom: .75rem; display: block; }
+.django-ckeditor-widget, .ck-editor { width: 100% !important; max-width: 100% !important; display: block; }
 .ck-editor__editable { min-height: 260px; line-height: 1.65; }
 .modal-xl .ck-editor__editable { min-height: 340px; }
 .modal-body .ck-editor__editable { max-height: 300px; overflow-y: auto; }
@@ -87,23 +97,17 @@
   </select>
 </div>
 
-<div class="course-shell">
-  <aside class="course-list">
-    {% for c in allocated_courses %}
-      <a class="course-link {% if selected_course.pk == c.pk %}active{% endif %}" href="?course_id={{ c.pk }}">
-        {{ c.title }}
-        <div class="small text-muted fw-normal">{{ c.category|default:"Course" }}</div>
+<div class="workspace-container">
+  {% if selected_course %}
+  <main class="container-fluid workspace p-0">
+    <div class="workspace-head d-flex justify-content-between align-items-center">
+      <div>
+        <h2>{{ selected_course.title }}</h2>
+        <div class="small text-white-50">Manage modules, materials, and course syllabus.</div>
+      </div>
+      <a href="{% url 'staff:courses_setup' %}" class="btn btn-outline-light btn-sm fw-bold">
+        <i class="fas fa-th-list me-1"></i> Back to Course List
       </a>
-    {% empty %}
-      <p class="text-muted small p-2 mb-0">No courses assigned yet.</p>
-    {% endfor %}
-  </aside>
-
-  <main class="workspace">
-    {% if selected_course %}
-    <div class="workspace-head">
-      <h2>{{ selected_course.title }}</h2>
-      <div class="small text-white-50">Build the syllabus first, then publish weekly modules and learning materials.</div>
     </div>
     <div class="workspace-body">
       <ul class="nav nav-pills gap-2 mb-3">
@@ -122,70 +126,80 @@
       <div class="tab-content">
         <section class="tab-pane fade {% if active_tab != 'syllabus' %}show active{% endif %}" id="materialsTab">
           <div class="toolbar">
-            <div class="text-muted small">Published modules unlock sequentially for learners.</div>
+            <div class="text-muted small">Organize your course content into modules or add general materials.</div>
             <div class="d-flex gap-2">
               <button class="btn btn-orange btn-sm" data-bs-toggle="modal" data-bs-target="#moduleModal" id="newModuleBtn">
-                <i class="fas fa-folder-plus me-1"></i> Module
+                <i class="fas fa-folder-plus me-1"></i> New Module
               </button>
               <button class="btn btn-brand btn-sm" data-bs-toggle="modal" data-bs-target="#materialModal" id="newMaterialBtn">
-                <i class="fas fa-plus me-1"></i> Material
+                <i class="fas fa-plus me-1"></i> New Material
               </button>
             </div>
           </div>
 
           {% if flat_materials %}
-          <h6 class="text-uppercase text-muted fw-bold small">General Materials</h6>
-          {% for mat in flat_materials %}
-            {% include "staff/partials/material_row.html" with mat=mat selected_course=selected_course %}
-          {% endfor %}
+          <div class="mb-4">
+            <h6 class="text-uppercase text-muted fw-bold small mb-3">General Materials (Not in Modules)</h6>
+            {% for mat in flat_materials %}
+              {% include "staff/partials/material_row.html" with mat=mat selected_course=selected_course %}
+            {% endfor %}
+          </div>
           {% endif %}
 
-          {% for mod in modules %}
-          <article class="module-card">
-            <div class="module-header">
-              <div>
-                <h3>{{ mod.title }}</h3>
-                <div class="small text-white-50">Order {{ mod.order }}{% if mod.description %} · {{ mod.description }}{% endif %}</div>
+          <div class="modules-section">
+            <h6 class="text-uppercase text-muted fw-bold small mb-3">Course Modules</h6>
+            {% for mod in modules %}
+            <article class="module-card">
+              <div class="module-header">
+                <button class="module-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#moduleBody{{ mod.pk }}" aria-expanded="false" aria-controls="moduleBody{{ mod.pk }}">
+                  <div>
+                    <h3>{{ mod.title }}</h3>
+                    <div class="small text-white-50">Order {{ mod.order }}{% if mod.description %} · {{ mod.description }}{% endif %}</div>
+                  </div>
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="badge {% if mod.is_published %}published-badge{% else %}draft-badge{% endif %}">
+                      {% if mod.is_published %}Published{% else %}Draft{% endif %}
+                    </span>
+                    <span class="module-toggle-icon"><i class="fas fa-chevron-down"></i></span>
+                  </div>
+                </button>
+                <div class="module-actions px-3 pb-2 d-flex gap-2">
+                  <a class="btn btn-sm btn-outline-light" href="?course_id={{ selected_course.pk }}&edit_module={{ mod.pk }}&tab=materials" title="Edit module">
+                    <i class="fas fa-pencil me-1"></i> Edit
+                  </a>
+                  <form method="post" onsubmit="return confirm('Delete this module and all its materials?')" class="m-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_module">
+                    <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
+                    <input type="hidden" name="module_id" value="{{ mod.pk }}">
+                    <button class="btn btn-sm btn-outline-light" title="Delete module"><i class="fas fa-trash me-1"></i> Delete</button>
+                  </form>
+                </div>
               </div>
-              <div class="d-flex align-items-center gap-2">
-                <span class="badge {% if mod.is_published %}published-badge{% else %}draft-badge{% endif %}">
-                  {% if mod.is_published %}Published{% else %}Draft{% endif %}
-                </span>
-                <a class="btn btn-sm btn-outline-light" href="?course_id={{ selected_course.pk }}&edit_module={{ mod.pk }}&tab=materials" title="Edit module">
-                  <i class="fas fa-pencil"></i>
-                </a>
-                <form method="post" onsubmit="return confirm('Delete this module and all its materials?')" class="m-0">
-                  {% csrf_token %}
-                  <input type="hidden" name="action" value="delete_module">
-                  <input type="hidden" name="course_id" value="{{ selected_course.pk }}">
-                  <input type="hidden" name="module_id" value="{{ mod.pk }}">
-                  <button class="btn btn-sm btn-outline-light" title="Delete module"><i class="fas fa-trash"></i></button>
-                </form>
+              <div id="moduleBody{{ mod.pk }}" class="module-body collapse">
+                {% if mod.notes %}
+                <div class="module-notes ck-content">{{ mod.notes|safe }}</div>
+                {% endif %}
+                <button class="btn btn-sm btn-outline-primary mb-3" type="button" onclick="assignModule('{{ mod.pk }}')">
+                  <i class="fas fa-plus me-1"></i> Add material to this module
+                </button>
+                {% for mat in mod.materials.all %}
+                  {% include "staff/partials/material_row.html" with mat=mat selected_course=selected_course %}
+                {% empty %}
+                  <p class="text-muted small mb-0">No materials inside this module yet.</p>
+                {% endfor %}
               </div>
-            </div>
-            <div class="module-body">
-              {% if mod.notes %}
-              <div class="module-notes ck-content">{{ mod.notes|safe }}</div>
+            </article>
+            {% empty %}
+              {% if not flat_materials %}
+              <div class="content-card text-center py-5">
+                <i class="fas fa-folder-open fs-1 text-muted mb-3 opacity-25"></i>
+                <h5 class="fw-bold">No modules yet</h5>
+                <p class="text-muted mb-0">Start by creating a module to organize your content.</p>
+              </div>
               {% endif %}
-              <button class="btn btn-sm btn-outline-primary mb-3" type="button" onclick="assignModule('{{ mod.pk }}')">
-                <i class="fas fa-plus me-1"></i> Add material here
-              </button>
-              {% for mat in mod.materials.all %}
-                {% include "staff/partials/material_row.html" with mat=mat selected_course=selected_course %}
-              {% empty %}
-                <p class="text-muted small mb-0">No materials inside this module yet.</p>
-              {% endfor %}
-            </div>
-          </article>
-          {% empty %}
-            {% if not flat_materials %}
-            <div class="content-card text-center py-5">
-              <i class="fas fa-folder-open fs-1 text-muted mb-3"></i>
-              <h5 class="fw-bold">No content yet</h5>
-              <p class="text-muted mb-0">Create a syllabus, then add the first module or material.</p>
-            </div>
-            {% endif %}
-          {% endfor %}
+            {% endfor %}
+          </div>
         </section>
 
         <section class="tab-pane fade {% if active_tab == 'syllabus' %}show active{% endif %}" id="syllabusTab">
@@ -200,22 +214,55 @@
               {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
             </div>
             {% endfor %}
-            <div class="d-flex justify-content-end">
-              <button class="btn btn-brand px-4"><i class="fas fa-save me-1"></i> Save Syllabus</button>
+            <div class="d-flex justify-content-end mt-4">
+              <button class="btn btn-brand px-5 py-2 fw-bold"><i class="fas fa-save me-2"></i> Save Syllabus</button>
             </div>
           </form>
         </section>
       </div>
     </div>
     {% else %}
-    <div class="workspace-body text-center py-5">
-      <i class="fas fa-book-open fs-1 text-muted mb-3"></i>
-      <h5 class="fw-bold">Choose a course</h5>
-      <p class="text-muted mb-0">Select an assigned course to manage its syllabus and content.</p>
+    <div class="py-4 px-3">
+      <div class="mb-4">
+        <h2 class="fw-bold mb-1">Course Management</h2>
+        <p class="text-muted mb-0">Select a course to manage its content, modules, and syllabus.</p>
+      </div>
+
+      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+        {% for c in allocated_courses %}
+        <div class="col">
+          <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden hover-lift" style="border: 1px solid #e2e8f0 !important;">
+            <div class="card-body p-4 d-flex flex-column">
+              <div class="mb-3">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-4 d-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                  <i class="fas fa-book-open fs-3"></i>
+                </div>
+                <h4 class="fw-bold mb-2">{{ c.title }}</h4>
+                <div class="d-flex flex-wrap gap-2 text-muted small mb-3">
+                  <span class="badge bg-light text-dark border"><i class="fas fa-tag me-1 text-muted"></i> {{ c.category|default:"General" }}</span>
+                  <span class="badge bg-light text-dark border"><i class="fas fa-signal me-1 text-muted"></i> {{ c.level|title }}</span>
+                </div>
+                <p class="text-muted small line-clamp-2 mb-0">{{ c.description|striptags|truncatechars:100 }}</p>
+              </div>
+              <div class="mt-auto pt-3 border-top">
+                <a href="?course_id={{ c.pk }}" class="btn btn-brand w-100 py-2 rounded-3 fw-bold">
+                  Set up Course <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+          <i class="fas fa-book-open fs-1 text-muted mb-3 opacity-25"></i>
+          <h5 class="fw-bold">No courses assigned</h5>
+          <p class="text-muted mb-0">You don't have any active courses assigned to you at the moment.</p>
+        </div>
+        {% endfor %}
+      </div>
     </div>
     {% endif %}
-  </main>
-</div>
+  </div>
 
 {% if selected_course %}
 <div class="modal fade" id="moduleModal" tabindex="-1" aria-hidden="true">
@@ -333,6 +380,12 @@ document.addEventListener('DOMContentLoaded', () => {
   moduleModalEl?.addEventListener('hide.bs.modal', () => restoreModalFocus(moduleModalEl));
 
   refreshMaterialFields();
+  document.querySelectorAll('.module-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const icon = btn.querySelector('.module-toggle-icon i');
+      if (icon) icon.classList.toggle('fa-rotate-180');
+    });
+  });
   {% if show_material_modal %}new bootstrap.Modal(document.getElementById('materialModal')).show();{% endif %}
   {% if show_module_modal %}new bootstrap.Modal(document.getElementById('moduleModal')).show();{% endif %}
 });
